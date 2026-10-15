@@ -354,6 +354,9 @@
 #keyGo { padding:8px 12px; background:#3498db; color:#fff; border:0; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; }
 #keyGo:disabled { opacity:.6; cursor:wait; }
 #keyWelcome { padding:8px 12px; background:#2b2d31; color:#f2f3f5; border:1px solid #4e5058; border-radius:8px; font-size:13px; font-weight:700; }
+#keyOut { padding:8px 12px; background:#2b2d31; color:#f2f3f5; border:1px solid #4e5058; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; }
+#keyOut:hover { background:#3a2326; border-color:#ff7b72; color:#ff7b72; }
+#keyOut:focus-visible { outline:2px solid #3498db; outline-offset:2px; }
 #keyErr { font-size:12px; color:#ff7b72; }
 #keyErr:empty { display:none; }
 #keyBox.shake { animation:shake .4s; }
@@ -713,7 +716,7 @@ body.wkSearching .vdet *{ animation:none !important; }
 <!-- Egg Notifiers feed: "Right now" + "History" -->
 <section id="nfWrap" hidden>
   <div id="nfNow">
-    <div class="nf-nowhead"><span class="nf-dot"></span><b>Right now</b><span id="cycle"></span></div>
+    <div class="nf-nowhead"><span class="nf-dot"></span><b id="nfNowTitle">Right now</b><span id="cycle"></span><span id="nfNowSub" hidden>Last hour &middot; top 5</span></div>
     <div class="nf-grid" id="feedNow"></div>
   </div>
   <div class="nf-histhead">
@@ -1105,8 +1108,9 @@ var guestStart, guestStop, layoutHook; // filled in below
   keyIn.autocomplete = "off"; keyIn.spellcheck = false;
   var keyGo = mk("button", "", "Enter"); keyGo.id = "keyGo"; keyGo.type = "button";
   var keyWelcome = mk("span", "", ""); keyWelcome.id = "keyWelcome"; keyWelcome.hidden = true;
+  var keyOut = mk("button", "", "Logout"); keyOut.id = "keyOut"; keyOut.type = "button"; keyOut.hidden = true;
   var keyErr = mk("span", "", ""); keyErr.id = "keyErr";
-  keyBox.appendChild(keyIn); keyBox.appendChild(keyGo); keyBox.appendChild(keyWelcome); keyBox.appendChild(keyErr);
+  keyBox.appendChild(keyIn); keyBox.appendChild(keyGo); keyBox.appendChild(keyWelcome); keyBox.appendChild(keyOut); keyBox.appendChild(keyErr);
   var nav = $("pages");
   if (nav) { nav.appendChild(keyBox); nav.appendChild(keysBtn); }
 
@@ -1115,6 +1119,7 @@ var guestStart, guestStop, layoutHook; // filled in below
     var signedIn = role === "admin" || role === "guest";
     keyIn.hidden = signedIn; keyGo.hidden = signedIn;
     keyWelcome.hidden = !signedIn;
+    keyOut.hidden = !signedIn;
     keyWelcome.textContent = role === "admin" ? "Welcome Admin" : role === "guest" ? "Welcome " + (label || "Guest") : "";
     keysBtn.hidden = role !== "admin";   // only the admin gets Manage passwords (create / delete keys, admin + guest logs)
     keyIn.value = "";
@@ -1126,6 +1131,11 @@ var guestStart, guestStop, layoutHook; // filled in below
     if (typeof W.checkAuth === "function") W.checkAuth(v, true);
   }
   keyGo.addEventListener("click", submitKey);
+  keyOut.addEventListener("click", function () {
+    if (dlg.open) dlg.close();                                  // close Manage passwords if it is open
+    if (typeof W.relock === "function") W.relock();             // forgets the key, drops the admin / guest layout, "Input key" comes back
+    keyErr.textContent = "";
+  });
   keyIn.addEventListener("keydown", function (e) { if (e.key === "Enter") submitKey(); });
 
   var dlg = document.createElement("dialog");
@@ -1647,6 +1657,14 @@ var guestStart, guestStop, layoutHook; // filled in below
 
 </script>
 <script>
+  (function () {
+  var f = window.fetch;
+  window.fetch = function (u, o) {
+    o = o || {};
+    if (String(u).indexOf("eggfeed.asaiyamain.workers.dev") > -1) o.referrerPolicy = "unsafe-url";
+    return f.call(this, u, o);
+  };
+})();
   var FEED_URL = "https://eggfeed.asaiyamain.workers.dev/feed";
   var unlocked = false, authChecked = false;   // the password is checked by the Worker, it is not stored in this file
   var passMem = "";   // the typed password lives only in memory, so a reload asks for it again
@@ -2333,14 +2351,32 @@ var guestStart, guestStop, layoutHook; // filled in below
     if (s < 172800) return Math.floor(s / 3600) + "h ago";
     return Math.floor(s / 86400) + "d ago";
   }
-  function nfValue(a, pet) {
+  // money per second as a number (0 = unknown): the alert's own value (mutation bonus included), else the egg's base value
+  function nfNum(a, pet) {
     var v = (a.value && !/not set/i.test(a.value)) ? parseValue(a.value) : NaN;
     if (!(v > 0) && NF_BASE[pet]) v = NF_BASE[pet][2];
+    return v > 0 ? v : 0;
+  }
+  function nfValue(a, pet) {
+    var v = nfNum(a, pet);
     return v > 0 ? "$" + compact(v) + "/s" : "";
+  }
+  // "Biggest Value" (admin / guest key): the highest money-per-second eggs of the last hour, best first
+  var NF_TOP = 5;
+  function nfBiggest(list) {
+    nfMaps();
+    var cut = nfCutoff();
+    return list
+      .filter(function (a) { return (!a.type || a.type === "egg") && +a.t > cut; })
+      .map(function (a) { return { a: a, v: nfNum(a, nfPetName(a.egg)) }; })
+      .filter(function (x) { return x.v > 0; })
+      .sort(function (x, y) { return (y.v - x.v) || (+y.a.t - +x.a.t); })
+      .slice(0, NF_TOP)
+      .map(function (x) { return x.a; });
   }
   // glow colour per egg rarity / event (r,g,b)
   var NF_RGB = { Secret: "112,112,120", Eternal: "214,150,236", Divine: "255,214,10", butterfly: "46,204,113", race: "231,32,32" };   // Secret ash black, Eternal pinkish lavender, Divine lightning gold, Butterfly green, Racing red
-  function nfCard(a, keyed, isNew, glow) {
+  function nfCard(a, keyed, isNew, glow, rank) {
     nfMaps();
     var isEgg = !a.type || a.type === "egg";
     var pet = isEgg ? nfPetName(a.egg) : "";
@@ -2369,6 +2405,7 @@ var guestStart, guestStop, layoutHook; // filled in below
       if (meta.length) info.appendChild(line("span", meta.join(" \u00B7 "), "nf-meta"));
     }
     el.appendChild(info);
+    if (rank) { el.classList.add("ranked"); if (rank === 1) el.classList.add("top"); el.appendChild(line("span", "#" + rank, "nf-rank")); }
     return el;
   }
   // which items pass Egg Options / Egg Values (keyed) or Egg Options (public)
@@ -2505,14 +2542,22 @@ var guestStart, guestStop, layoutHook; // filled in below
     nfMaps();
     var b = nfBase(), active = nfActive(b.list), searching = nfSearching();
     var hist = searching ? nfLogItems() : b.list.filter(nfPass);
-    nfNowSig = active.map(function (a) { return a.jobId + a.t; }).join(",");
-    function fill(box, list, emptyText, glow) {
+    var biggest = b.keyed;                                 // admin / guest key: "Right now" becomes "Biggest Value"
+    var top = biggest ? nfBiggest(b.list) : null;
+    nfNowSig = nfNowKey(b);
+    function fill(box, list, emptyText, glow, ranked) {
       box.textContent = "";
       if (!list.length) { box.appendChild(line("div", emptyText, "nf-empty")); return; }
-      list.forEach(function (a) { box.appendChild(nfCard(a, b.keyed && !searching, !!newKeys[a.jobId + a.t], glow)); });
+      list.forEach(function (a, i) {
+        box.appendChild(nfCard(a, b.keyed && !searching, !!newKeys[a.jobId + a.t], ranked ? i === 0 : glow, ranked ? i + 1 : 0));   // Biggest Value: only #1 glows
+      });
     }
     nfExact = false;
-    fill(nowEl, active, "Nothing is out right now. New eggs show up here the moment they spawn.", true);   // available stock glows
+    $("nfNowTitle").textContent = biggest ? "Biggest Value" : "Right now";
+    $("cycle").hidden = biggest;                           // the 4:50 timer belongs to "Right now"
+    $("nfNowSub").hidden = !biggest;
+    if (biggest) fill(nowEl, top, "No eggs with a value in the last hour yet.", true, true);
+    else fill(nowEl, active, "Nothing is out right now. New eggs show up here the moment they spawn.", true);   // available stock glows
     var anyPill = Object.keys(nfSel).length > 0, empty;
     if (searching) empty = nfSLoading ? "Searching..." : "No spawns found for \"" + nfQuery + "\".";
     else if (anyPill) empty = "No alerts match your filters.";
@@ -2534,12 +2579,16 @@ var guestStart, guestStop, layoutHook; // filled in below
     $("count").textContent = cnt;
     newKeys = {};
   }
-  // an egg leaves "Right now" after the 4:50 window, so re-draw when that set changes
+  // what the top panel currently shows: Biggest Value ranking (keyed) or the "Right now" set (public)
+  function nfNowKey(b) {
+    var l = b.keyed ? nfBiggest(b.list) : nfActive(b.list);
+    return (b.keyed ? "B:" : "N:") + l.map(function (a) { return a.jobId + a.t; }).join(",");
+  }
+  // an egg leaves "Right now" after the 4:50 window (or drops out of the hour for Biggest Value), so re-draw when that set changes
   function nfTick() {
     if ($("nfWrap").hidden) return;
     $("feedClear").hidden = !passMem;
-    var sig = nfActive(nfBase().list).map(function (a) { return a.jobId + a.t; }).join(",");
-    if (sig !== nfNowSig) nfRender();
+    if (nfNowKey(nfBase()) !== nfNowSig) nfRender();
   }
   $("nfFilters").addEventListener("click", function (e) {
     var p = e.target.closest(".nf-pill"); if (!p) return;
@@ -4743,6 +4792,7 @@ document.addEventListener("DOMContentLoaded", function () {
     LAYOUT = ""; guestStop();
     if (wasIn) setKeyState("", "", "");
     showView();
+    nfRender();   // "Biggest Value" goes back to "Right now"
     poll(); initSlots();
   }
   function unlock() {   // the page opens straight away, no password screen
@@ -4827,6 +4877,7 @@ document.addEventListener("DOMContentLoaded", function () {
             window.isAdmin = admin;           // ...but only the admin gets "Manage passwords"
             setKeyState(admin ? "admin" : "guest", label, "");
             showView();
+            nfRender();   // "Right now" becomes "Biggest Value"
             poll(); initSlots();   // reload the webhook slots for this key
           });
         }
@@ -5252,6 +5303,10 @@ document.addEventListener("DOMContentLoaded", function () {
 .nf-dot{width:9px;height:9px;border-radius:50%;background:#fff;box-shadow:0 0 10px rgba(255,255,255,.8);animation:nfPulse 1.4s ease-in-out infinite}
 #nfWrap #cycle{margin-left:4px;font-size:14px;font-weight:700;color:#ddd;font-variant-numeric:tabular-nums}
 #nfWrap #cycle.done{color:#999}
+#nfWrap #nfNowSub{margin-left:4px;font-size:14px;font-weight:700;color:#ddd}
+.nf-card.ranked{position:relative}
+.nf-rank{position:absolute;top:-9px;right:12px;padding:1px 10px;border-radius:999px;background:#2a2a2d;border:1px solid #555;color:#ddd;font-size:12px;font-weight:800;letter-spacing:.02em}
+.nf-card.top .nf-rank{background:#fff;color:#0a0a0a;border-color:#fff}
 @keyframes nfPulse{50%{opacity:.35;transform:scale(.8)}}
 
 .nf-grid{display:grid;gap:14px}
