@@ -2,6 +2,36 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<script>
+/* WRONG SITE GUARD: runs before anything else.
+   TRUE_SITE = true   -> real use: any other address is sent to the real site.
+   TRUE_SITE = false  -> testing: the check is skipped so you can run it in a compiler / locally. */
+var TRUE_SITE = true;
+(function () {
+  if (!TRUE_SITE) return;
+  var REAL = "https://worstasaiya.github.io/worst/worst.html";
+  var here = location.origin + location.pathname;
+  if (here.toLowerCase() === REAL.toLowerCase()) return;
+  window.WRONG_SITE = true;
+  // send them to the real site, keeping join links (?placeId=...&jobId=...) working
+  try { location.replace(REAL + location.search + location.hash); } catch (e) {}
+  // fallback: if the redirect is blocked (for example inside a sandboxed frame) show the warning
+  document.documentElement.innerHTML =
+    '<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>WRONG SITE</title>' +
+    '<style>' +
+    'html,body{margin:0;height:100%;background:#0b0000}' +
+    'body{display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;text-align:center;font-family:system-ui,Segoe UI,Arial,sans-serif}' +
+    '.w{font-weight:900;font-size:clamp(28px,6vw,72px);line-height:1.2;text-transform:uppercase;letter-spacing:1px;max-width:1100px;word-break:break-word;' +
+    'background:linear-gradient(100deg,#7a0000 0%,#ff2400 25%,#ff8a70 50%,#ff2400 75%,#7a0000 100%);background-size:250% 100%;' +
+    '-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:#ff2400;' +
+    'animation:shine 2.2s linear infinite,glow 1.6s ease-in-out infinite alternate}' +
+    '.w a{color:inherit;-webkit-text-fill-color:transparent;text-decoration:underline}' +
+    '@keyframes shine{from{background-position:250% 0}to{background-position:-250% 0}}' +
+    '@keyframes glow{from{filter:drop-shadow(0 0 6px rgba(255,36,0,.55))}to{filter:drop-shadow(0 0 26px rgba(255,36,0,1))}}' +
+    '</style></head><body><div class="w">YOU ARE ON THE WRONG SITE.<br>THE REAL SITE IS "<a href="' + REAL + '">' + REAL + '</a>"</div></body>';
+  window.stop();   // nothing below this point is loaded or run
+})();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Join Server</title>
 <style>
@@ -622,7 +652,7 @@ body.wkSearching .vdet *{ animation:none !important; }
 </head>
 <body>
 <!-- FOR EVERY NEW PAGE, ADD THE DISCORD BUTTON ON THE TOP RIGHT -->
-<a id="discordTop" class="discord" href="https://discord.gg/W0RST" target="_blank" rel="noopener noreferrer">Join Our Discord Server</a>
+<a id="discordTop" class="discord" href="https://discord.gg/W0RST" target="_blank" rel="noopener noreferrer">Press to Press to join our discord server.</a>
 <!-- FOR EVERY NEW PAGE, ADD THE DONATE BUTTON ON THE TOP LEFT (showView shows it on every page of channel 1 automatically) -->
 <button id="donateTop" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>Donate</button>
 
@@ -631,14 +661,14 @@ body.wkSearching .vdet *{ animation:none !important; }
   <select id="chSel">
     <option value="1">Steal an egg</option>
     <option value="2">Discord</option>
-    <option value="3">Inexistent</option>
+    <option value="3">Genshin Impact</option>
   </select>
   <label for="pgSel">Pages</label>
   <select id="pgSel">
-    <option value="1">Egg Notifiers</option>
-    <option value="2">Egg Wiki</option>
-    <option value="3">Egg Calculator</option>
-    <option value="5">Egg Fusion</option>
+    <option value="1">Notifiers</option>
+    <option value="2">Wiki</option>
+    <option value="3">Calculator</option>
+    <option value="5">Fusion</option>
   </select>
 </nav>
 
@@ -894,7 +924,7 @@ body.wkSearching .vdet *{ animation:none !important; }
 
 <dialog id="donateDlg">
   <h3>Support the site</h3>
-  <p>Donation details will go here.</p>
+  <p>I don't accept donations, go buy yourself something to eat instead :></p>
   <div class="dlgbtns"><button id="donateClose" class="no" type="button">Close</button></div>
 </dialog>
 
@@ -1659,7 +1689,7 @@ var guestStart, guestStop, layoutHook; // filled in below
   var WALLPAPERS = {
     1: "https://cdn.jsdelivr.net/gh/WORSTAsaiya/ASAIYASITE@main/calc-pc.mp4",
     2: "https://cdn.jsdelivr.net/gh/WORSTAsaiya/ASAIYASITE@main/calc-pc.mp4",   // Discord: same as Steal an egg (was the Genshin gif: https://media1.tenor.com/m/7zgRvAcRNv0AAAAd/mihoyo-genshin.gif)
-    3: "Channel 3 image"
+    3: "https://cdn.jsdelivr.net/gh/WORSTAsaiya/ASAIYASITE@main/calc-pc.mp4"
   };
 
   // Egg Calculator background: PC only (phones keep the normal wallpaper). Image shows first, the video fades in over it.
@@ -2339,7 +2369,7 @@ var guestStart, guestStop, layoutHook; // filled in below
     return v > 0 ? "$" + compact(v) + "/s" : "";
   }
   // glow colour per egg rarity / event (r,g,b)
-  var NF_RGB = { Secret: "231,76,60", Eternal: "155,89,182", Divine: "241,196,15", butterfly: "255,105,180", race: "35,165,90" };
+  var NF_RGB = { Secret: "112,112,120", Eternal: "214,150,236", Divine: "255,214,10", butterfly: "46,204,113", race: "231,32,32" };   // Secret ash black, Eternal pinkish lavender, Divine lightning gold, Butterfly green, Racing red
   function nfCard(a, keyed, isNew, glow) {
     nfMaps();
     var isEgg = !a.type || a.type === "egg";
@@ -2349,7 +2379,7 @@ var guestStart, guestStop, layoutHook; // filled in below
     var linkOk = keyed && /^\d{1,20}$/.test(a.placeId) && /^[0-9a-fA-F-]{36}$/.test(a.jobId);
     var el = document.createElement(linkOk ? "a" : "div");
     el.className = "nf-card" + (isNew ? " new" : "") + (glow ? " glow" : "");
-    if (glow) el.style.setProperty("--gc", NF_RGB[isEgg ? rar : a.type] || "255,255,255");
+    if (glow) { el.style.setProperty("--gc", NF_RGB[isEgg ? rar : a.type] || "255,255,255"); el.classList.add("g-" + (isEgg ? rar : a.type)); }
     if (linkOk) { el.href = "?placeId=" + a.placeId + "&jobId=" + a.jobId; el.dataset.egg = pet || a.egg; }
     el.appendChild(nfPic(a, pet, isEgg ? "" : ev[1]));
 
@@ -2530,7 +2560,7 @@ var guestStart, guestStop, layoutHook; // filled in below
     var cnt = "";
     if (searching) cnt = nfSLoading && !hist.length ? "Searching..." : "Found " + hist.length + (nfSMore ? "+" : "") + " for \"" + nfQuery + "\"";
     else if (b.keyed) cnt = b.src.length ? "Showing " + hist.length + " of " + b.src.length + " rare eggs" : "";
-    else cnt = "Showing " + hist.length + " from the last hour";
+    else cnt = "All the eggs that spawned within the hour";
     $("count").textContent = cnt;
     newKeys = {};
   }
@@ -4717,6 +4747,7 @@ document.addEventListener("DOMContentLoaded", function () {
     $("right").hidden = !(notifier && open && LAYOUT !== "guest");
     var nfOn = notifier && open && LAYOUT !== "guest";
     $("nfWrap").hidden = !nfOn;
+    $("vals").hidden = !passMem;   // "Egg Values" only after an admin / guest key is entered
     $("eggs").hidden = !passMem;   // "Notifying Eggs" only after an admin / guest key is entered
     document.body.classList.toggle("nfMode", nfOn);
     layoutHook(notifier, open);
@@ -4981,7 +5012,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ---------- polling ----------
   // ---------- egg countdown (4:50 from the first alert of a round) ----------
-  var cycleStart = null, cycleWin = 290000, clockOffset = 0;
+  var cycleStart = null, cycleWin = 290000, clockOffset = 0, lastEggT = 0;
 
   function fmt(ms) {
     var t = Math.max(0, Math.ceil(ms / 1000));
@@ -4989,10 +5020,15 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   function paintCycle() {
     var el = $("cycle");
-    if (!cycleStart) { el.textContent = ""; el.className = ""; return; }
-    var left = cycleStart + cycleWin - (Date.now() + clockOffset);
-    if (left > 0) { el.textContent = "Eggs end in " + fmt(left); el.className = ""; }
-    else { el.textContent = "Ended. Next alert = new spawn"; el.className = "done"; }
+    // newest egg we have seen. A newer egg moves this forward, which resets the timer to 4:50.
+    // (kept in a variable, so pressing Clear does not wipe the timer)
+    ((typeof allItems !== "undefined" && allItems) || []).concat((typeof pubItems !== "undefined" && pubItems) || []).forEach(function (a) {
+      if ((!a.type || a.type === "egg") && +a.t > lastEggT) lastEggT = +a.t;
+    });
+    if (!lastEggT) { el.textContent = "Time left: --:--"; el.className = ""; return; }
+    var left = lastEggT + 290000 - (Date.now() + clockOffset);   // 4 min 50 s
+    if (left > 0) { el.textContent = "Time left: " + fmt(left); el.className = ""; }
+    else { el.textContent = "Time left: 0:00"; el.className = "done"; }
   }
 
   function poll() {
@@ -5244,7 +5280,7 @@ document.addEventListener("DOMContentLoaded", function () {
 #nfNow{padding:16px 18px 18px;border-radius:14px;background:rgba(0,0,0,.26);border:1px solid #fff;box-shadow:0 0 0 1px #fff,0 0 44px rgba(255,255,255,.12)}
 .nf-nowhead{display:flex;align-items:center;gap:10px;margin:0 0 12px;font-size:20px;font-weight:800;letter-spacing:-.02em}
 .nf-dot{width:9px;height:9px;border-radius:50%;background:#fff;box-shadow:0 0 10px rgba(255,255,255,.8);animation:nfPulse 1.4s ease-in-out infinite}
-#nfWrap #cycle{margin-left:auto;font-size:13px;font-weight:600;color:#ddd}
+#nfWrap #cycle{margin-left:4px;font-size:14px;font-weight:700;color:#ddd;font-variant-numeric:tabular-nums}
 #nfWrap #cycle.done{color:#999}
 @keyframes nfPulse{50%{opacity:.35;transform:scale(.8)}}
 
@@ -5322,7 +5358,20 @@ a.nf-card:hover{transform:translateY(-2px);border-color:#777;background:rgba(255
   text-shadow:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.9));
   animation:nfAsh 3s linear infinite}
 .nf-card.glow .nf-meta{background-image:linear-gradient(100deg,#bbb 0%,#bbb 38%,#4a4a4a 46%,#161616 50%,#4a4a4a 54%,#bbb 62%,#bbb 100%)}
+/* Divine: the glow flickers like lightning instead of a slow pulse */
+.nf-card.glow.g-Divine{animation:nfBolt 2.6s linear infinite}
+.nf-card.glow.new.g-Divine{animation:nfFlash 1.8s ease-out,nfBolt 2.6s linear 1.8s infinite}
+@keyframes nfBolt{
+  0%,100%{box-shadow:0 0 0 0 rgba(var(--gc),0),inset 0 0 0 0 rgba(var(--gc),0);border-color:#2c2c2c}
+  6%{box-shadow:0 0 36px 6px rgba(var(--gc),.95),inset 0 0 22px rgba(var(--gc),.4);border-color:#fff6b0}
+  10%{box-shadow:0 0 8px 0 rgba(var(--gc),.25),inset 0 0 6px rgba(var(--gc),.1);border-color:rgba(var(--gc),.5)}
+  14%{box-shadow:0 0 44px 9px rgba(255,244,140,1),inset 0 0 26px rgba(var(--gc),.5);border-color:#fff}
+  26%{box-shadow:0 0 22px 2px rgba(var(--gc),.45),inset 0 0 12px rgba(var(--gc),.15);border-color:rgba(var(--gc),.8)}
+  45%{box-shadow:0 0 0 0 rgba(var(--gc),0),inset 0 0 0 0 rgba(var(--gc),0);border-color:#2c2c2c}
+}
 @keyframes nfAsh{from{background-position:0% 0}to{background-position:100% 0}}
+/* name sweeps right to left, value sweeps the opposite way (left to right) */
+.nf-card.glow .nf-val{animation-direction:reverse}
 
 @media(prefers-reduced-motion:reduce){.nf-dot,.nf-card.new,.nf-card,.nf-card.glow .nf-name,.nf-card.glow .nf-val,.nf-card.glow .nf-meta{animation:none!important;transition:none!important}}
 </style>
