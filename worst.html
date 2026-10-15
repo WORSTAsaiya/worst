@@ -2,36 +2,6 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<script>
-/* WRONG SITE GUARD: runs before anything else.
-   TRUE_SITE = true   -> real use: any other address is sent to the real site.
-   TRUE_SITE = false  -> testing: the check is skipped so you can run it in a compiler / locally. */
-var TRUE_SITE = true;
-(function () {
-  if (!TRUE_SITE) return;
-  var REAL = "https://worstasaiya.github.io/worst/worst.html";
-  var here = location.origin + location.pathname;
-  if (here.toLowerCase() === REAL.toLowerCase()) return;
-  window.WRONG_SITE = true;
-  // send them to the real site, keeping join links (?placeId=...&jobId=...) working
-  try { location.replace(REAL + location.search + location.hash); } catch (e) {}
-  // fallback: if the redirect is blocked (for example inside a sandboxed frame) show the warning
-  document.documentElement.innerHTML =
-    '<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>WRONG SITE</title>' +
-    '<style>' +
-    'html,body{margin:0;height:100%;background:#0b0000}' +
-    'body{display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;text-align:center;font-family:system-ui,Segoe UI,Arial,sans-serif}' +
-    '.w{font-weight:900;font-size:clamp(28px,6vw,72px);line-height:1.2;text-transform:uppercase;letter-spacing:1px;max-width:1100px;word-break:break-word;' +
-    'background:linear-gradient(100deg,#7a0000 0%,#ff2400 25%,#ff8a70 50%,#ff2400 75%,#7a0000 100%);background-size:250% 100%;' +
-    '-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:#ff2400;' +
-    'animation:shine 2.2s linear infinite,glow 1.6s ease-in-out infinite alternate}' +
-    '.w a{color:inherit;-webkit-text-fill-color:transparent;text-decoration:underline}' +
-    '@keyframes shine{from{background-position:250% 0}to{background-position:-250% 0}}' +
-    '@keyframes glow{from{filter:drop-shadow(0 0 6px rgba(255,36,0,.55))}to{filter:drop-shadow(0 0 26px rgba(255,36,0,1))}}' +
-    '</style></head><body><div class="w">YOU ARE ON THE WRONG SITE.<br>THE REAL SITE IS "<a href="' + REAL + '">' + REAL + '</a>"</div></body>';
-  window.stop();   // nothing below this point is loaded or run
-})();
-</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Join Server</title>
 <style>
