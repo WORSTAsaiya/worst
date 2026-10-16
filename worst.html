@@ -2404,7 +2404,7 @@ var guestStart, guestStop, layoutHook; // filled in below
   }
   // glow colour per egg rarity / event (r,g,b)
   var NF_RGB = { Secret: "112,112,120", Eternal: "214,150,236", Divine: "255,214,10", butterfly: "46,204,113", race: "231,32,32" };   // Secret ash black, Eternal pinkish lavender, Divine lightning gold, Butterfly green, Racing red
-  function nfCard(a, keyed, isNew, glow, rank) {
+  function nfCard(a, keyed, isNew, glow, rank, gone) {
     nfMaps();
     var isEgg = !a.type || a.type === "egg";
     var pet = isEgg ? nfPetName(a.egg) : "";
@@ -2423,6 +2423,7 @@ var guestStart, guestStop, layoutHook; // filled in below
     var isl = isEgg ? (NF_ISLAND[pet] || a.location) : a.location;
     if (isl) info.appendChild(line("span", isl, "nf-isl"));
     var t = line("span", nfAgo(+a.t), "nf-time"); t.dataset.t = a.t; info.appendChild(t);
+    if (gone && isEgg) { el.classList.add("gone"); info.appendChild(line("span", "Already gone", "nf-gone")); }
     if (nfExact) info.appendChild(line("span", new Date(+a.t).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }), "nf-meta"));
     var val = isEgg ? nfValue(a, pet) : (a.status || "Active");
     if (val) info.appendChild(line("span", val, "nf-val"));
@@ -2441,6 +2442,8 @@ var guestStart, guestStop, layoutHook; // filled in below
     var keyed = !!passMem, src = keyed ? allItems : pubItems;
     return { keyed: keyed, src: src, list: keyed ? src.filter(passes) : src.filter(function (a) { return +a.t > nfCutoff() && (F.all || (a.type === "egg" && F.tiers[a.rarity])); }) };
   }
+  // an egg is gone once the 4:50 window since it spawned has passed
+  function nfGone(a) { return Date.now() + clockOffset - (+a.t) >= cycleWin; }
   function nfActive(list) {
     var now = Date.now() + clockOffset;
     return list.filter(function (a) { return now - (+a.t) < cycleWin; });
@@ -2577,7 +2580,7 @@ var guestStart, guestStop, layoutHook; // filled in below
       box.textContent = "";
       if (!list.length) { box.appendChild(line("div", emptyText, "nf-empty")); return; }
       list.forEach(function (a, i) {
-        box.appendChild(nfCard(a, b.keyed && !searching, !!newKeys[a.jobId + a.t], ranked ? i === 0 : glow, ranked ? i + 1 : 0));   // Biggest Value: only #1 glows
+        box.appendChild(nfCard(a, b.keyed && !searching, !!newKeys[a.jobId + a.t], ranked ? i === 0 : glow, ranked ? i + 1 : 0, box === nowEl && nfGone(a)));   // Biggest Value: only #1 glows
       });
     }
     nfExact = false;
@@ -2610,7 +2613,7 @@ var guestStart, guestStop, layoutHook; // filled in below
   // what the top panel currently shows: Biggest Value ranking (keyed) or the "Right now" set (public)
   function nfNowKey(b) {
     var l = b.keyed ? nfBiggest(b.list) : nfActive(b.list);
-    return (b.keyed ? "B:" : "N:") + l.map(function (a) { return a.jobId + a.t; }).join(",");
+    return (b.keyed ? "B:" : "N:") + l.map(function (a) { return a.jobId + a.t + (nfGone(a) ? "x" : ""); }).join(",");
   }
   // an egg leaves "Right now" after the 4:50 window (or drops out of the hour for Biggest Value), so re-draw when that set changes
   function nfTick() {
@@ -2649,12 +2652,20 @@ var guestStart, guestStop, layoutHook; // filled in below
     try { return localStorage.getItem("skipJoinConfirm") === "1"; } catch (e) { return false; }
   }
 
+  // open Roblox straight from the card. The old way navigated to "?placeId=...&jobId=..." which reloaded the
+  // page, and the login only lives in memory, so it logged you out.
+  function joinNow(href) {
+    var m = /[?&]placeId=(\d{1,20})&jobId=([0-9a-fA-F-]{36})/.exec(href || "");
+    if (!m) return;
+    location.href = "roblox://experiences/start?placeId=" + m[1] + "&gameInstanceId=" + m[2];
+  }
+
   $("nfWrap").addEventListener("click", function (e) {
     var a = e.target.closest("a.nf-card");
     if (!a) return;
     e.preventDefault();
     var href = a.getAttribute("href");
-    if (skipConfirm()) { location.href = href; return; }
+    if (skipConfirm()) { joinNow(href); return; }
     pendingHref = href;
     $("dlgEgg").textContent = a.dataset.egg || "";
     $("never").checked = false;
@@ -2667,7 +2678,7 @@ var guestStart, guestStop, layoutHook; // filled in below
       try { localStorage.setItem("skipJoinConfirm", "1"); } catch (e) {}
     }
     dlg.close();
-    location.href = pendingHref;
+    joinNow(pendingHref);
   });
   dlg.addEventListener("click", function (e) { if (e.target === dlg) dlg.close(); });
 
@@ -5475,6 +5486,8 @@ a.nf-card:hover{transform:translateY(-2px);border-color:#777;background:rgba(255
 .nf-badge{display:inline-block;padding:2px 10px;border:1px solid #666;border-radius:999px;background:transparent;color:#ddd;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
 .nf-badge.Divine{background:#fff;color:#0a0a0a;border-color:#fff}
 .nf-isl{display:inline-block;max-width:100%;box-sizing:border-box;padding:3px 12px;border:1px solid #3a3a3a;border-radius:999px;background:rgba(255,255,255,.06);color:#e6e6e6;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nf-gone{display:inline-block;margin-top:2px;font-size:12px;font-weight:700;color:#ff7b72}
+.nf-card.gone{opacity:.65}
 .nf-time{font-size:13px;color:#d0d0d0;text-shadow:0 1px 3px rgba(0,0,0,.9)}
 .nf-val{font-size:16px;font-weight:800;color:#fff;letter-spacing:-.01em;text-shadow:0 1px 3px rgba(0,0,0,.9)}
 .nf-meta{font-size:12px;color:#aaa;word-break:break-word}
