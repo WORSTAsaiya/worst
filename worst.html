@@ -60,7 +60,7 @@
   #accts { flex:0 0 220px; box-sizing:border-box; }
   #accts > .drop { left:0; right:auto; min-width:100%; width:340px; max-width:calc(100vw - 24px); }
   .arow { display:grid; grid-template-columns:12px minmax(0,1fr) auto; align-items:center; gap:10px; padding:10px 12px; border-radius:8px; background:#2b2d31; margin-top:8px; }
-  .arow:first-child { margin-top:0; }
+  .arow:first-child { margin-top:0; } .arow[hidden] { display:none; }
   .arow .dot { width:10px; height:10px; border-radius:50%; background:#888; }
   .arow .an { font-size:14px; font-weight:700; word-break:break-all; }
   .arow .as, .arow .at, .afoot { font-size:12px; color:#b5bac1; font-weight:400; }
@@ -72,6 +72,8 @@
   .arow.s-offline { box-shadow:inset 0 0 0 1px #5a2a2c; } .arow.s-offline .at { color:#ff7b72; }
   .afoot { margin-top:10px; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
   .aleg i { display:inline-block; width:8px; height:8px; border-radius:50%; margin:0 3px 0 8px; }
+  .aleg-top { font-size:12px; color:#b5bac1; margin:0 0 10px; } .aleg-top i:first-child { margin-left:0; }
+  #acctList { max-height:60vh; overflow-y:auto; }
   #acctErr { font-size:12px; color:#ff7b72; margin-top:6px; } #acctErr:empty { display:none; }
   .resetrow { margin-top:14px; text-align:right; }
 
@@ -693,9 +695,9 @@ body.wkSearching .vdet *{ animation:none !important; }
     <details class="panel" id="accts" hidden>
       <summary><span>Accounts <span id="acctTag" style="font-size:12px;font-weight:400;color:#b5bac1"></span></span></summary>
       <div class="drop">
+        <div class="aleg aleg-top"><i style="background:#23a55a"></i>Hopping <i style="background:#f0b232"></i>Waiting <i style="background:#f23f42"></i>Offline</div>
         <div id="acctList"></div>
-        <div class="afoot"><span id="acctNext">Loading...</span>
-          <span class="aleg"><i style="background:#23a55a"></i>Hopping <i style="background:#f0b232"></i>Waiting <i style="background:#f23f42"></i>Offline</span></div>
+        <div class="afoot"><span id="acctNext">Loading...</span></div>
         <div id="acctErr"></div>
       </div>
     </details>
@@ -4953,7 +4955,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!box) return;
     var list = document.getElementById("acctList"), tag = document.getElementById("acctTag"),
         nx = document.getElementById("acctNext"), er = document.getElementById("acctErr");
-    var REFRESH = 300000, data = null, skew = 0, fetchedAt = 0, busy = false, rows = [];
+    var REFRESH = 30000, MAX_AGE = 5 * 3600000, data = null, skew = 0, fetchedAt = 0, busy = false, rows = [];
     function fmt(s) {
       s = Math.max(0, Math.round(s));
       var d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60), x = s % 60;
@@ -4965,7 +4967,8 @@ document.addEventListener("DOMContentLoaded", function () {
       list.textContent = "";
       rows = [];
       var rank = { hopping: 0, waiting: 1, offline: 2 };
-      var items = data.items.slice().sort(function (a, b) { return (rank[a.state] - rank[b.state]) || a.name.localeCompare(b.name); });
+      var items = data.items.filter(function (it) { return it.lastSeen && (data.now - it.lastSeen) <= MAX_AGE; })
+        .sort(function (a, b) { return (rank[a.state] - rank[b.state]) || a.name.localeCompare(b.name); });
       items.forEach(function (it) {
         var row = el("div", "arow"), mid = el("div"), right = el("div", "r");
         var name = el("div", "an", it.name), sub = el("div", "as");
@@ -4983,8 +4986,9 @@ document.addEventListener("DOMContentLoaded", function () {
       var now = Date.now() + skew, online = 0;
       rows.forEach(function (r) {
         var it = r.it, state = it.state;
-        // flip to offline between refreshes if the heartbeats stopped
-        if (state !== "offline" && now - it.lastSeen > data.offlineMs) state = "offline";
+        // the server decides online/offline on every refresh (the old local flip marked live accounts offline between slow refreshes)
+        if (it.lastSeen && now - it.lastSeen > MAX_AGE) { r.row.hidden = true; return; }
+        r.row.hidden = false;
         if (state === "hopping" && it.huntEnd <= now) state = "waiting";
         r.row.className = "arow s-" + state;
         if (state !== "offline") online++;
@@ -4996,8 +5000,9 @@ document.addEventListener("DOMContentLoaded", function () {
           r.time.textContent = it.lastSeen ? "Offline for " + fmt((now - it.lastSeen) / 1000) : "Offline";
         }
       });
-      tag.textContent = online + "/" + rows.length + " online";
-      nx.textContent = "Refreshes every 5 min, next in " + clock((REFRESH - (Date.now() - fetchedAt)) / 1000);
+      var shown = rows.filter(function (r) { return !r.row.hidden; }).length;
+      tag.textContent = online + "/" + shown + " online";
+      nx.textContent = "Refreshes every 30s, next in " + clock((REFRESH - (Date.now() - fetchedAt)) / 1000);
     }
     function load() {
       if (busy) return;
@@ -5016,7 +5021,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (!fetchedAt || Date.now() - fetchedAt >= REFRESH) load();
       paint();
     }
-    box.addEventListener("toggle", function () { if (box.open && Date.now() - fetchedAt > 60000) load(); });
+    box.addEventListener("toggle", function () { if (box.open && Date.now() - fetchedAt > 10000) load(); });
     setInterval(tick, 1000);
     tick();
   })();
