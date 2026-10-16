@@ -378,6 +378,7 @@
 #keyOut:focus-visible { outline:2px solid #3498db; outline-offset:2px; }
 #keyErr { font-size:12px; color:#ff7b72; }
 #keyErr:empty { display:none; }
+#keyBox.offpage #keyIn, #keyBox.offpage #keyGo, #keyBox.offpage #keyErr { display:none; }
 #keyBox.shake { animation:shake .4s; }
 #verifyPage, #soonPage { grid-column:2; }
 @media (max-width:1200px) { #verifyPage, #soonPage { grid-column:1; } }
@@ -2410,7 +2411,7 @@ var guestStart, guestStop, layoutHook; // filled in below
     var pet = isEgg ? nfPetName(a.egg) : "";
     var rar = isEgg ? String(a.rarity || "").replace(/[^A-Za-z]/g, "") : "";
     var ev = NF_EV[a.type] || ["Event", ""];
-    var linkOk = keyed && /^\d{1,20}$/.test(a.placeId) && /^[0-9a-fA-F-]{36}$/.test(a.jobId);
+    var linkOk = keyed && !(a.src === "h" && Date.now() + clockOffset - +a.t > 290000) && /^\d{1,20}$/.test(a.placeId) && /^[0-9a-fA-F-]{36}$/.test(a.jobId);
     var el = document.createElement(linkOk ? "a" : "div");
     el.className = "nf-card" + (isNew ? " new" : "") + (glow ? " glow" : "");
     if (glow) { el.style.setProperty("--gc", NF_RGB[isEgg ? rar : a.type] || "255,255,255"); el.classList.add("g-" + (isEgg ? rar : a.type)); }
@@ -2458,13 +2459,13 @@ var guestStart, guestStop, layoutHook; // filled in below
   var NF_HOUR = 3600000, NF_PAGE = 50;
   function nfCutoff() { return Date.now() + clockOffset - NF_HOUR; }
   var nfStore = {}, nfMore = false, nfPaged = false, nfLoading = false, nfLogOpen = false;
-  var nfQuery = "", nfSRes = {}, nfSMore = false, nfSLoading = false, nfSSeq = 0, nfSTimer = 0, nfExact = false;
+  var nfQuery = "", nfSRes = {}, nfSMore = false, nfSMoreA = false, nfSMoreH = false, nfSLoading = false, nfSSeq = 0, nfSTimer = 0, nfExact = false;
   function nfSearching() { return nfQuery.length >= 2; }
-  function nfKey(a) { return a.id != null ? "i" + a.id : a.type + "|" + a.t + "|" + a.egg; }
+  function nfKey(a) { return a.id != null ? (a.src === "h" ? "h" : "i") + a.id : a.type + "|" + a.t + "|" + a.egg; }   // "h" = hopper history row (its ids are a separate counter)
   function nfAuth() { return passMem ? { "x-pass": encodeURIComponent(passMem) } : {}; }
-  function nfMinId(map) {
+  function nfMinId(map, hop) {   // lowest id of one source: alert history (hop falsy) or hopper history (hop true)
     var min = Infinity;
-    Object.keys(map).forEach(function (k) { var id = +map[k].id; if (id > 0 && id < min) min = id; });
+    Object.keys(map).forEach(function (k) { if ((map[k].src === "h") !== !!hop) return; var id = +map[k].id; if (id > 0 && id < min) min = id; });
     return min;
   }
   // what the dropdown / search lists: search results (any age), otherwise everything seen so far.
@@ -2474,9 +2475,18 @@ var guestStart, guestStop, layoutHook; // filled in below
     if (searching) map = nfSRes;
     else pubItems.forEach(function (a) { var k = nfKey(a); if (!nfStore[k]) nfStore[k] = a; });
     var cut = nfCutoff(), limited = !passMem && !searching;
-    return Object.keys(map).map(function (k) { return map[k]; })
+    var list = Object.keys(map).map(function (k) { return map[k]; })
       .filter(function (a) { return (searching || +a.t > clearT) && nfPass(a) && (!limited || +a.t > cut); })
       .sort(function (x, y) { return (+y.t - +x.t) || ((+y.id || 0) - (+x.id || 0)); });
+    if (searching && passMem) {   // the same spawn in both lists: keep the hopper entry (it has kg and mutation)
+      var hops = list.filter(function (a) { return a.src === "h"; });
+      if (hops.length) list = list.filter(function (a) {
+        if (a.src === "h") return true;
+        var p = nfPetName(a.egg);
+        return !hops.some(function (x) { return Math.abs(+x.t - +a.t) <= 120000 && nfPetName(x.egg) === p; });
+      });
+    }
+    return list;
   }
   function nfLogRow(a) {
     nfMaps();
@@ -2530,21 +2540,37 @@ var guestStart, guestStop, layoutHook; // filled in below
   function nfSearchGo(more) {
     var q = nfQuery;
     if (q.length < 2 || (more && (nfSLoading || !nfSMore))) return;
-    var url = API + "/alerts?q=" + encodeURIComponent(q) + "&limit=" + NF_PAGE, seq = nfSSeq;
-    if (more) { var min = nfMinId(nfSRes); if (!isFinite(min)) return; url += "&before=" + min; }
+    var seq = nfSSeq, jobs = [];
+    // alert history for everyone; with a guest / admin key the egg hopper history is searched too (kg, mutation)
+    var ua = API + "/alerts?q=" + encodeURIComponent(q) + "&limit=" + NF_PAGE;
+    var uh = passMem ? API + "/hist?q=" + encodeURIComponent(q) + "&limit=" + NF_PAGE : "";
+    if (more) {
+      if (nfSMoreA) { var ma = nfMinId(nfSRes, false); if (isFinite(ma)) jobs.push({ u: ua + "&before=" + ma, h: false }); }
+      if (uh && nfSMoreH) { var mh = nfMinId(nfSRes, true); if (isFinite(mh)) jobs.push({ u: uh + "&before=" + mh, h: true }); }
+      if (!jobs.length) return;
+    } else {
+      jobs.push({ u: ua, h: false });
+      if (uh) jobs.push({ u: uh, h: true });
+      nfSMoreA = false; nfSMoreH = false;
+    }
     nfSLoading = true; nfRender();
-    fetch(url, { cache: "no-store", headers: nfAuth() })
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (d) {
-        if (seq !== nfSSeq) return;                       // the search text changed meanwhile
-        nfSLoading = false;
-        if (d && Array.isArray(d.items)) {
-          d.items.forEach(function (a) { var k = nfKey(a); if (!nfSRes[k]) nfSRes[k] = a; });
-          nfSMore = d.more === true && d.items.length > 0;
-        } else nfSMore = false;
-        nfRender();
-      })
-      .catch(function () { if (seq === nfSSeq) { nfSLoading = false; nfRender(); } });
+    var left = jobs.length;
+    jobs.forEach(function (j) {
+      fetch(j.u, { cache: "no-store", headers: nfAuth() })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          if (seq !== nfSSeq) return;                       // the search text changed meanwhile
+          var m = false;
+          if (d && Array.isArray(d.items)) {
+            d.items.forEach(function (a) { var k = nfKey(a); if (!nfSRes[k]) nfSRes[k] = a; });
+            m = d.more === true && d.items.length > 0;
+          }
+          if (j.h) nfSMoreH = m; else nfSMoreA = m;
+          nfSMore = nfSMoreA || nfSMoreH;
+        })
+        .catch(function () {})
+        .then(function () { if (seq !== nfSSeq) return; if (--left <= 0) nfSLoading = false; nfRender(); });
+    });
   }
   $("nfSearch").addEventListener("input", function () {
     clearTimeout(nfSTimer);
@@ -2580,7 +2606,7 @@ var guestStart, guestStop, layoutHook; // filled in below
       box.textContent = "";
       if (!list.length) { box.appendChild(line("div", emptyText, "nf-empty")); return; }
       list.forEach(function (a, i) {
-        box.appendChild(nfCard(a, b.keyed && !searching, !!newKeys[a.jobId + a.t], ranked ? i === 0 : glow, ranked ? i + 1 : 0, box === nowEl && nfGone(a)));   // Biggest Value: only #1 glows
+        box.appendChild(nfCard(a, b.keyed && (!searching || a.src === "h"), !!newKeys[a.jobId + a.t], ranked ? i === 0 : glow, ranked ? i + 1 : 0, box === nowEl && nfGone(a)));   // Biggest Value: only #1 glows
       });
     }
     nfExact = false;
@@ -4828,6 +4854,7 @@ document.addEventListener("DOMContentLoaded", function () {
     var live = ch === 1;                      // only channel 1 exists for now
     var notifier = live && pg === 1;
     var open = unlocked;
+    $("keyBox").classList.toggle("offpage", !notifier);   // "Input key" only on Steal an egg > Notifiers
     $("discordTop").hidden = !(live || ch === 2);   // FOR EVERY NEW PAGE, ADD THE DISCORD BUTTON ON THE TOP RIGHT (shows on every page of channel 1 automatically)
     $("donateTop").hidden = !live;                  // FOR EVERY NEW PAGE, ADD THE DONATE BUTTON ON THE TOP LEFT (Steal an egg channel only)
     $("pgSel").disabled = !(live || ch === 2);
