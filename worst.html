@@ -155,6 +155,30 @@
   .hookbtns { display:flex; gap:6px; margin-top:12px; }
   .hookbtns button { flex:1; padding:9px; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer; color:#fff; border:0; }
   .hookbtns .save { background:#3498db; } .hookbtns .ghostbtn { background:#4e5058; }
+  /* ---- rarity picker (visitors without a key) ---- */
+  #rarWrap { position:relative; }
+  .rar-btn { width:100%; box-sizing:border-box; display:flex; justify-content:space-between; align-items:center; gap:8px; padding:10px 12px; background:#1e1f22; color:#f2f3f5; border:1px solid #4e5058; border-radius:8px; font-size:13px; font-family:inherit; cursor:pointer; text-align:left; }
+  .rar-btn:hover, #rarWrap.open .rar-btn { border-color:#7a7d85; }
+  .rar-btn:focus-visible { outline:2px solid #3498db; border-color:transparent; }
+  .rar-btn .c { color:#b5bac1; transition:transform .15s; }
+  #rarWrap.open .rar-btn .c { transform:rotate(180deg); }
+  .rar-list { position:absolute; left:0; right:0; top:calc(100% + 4px); z-index:30; background:#1e1f22; border:1px solid #4e5058; border-radius:8px; padding:6px; box-shadow:0 12px 28px rgba(0,0,0,.55); }
+  .rar-list[hidden] { display:none; }
+  .rar-opt { width:100%; box-sizing:border-box; display:flex; align-items:center; gap:10px; padding:9px 10px; background:transparent; color:#f2f3f5; border:0; border-radius:6px; font-size:13px; font-family:inherit; cursor:pointer; text-align:left; }
+  .rar-opt:hover { background:#2b2d31; }
+  .rar-opt .box { flex:0 0 auto; width:16px; height:16px; box-sizing:border-box; border:2px solid #6d7079; border-radius:4px; display:inline-flex; align-items:center; justify-content:center; font-size:11px; line-height:1; color:transparent; }
+  .rar-opt.on .box { background:#3498db; border-color:#3498db; color:#fff; }
+  .rar-opt[data-r="Secret"] .nm { color:#E74C3C; } .rar-opt[data-r="Eternal"] .nm { color:#B07CD0; } .rar-opt[data-r="Divine"] .nm { color:#F1C40F; }
+  .rar-sep { height:1px; background:#3a3c42; margin:4px 2px; }
+  .rar-hint { display:block; margin-top:6px; font-size:11px; color:#b5bac1; }
+  /* ---- how-to panel (visitors without a key) ---- */
+  #howto h2 { margin-bottom:10px; }
+  #howto ol { margin:0; padding-left:20px; font-size:12.5px; line-height:1.5; color:#dcdee1; }
+  #howto li { margin-bottom:9px; }
+  #howto li b { color:#fff; }
+  #howto code { background:#2b2d31; padding:1px 5px; border-radius:4px; font-size:11.5px; }
+  #howto .hnote { margin:4px 0 0; font-size:11.5px; color:#b5bac1; line-height:1.45; }
+  #howto[hidden] { display:none; }
   #hookStatus { margin-top:10px; font-size:12px; color:#7bd88f; min-height:16px; word-break:break-word; }
   #hookStatus.bad { color:#ff7b72; }
   .note { display:block; margin-top:8px; font-size:11px; color:#b5bac1; }
@@ -702,6 +726,17 @@ body.wkSearching .vdet *{ animation:none !important; }
         <div id="acctErr"></div>
       </div>
     </details>
+    <section class="panel" id="howto">
+      <h2>How to get alerts in Discord</h2>
+      <ol>
+        <li><b>Make a webhook.</b> In your Discord server open <code>Server Settings</code> &rarr; <code>Integrations</code> &rarr; <code>Webhooks</code> &rarr; <code>New Webhook</code>. Pick the channel, then press <code>Copy Webhook URL</code>.</li>
+        <li><b>Paste it</b> in the <code>Webhook</code> box on the right. You have 3 slots, so you can send different alerts to different channels.</li>
+        <li><b>Ping (optional).</b> Turn on Developer Mode in Discord (<code>User Settings</code> &rarr; <code>Advanced</code>), right-click a role or a person and press <code>Copy ID</code>. Paste it in the ping box and choose <code>Role</code> or <code>User</code>. Type <code>Everyone</code> to ping everyone.</li>
+        <li><b>Choose the rarity.</b> Open the <code>Rarity</code> dropdown and tick Secret, Eternal or Divine. Pick 1 or 2, or pick all 3 and it becomes <code>All</code>.</li>
+        <li><b>Press Save.</b> Your channel gets a "connected" message. Press <code>Test</code> to see a sample alert.</li>
+      </ol>
+      <p class="hnote">Alerts keep coming while this page is closed. Butterfly Bloom and Racing events are always sent. <code>Remove</code> deletes the selected webhook from our server. Have a key? Use <code>Input key</code> at the top for kg, mutation and join links.</p>
+    </section>
   </div>
 
 </section>
@@ -731,6 +766,18 @@ body.wkSearching .vdet *{ animation:none !important; }
   <div class="pingrow">
     <input id="ping" type="text" placeholder="Role ID / User ID / Everyone" autocomplete="off" spellcheck="false">
     <select id="pingType"><option value="role">Role</option><option value="user">User</option></select>
+  </div>
+  <div id="rarWrap">
+    <label class="pinglabel" for="rarBtn">Rarity to be alerted for</label>
+    <button id="rarBtn" class="rar-btn" type="button" aria-haspopup="true" aria-expanded="false"><span id="rarLabel">All rarities</span><span class="c" aria-hidden="true">&#9662;</span></button>
+    <div id="rarList" class="rar-list" hidden>
+      <button type="button" class="rar-opt on" data-r="All" role="menuitemcheckbox" aria-checked="true"><span class="box">&#10003;</span><span class="nm">All rarities</span></button>
+      <div class="rar-sep"></div>
+      <button type="button" class="rar-opt" data-r="Secret" role="menuitemcheckbox" aria-checked="false"><span class="box">&#10003;</span><span class="nm">Secret</span></button>
+      <button type="button" class="rar-opt" data-r="Eternal" role="menuitemcheckbox" aria-checked="false"><span class="box">&#10003;</span><span class="nm">Eternal</span></button>
+      <button type="button" class="rar-opt" data-r="Divine" role="menuitemcheckbox" aria-checked="false"><span class="box">&#10003;</span><span class="nm">Divine</span></button>
+    </div>
+    <small class="rar-hint">Pick 1 or 2. Picking all 3 sets it to All.</small>
   </div>
   <div class="hookbtns">
     <button id="hookSave" class="save" type="button">Save</button>
@@ -2713,6 +2760,41 @@ var guestStart, guestStop, layoutHook; // filled in below
   var SLOT = 1;
   var slots = {};
 
+  // ---------- rarity picker (visitors without a key) ----------
+  var pubTiers = [];   // [] = All. 1 or 2 rarities = only those. All 3 = back to All.
+  function paintRar() {
+    var all = !pubTiers.length;
+    $("rarLabel").textContent = all ? "All rarities" : pubTiers.join(", ");
+    document.querySelectorAll("#rarList .rar-opt").forEach(function (o) {
+      var on = o.dataset.r === "All" ? all : pubTiers.indexOf(o.dataset.r) > -1;
+      o.classList.toggle("on", on);
+      o.setAttribute("aria-checked", on ? "true" : "false");
+    });
+  }
+  function setPubTiers(arr) {
+    var picked = TIERS.filter(function (t) { return (arr || []).indexOf(t) > -1; });
+    pubTiers = picked.length >= TIERS.length ? [] : picked;   // all 3 (or none) = All
+    paintRar();
+  }
+  function rarOpen(on) {
+    $("rarList").hidden = !on;
+    $("rarWrap").classList.toggle("open", on);
+    $("rarBtn").setAttribute("aria-expanded", on ? "true" : "false");
+  }
+  $("rarBtn").addEventListener("click", function () { rarOpen($("rarList").hidden); });
+  $("rarList").addEventListener("click", function (e) {
+    var o = e.target.closest(".rar-opt");
+    if (!o) return;
+    var r = o.dataset.r;
+    if (r === "All") setPubTiers([]);
+    else {
+      var next = pubTiers.indexOf(r) > -1 ? pubTiers.filter(function (t) { return t !== r; }) : pubTiers.concat(r);
+      setPubTiers(next);
+    }
+  });
+  document.addEventListener("click", function (e) { if (!$("rarList").hidden && !$("rarWrap").contains(e.target)) rarOpen(false); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !$("rarList").hidden) { rarOpen(false); $("rarBtn").focus(); } });
+
   function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
 
@@ -2729,7 +2811,7 @@ var guestStart, guestStop, layoutHook; // filled in below
 
   function currentFilters() {
     return {
-      tiers: F.all ? [] : Object.keys(F.tiers),
+      tiers: passMem ? (F.all ? [] : Object.keys(F.tiers)) : pubTiers.slice(),   // no key: the Rarity dropdown decides
       mut: Object.keys(F.mut),
       kgMin: F.kgMin > 0 ? kgAt(F.kgMin) : null,
       kgMax: F.kgMax < 200 ? kgAt(F.kgMax) : null,
@@ -2778,10 +2860,12 @@ var guestStart, guestStop, layoutHook; // filled in below
       $("ping").value = s.ping;
       $("pingType").value = s.pingType;
       if (loadFilters && s.filters) applyFilters(s.filters);
+      if (!passMem) setPubTiers(s.filters && s.filters.tiers);
       setStatus("Webhook " + n + " is on. Change the options, then press Save to update it.");
     } else {
       $("hook").placeholder = "Webhook";
       $("ping").value = "";
+      if (!passMem) setPubTiers([]);
       setStatus("Webhook " + n + " is empty. Set your options, paste a webhook, then press Save.");
     }
   }
@@ -4864,6 +4948,9 @@ document.addEventListener("DOMContentLoaded", function () {
     $("nfWrap").hidden = !nfOn;
     $("vals").hidden = !passMem;   // "Egg Values" only after an admin / guest key is entered
     $("eggs").hidden = !passMem;   // "Notifying Eggs" only after an admin / guest key is entered
+    $("howto").hidden = !!passMem;   // the how-to fills the empty left column for visitors without a key
+    $("rarWrap").hidden = !!passMem;   // Rarity dropdown: visitors without a key only (keys use Egg Values / Notifying Eggs)
+    if (passMem) rarOpen(false);
     document.body.classList.toggle("nfMode", nfOn);
     layoutHook(notifier, open);
     $("joinCard").hidden = !(live && pg === 4);
@@ -5127,7 +5214,7 @@ document.addEventListener("DOMContentLoaded", function () {
       el.animate([{ opacity: 0, transform: from }, { opacity: 1, transform: "none" }],
                  { duration: 450, delay: delay, easing: "cubic-bezier(.2,.8,.2,1)", fill: "backwards" });
     }
-    if (panels) ["opts", "vals", "eggs", "nfWrap", "right"].forEach(function (id, n) { if (!$(id)) return; pop($(id), "translateY(30px) scale(.97)", n * 90); });
+    if (panels) ["opts", "vals", "eggs", "howto", "nfWrap", "right"].forEach(function (id, n) { if (!$(id)) return; pop($(id), "translateY(30px) scale(.97)", n * 90); });
     Array.prototype.forEach.call(document.querySelectorAll("#right > *"), function (el, n) { pop(el, "translateY(14px)", 150 + n * 55); });
     cascadeFeed(panels ? 350 : 150);
   }
