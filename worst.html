@@ -56,6 +56,23 @@
   details.panel > .drop { position:absolute; top:100%; left:0; right:0; margin-top:6px; z-index:20; box-sizing:border-box;
                           background:#1e1f22; border-radius:12px; padding:16px; box-shadow:0 12px 28px rgba(0,0,0,.55); }
   #left { position:relative; z-index:5; }
+  /* ---- Accounts dropdown (admin key only) ---- */
+  #accts { flex:0 0 220px; box-sizing:border-box; }
+  #accts > .drop { left:auto; right:0; min-width:380px; }
+  .arow { display:grid; grid-template-columns:12px minmax(0,1fr) auto; align-items:center; gap:10px; padding:10px 12px; border-radius:8px; background:#2b2d31; margin-top:8px; }
+  .arow:first-child { margin-top:0; }
+  .arow .dot { width:10px; height:10px; border-radius:50%; background:#888; }
+  .arow .an { font-size:14px; font-weight:700; word-break:break-all; }
+  .arow .as, .arow .at, .afoot { font-size:12px; color:#b5bac1; font-weight:400; }
+  .arow .r { text-align:right; }
+  .arow .ap { font-size:11px; font-weight:700; padding:2px 8px; border-radius:10px; display:inline-block; margin-bottom:3px; }
+  .arow.s-hopping .dot { background:#23a55a; } .arow.s-hopping .ap { background:#1f3a2a; color:#57d28a; }
+  .arow.s-waiting .dot { background:#f0b232; } .arow.s-waiting .ap { background:#3d3217; color:#f5c75a; }
+  .arow.s-offline .dot { background:#f23f42; } .arow.s-offline .ap { background:#40201f; color:#ff7b72; }
+  .arow.s-offline { box-shadow:inset 0 0 0 1px #5a2a2c; } .arow.s-offline .at { color:#ff7b72; }
+  .afoot { margin-top:10px; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+  .aleg i { display:inline-block; width:8px; height:8px; border-radius:50%; margin:0 3px 0 8px; }
+  #acctErr { font-size:12px; color:#ff7b72; margin-top:6px; } #acctErr:empty { display:none; }
   .resetrow { margin-top:14px; text-align:right; }
 
   /* ---- egg options (switches) ---- */
@@ -672,6 +689,15 @@ body.wkSearching .vdet *{ animation:none !important; }
       <div class="drop">
       <div id="eggList"></div>
     </div>
+    </details>
+    <details class="panel" id="accts" hidden>
+      <summary><span>Accounts <span id="acctTag" style="font-size:12px;font-weight:400;color:#b5bac1"></span></span></summary>
+      <div class="drop">
+        <div id="acctList"></div>
+        <div class="afoot"><span id="acctNext">Loading...</span>
+          <span class="aleg"><i style="background:#23a55a"></i>Hopping <i style="background:#f0b232"></i>Waiting <i style="background:#f23f42"></i>Offline</span></div>
+        <div id="acctErr"></div>
+      </div>
     </details>
   </div>
 
@@ -4918,6 +4944,82 @@ document.addEventListener("DOMContentLoaded", function () {
       })
       .catch(function () { done(); setKeyState("", "", "Could not reach the server"); });
   }
+
+  // ---------- Accounts dropdown (admin key only): which hopper accounts are hopping, waiting or offline ----------
+  // The Worker keeps one row per account (the Lua script sends a heartbeat about once a minute).
+  // This list is fetched when the admin signs in, then every 5 minutes; the timers tick every second in between.
+  (function () {
+    var box = document.getElementById("accts");
+    if (!box) return;
+    var list = document.getElementById("acctList"), tag = document.getElementById("acctTag"),
+        nx = document.getElementById("acctNext"), er = document.getElementById("acctErr");
+    var REFRESH = 300000, data = null, skew = 0, fetchedAt = 0, busy = false, rows = [];
+    function fmt(s) {
+      s = Math.max(0, Math.round(s));
+      var d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60), x = s % 60;
+      return d ? d + "d " + h + "h" : h ? h + "h " + m + "m" : m ? m + "m " + x + "s" : x + "s";
+    }
+    function clock(s) { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ":" + ("0" + s % 60).slice(-2); }
+    function el(tagName, cls, text) { var e = document.createElement(tagName); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+    function build() {
+      list.textContent = "";
+      rows = [];
+      var rank = { hopping: 0, waiting: 1, offline: 2 };
+      var items = data.items.slice().sort(function (a, b) { return (rank[a.state] - rank[b.state]) || a.name.localeCompare(b.name); });
+      items.forEach(function (it) {
+        var row = el("div", "arow"), mid = el("div"), right = el("div", "r");
+        var name = el("div", "an", it.name), sub = el("div", "as");
+        var pill = el("span", "ap"), time = el("div", "at");
+        mid.appendChild(name); mid.appendChild(sub);
+        right.appendChild(pill); right.appendChild(time);
+        row.appendChild(el("span", "dot")); row.appendChild(mid); row.appendChild(right);
+        list.appendChild(row);
+        rows.push({ it: it, row: row, sub: sub, pill: pill, time: time });
+      });
+      if (!items.length) list.appendChild(el("div", "as", "No accounts have reported yet."));
+    }
+    function paint() {
+      if (!data) return;
+      var now = Date.now() + skew, online = 0;
+      rows.forEach(function (r) {
+        var it = r.it, state = it.state;
+        // flip to offline between refreshes if the heartbeats stopped
+        if (state !== "offline" && now - it.lastSeen > data.offlineMs) state = "offline";
+        if (state === "hopping" && it.huntEnd <= now) state = "waiting";
+        r.row.className = "arow s-" + state;
+        if (state !== "offline") online++;
+        r.pill.textContent = state === "hopping" ? "Hopping" : state === "waiting" ? "Waiting" : "Offline";
+        if (state === "hopping") { r.sub.textContent = "Window ends in " + clock((it.huntEnd - now) / 1000); r.time.textContent = "Active for " + fmt((now - it.sessionStart) / 1000); }
+        else if (state === "waiting") { r.sub.textContent = "Waiting for a selected egg"; r.time.textContent = "Active for " + fmt((now - it.sessionStart) / 1000); }
+        else {
+          r.sub.textContent = it.lastSeen ? (it.reason ? it.reason + ", last seen " : "Last seen ") + fmt((now - it.lastSeen) / 1000) + " ago" : "Never seen";
+          r.time.textContent = it.lastSeen ? "Offline for " + fmt((now - it.lastSeen) / 1000) : "Offline";
+        }
+      });
+      tag.textContent = online + "/" + rows.length + " online";
+      nx.textContent = "Refreshes every 5 min, next in " + clock((REFRESH - (Date.now() - fetchedAt)) / 1000);
+    }
+    function load() {
+      if (busy) return;
+      busy = true; fetchedAt = Date.now();
+      fetch(window.API + "/admin/accounts", { method: "POST", cache: "no-store",
+        headers: { "Content-Type": "application/json", "x-pass": encodeURIComponent(window.passMem || "") }, body: "{}" })
+        .then(function (r) { return r.text().then(function (t) { if (!r.ok) throw new Error(t); return JSON.parse(t); }); })
+        .then(function (d) { data = d; skew = d.now - Date.now(); er.textContent = ""; build(); paint(); })
+        .catch(function () { er.textContent = "Couldn't load accounts. Retrying shortly."; fetchedAt = Date.now() - REFRESH + 30000; })
+        .then(function () { busy = false; });
+    }
+    function tick() {
+      var on = window.isAdmin === true && !!window.passMem;
+      box.hidden = !on;
+      if (!on) { data = null; rows = []; fetchedAt = 0; list.textContent = ""; tag.textContent = ""; return; }
+      if (!fetchedAt || Date.now() - fetchedAt >= REFRESH) load();
+      paint();
+    }
+    box.addEventListener("toggle", function () { if (box.open && Date.now() - fetchedAt > 60000) load(); });
+    setInterval(tick, 1000);
+    tick();
+  })();
 
   // ---------- donate button (top left, every page of the Steal an egg channel) ----------
   (function () {
