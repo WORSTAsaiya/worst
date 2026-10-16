@@ -58,7 +58,7 @@
   #left { position:relative; z-index:5; }
   /* ---- Accounts dropdown (admin key only) ---- */
   #accts { flex:0 0 220px; box-sizing:border-box; }
-  #accts > .drop { left:auto; right:0; min-width:380px; }
+  #accts > .drop { left:0; right:auto; min-width:100%; width:340px; max-width:calc(100vw - 24px); }
   .arow { display:grid; grid-template-columns:12px minmax(0,1fr) auto; align-items:center; gap:10px; padding:10px 12px; border-radius:8px; background:#2b2d31; margin-top:8px; }
   .arow:first-child { margin-top:0; }
   .arow .dot { width:10px; height:10px; border-radius:50%; background:#888; }
@@ -349,7 +349,7 @@
     #valDetail, #valuesPage { max-width:none; justify-self:stretch; max-height:none; }
     .card { order:1; padding:22px 18px; } #left { order:2; } #right { order:3; }
     #left, #right { max-width:none; justify-self:stretch; }
-    #opts, #vals, #eggs { flex:1 1 100%; }
+    #opts, #vals, #eggs, #accts { flex:1 1 100%; }
     #feedPanel { width:100%; }
     #feed { max-height:40vh; }
   }
@@ -5426,7 +5426,7 @@ document.addEventListener("DOMContentLoaded", function () {
   body.nfMode #nfWrap{grid-column:2;max-width:none;margin-top:8px}
   body.nfMode #right{grid-column:3;justify-self:stretch;max-width:none}
   body.nfMode .filters{flex-direction:column;flex-wrap:nowrap;align-items:stretch}
-  body.nfMode #opts,body.nfMode #vals,body.nfMode #eggs{flex:none;width:100%}
+  body.nfMode #opts,body.nfMode #vals,body.nfMode #eggs,body.nfMode #accts{flex:none;width:100%}
 }
 @media(max-width:1200px){body.nfMode #nfWrap{grid-column:1;order:2;max-width:none}body.nfMode #left{order:3}body.nfMode #right{order:4}}
 
