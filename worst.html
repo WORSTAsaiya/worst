@@ -714,6 +714,9 @@ body.wkSearching .vdet *{ animation:none !important; }
         <button class="sw" id="alarmSw" type="button" role="switch" aria-checked="false"></button>
       </div>
       <div class="resetrow" style="margin:-4px 0 12px"><button class="reset" id="alarmTest" type="button">Test sound</button></div>
+      <p class="sub" style="margin:0 0 6px">What the alarm says (leave empty for the egg name + value)</p>
+      <input class="nf-search" id="alarmMsg" type="text" maxlength="120" autocomplete="off" spellcheck="false" placeholder="e.g. A 10 billion egg spawned" style="width:100%;margin:0 0 4px">
+      <p class="sub" style="margin:0 0 12px">Optional: {egg} = egg name, {value} = its value, {count} = how many at once. Tip: type numbers out ("10 billion") so it is read right.</p>
       <p class="sub">Mutation</p>
       <div class="chips" id="chips">
         <button class="chip" type="button" data-key="golden">Golden</button>
@@ -771,6 +774,10 @@ body.wkSearching .vdet *{ animation:none !important; }
       </div>
     </details>
     <section class="panel" id="howto">
+      <div class="opt" style="margin:0 0 14px">
+        <div><b>Voice alert</b><small>Says the egg name out loud when one spawns. Click anywhere on the page once so your browser allows sound.</small></div>
+        <button class="sw" id="guestVoiceSw" type="button" role="switch" aria-checked="true"></button>
+      </div>
       <h2>How to get alerts in Discord</h2>
       <ol>
         <li><b>Make a webhook.</b> In your Discord server open <code>Server Settings</code> &rarr; <code>Integrations</code> &rarr; <code>Webhooks</code> &rarr; <code>New Webhook</code>. Pick the channel, then press <code>Copy Webhook URL</code>.</li>
@@ -2811,7 +2818,48 @@ var guestStart, guestStop, layoutHook; // filled in below
       if (alarmCtx.state === "suspended") alarmCtx.resume();
     } catch (e) {}
   }
-  function alarmPlay() {   // 6 beeps x 0.5 s = 3 seconds
+  var alarmNames = [];   // names of the eggs that just triggered the alarm
+  function alarmSpeak(text) {   // says the drop name out loud; returns false if this browser has no speech
+    try {
+      if (!window.speechSynthesis || !text) return false;
+      var u = new SpeechSynthesisUtterance(text);   // queued: a new alarm never cuts off one that is still talking
+      u.rate = 1; u.pitch = 1; u.volume = 1;
+      window.speechSynthesis.speak(u);
+      return true;
+    } catch (e) { return false; }
+  }
+  function alarmSay(v) {   // 460090000 -> "460 million"; 2020000000 -> "2.02 billion"
+    var U = [[1e15, "quadrillion"], [1e12, "trillion"], [1e9, "billion"], [1e6, "million"], [1e3, "thousand"]];
+    for (var i = 0; i < U.length; i++) {
+      if (v >= U[i][0]) {
+        var n = v / U[i][0], t = n >= 100 ? String(Math.round(n)) : String(Math.round(n * 100) / 100);
+        return t + " " + U[i][1];
+      }
+    }
+    return String(Math.round(v));
+  }
+  function alarmLine(x) { return x.name + (x.v > 0 ? ", " + alarmSay(x.v) + " per second" : ""); }
+  var alarmText = lsGet("alarmText") || "";
+  function alarmFill(tpl, x, count) {
+    return tpl.replace(/\{egg\}/gi, x ? x.name : "egg").replace(/\{value\}/gi, x && x.v > 0 ? alarmSay(x.v) : "").replace(/\{count\}/gi, String(count));
+  }
+  function alarmPlay(test) {   // speaks your custom text, or name + value (falls back to the old beeps if speech is unavailable)
+    var list = test === true ? [{ name: "Pure Jellyfish", v: 460090000 }] : alarmNames.slice();
+    if (!list.length) { alarmBeep(); return; }
+    list.sort(function (x, y) { return y.v - x.v; });                 // biggest value first
+    var say, tpl = test === "guest" ? "" : (alarmText || "").trim();   // guests (no key) always use the default phrase
+    if (tpl) {
+      if (/\{(egg|value)\}/i.test(tpl)) {                             // uses egg / value: one line per egg (top 3)
+        say = list.slice(0, 3).map(function (x) { return alarmFill(tpl, x, list.length); }).join(". ");
+        if (list.length > 3) say += ". And " + (list.length - 3) + " more";
+      } else say = alarmFill(tpl, list[0], list.length);                // plain text: said once, however many spawn
+    } else {
+      say = list.slice(0, 3).map(alarmLine).join(". ");               // default: at most 3 eggs are read out
+      if (list.length > 3) say += ". And " + (list.length - 3) + " more";
+    }
+    if (!alarmSpeak(say)) alarmBeep();
+  }
+  function alarmBeep() {   // old sound: 6 beeps x 0.5 s = 3 seconds
     alarmUnlock();
     if (!alarmCtx) return;
     var t0 = alarmCtx.currentTime + 0.05;
@@ -2827,11 +2875,12 @@ var guestStart, guestStop, layoutHook; // filled in below
   }
   function alarmCheck(top) {   // top = the Biggest Value list (already filtered by Egg Values)
     var fresh = false;
+    alarmNames = [];
     top.forEach(function (a) {
       var k = a.jobId + a.t;
       if (alarmSeen[k]) return;
       alarmSeen[k] = true;                       // remember it, so it never rings twice
-      if (alarmReady && !nfGone(a)) fresh = true; // first load / filter change only seeds silently
+      if (alarmReady && !nfGone(a)) { fresh = true; alarmNames.push({ name: nfPetName(a.egg) || a.egg || "egg", v: nfNum(a, nfPetName(a.egg)) }); } // first load / filter change only seeds silently
     });
     return fresh;
   }
@@ -2840,7 +2889,16 @@ var guestStart, guestStop, layoutHook; // filled in below
     alarmOn = !alarmOn; lsSet("eggAlarm", alarmOn ? "1" : "0"); alarmPaint();
     if (alarmOn) { alarmUnlock(); schedule(); }
   });
-  $("alarmTest").addEventListener("click", alarmPlay);
+  $("alarmTest").addEventListener("click", function () { alarmPlay(true); });
+  var guestVoiceOn = lsGet("guestVoice") !== "0";   // visitors without a key: voice alert is on unless they switch it off
+  function guestVoicePaint() { var b = $("guestVoiceSw"); b.classList.toggle("on", guestVoiceOn); b.setAttribute("aria-checked", guestVoiceOn ? "true" : "false"); }
+  guestVoicePaint();
+  $("guestVoiceSw").addEventListener("click", function () {
+    guestVoiceOn = !guestVoiceOn; lsSet("guestVoice", guestVoiceOn ? "1" : "0"); guestVoicePaint();
+    if (guestVoiceOn) { alarmUnlock(); alarmSpeak("Voice alert on"); }
+  });
+  $("alarmMsg").value = alarmText;
+  $("alarmMsg").addEventListener("input", function () { alarmText = this.value; lsSet("alarmText", alarmText); });
   document.addEventListener("pointerdown", function () { if (alarmOn) alarmUnlock(); });
 
   // ---------- Admin Dropdown: "Join Biggest Egg Value" (Instant Join, admin key only) ----------
@@ -2920,6 +2978,10 @@ var guestStart, guestStop, layoutHook; // filled in below
       var ring = alarmCheck(top);
       if (b.src.length) alarmReady = true;
       if (ring && alarmOn) alarmPlay();
+    } else {   // no key: new eggs in the list (already limited by the Rarity dropdown) are spoken too
+      var gring = alarmCheck(b.list.filter(function (a) { return !a.type || a.type === "egg"; }));
+      if (b.src.length) alarmReady = true;
+      if (gring && guestVoiceOn) alarmPlay("guest");
     }
     function fill(box, list, emptyText, glow, ranked) {
       box.textContent = "";
