@@ -697,8 +697,8 @@ body.wkSearching .vdet *{ animation:none !important; }
   </select>
   <label for="pgSel">Pages</label>
   <select id="pgSel">
-    <option value="1">Live Spawn</option>
-    <option value="2">Egg Information</option>
+    <option value="1">Notifiers</option>
+    <option value="2">Wiki</option>
     <option value="3">Calculator</option>
     <option value="5">Fusion</option>
   </select>
@@ -5743,7 +5743,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function schedule() {
     clearTimeout(pollTimer);
     if (document.hidden && !alarmOn && !jOn) return;
-    pollTimer = setTimeout(function () { poll(); schedule(); }, POLL_MS);
+    pollTimer = setTimeout(function () { poll(); schedule(); }, (window.isAdmin === true && passMem) ? 3000 : POLL_MS);   // admin checks every 3 s so the vip / guest delay is really visible; everyone else every 10 s
   }
   document.addEventListener("visibilitychange", function () {
     if (!document.hidden) { poll(); schedule(); }
