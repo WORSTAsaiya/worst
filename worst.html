@@ -5600,7 +5600,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   function paintCycle() {
     var el = $("cycle");
-    // Round start = the FIRST egg after the previous 4:45 countdown ran out. Later eggs inside the same round do NOT reset it.
+    // Round start = the FIRST egg after the previous 4:35 countdown ran out. Later eggs inside the same round do NOT reset it.
     // (kept in variables, so pressing Clear does not wipe the timer)
     var times = [];
     ((typeof allItems !== "undefined" && allItems) || []).concat((typeof pubItems !== "undefined" && pubItems) || []).forEach(function (a) {
@@ -5609,14 +5609,14 @@ document.addEventListener("DOMContentLoaded", function () {
     times.sort(function (x, y) { return x - y; });
     times.forEach(function (t) {
       if (lastEggT && t < lastEggT) return;                         // belongs to an earlier round
-      if (!lastEggT || t >= lastEggT + 285000) lastEggT = t;        // first egg after the countdown hit 0: new round
+      if (!lastEggT || t >= lastEggT + 275000) lastEggT = t;        // first egg after the countdown hit 0: new round
     });
     var nx = $("nfNext");
     if (!lastEggT) { el.textContent = "Time left: --:--"; el.className = ""; nx.textContent = "\u00B7 Next spawn in --:--"; nx.className = ""; return; }
     var left = lastEggT + 280000 - (Date.now() + clockOffset);   // egg window (4 min 40 s) from the round's first egg
     // "Next spawn" follows the game's own timer, which runs NEXT_SPAWN_LAG longer than the egg window above (measured: site 3:38 vs game 3:54 = 16 s).
     // Raise / lower this number if it still drifts. The egg window (Time left, Already gone) is not affected.
-    var NEXT_SPAWN_LAG = 5000, nleft = left + NEXT_SPAWN_LAG;   // 280 s + 5 s = 4:45 from the round's first egg
+    var NEXT_SPAWN_LAG = -5000, nleft = left + NEXT_SPAWN_LAG;   // 280 s - 5 s = 4:35 from the round's first egg
     if (left > 0) { el.textContent = "Time left: " + fmt(left); el.className = ""; } else { el.textContent = "Time left: 0:00"; el.className = "done"; }
     if (nleft > 0) { nx.textContent = "\u00B7 Next spawn in " + fmt(nleft); nx.className = ""; }
     else { nx.textContent = "\u00B7 Next spawn: any moment now"; nx.className = "soon"; }
