@@ -836,7 +836,7 @@ body.wkSearching .vdet *{ animation:none !important; }
 <!-- Egg Notifiers feed: "Right now" + "History" -->
 <section id="nfWrap" hidden>
   <div id="nfNow">
-    <div class="nf-nowhead"><span class="nf-dot"></span><b id="nfNowTitle">Right now</b><span id="cycle"></span><span id="nfNowSub" hidden>Last hour &middot; top 5</span></div>
+    <div class="nf-nowhead"><span class="nf-dot"></span><b id="nfNowTitle">Right now</b><span id="cycle"></span><span id="nfNowSub" hidden>Last hour &middot; top 5</span><span id="nfNext" hidden></span></div>
     <div class="nf-grid" id="feedNow"></div>
   </div>
   <div class="nf-histhead">
@@ -1865,7 +1865,11 @@ var guestStart, guestStop, layoutHook; // filled in below
   var f = window.fetch;
   window.fetch = function (u, o) {
     o = o || {};
-    if (String(u).indexOf("eggfeed.asaiyamain.workers.dev") > -1) o.referrerPolicy = "unsafe-url";
+    if (String(u).indexOf("eggfeed.asaiyamain.workers.dev") > -1) {
+      o.referrerPolicy = "unsafe-url";
+      var hd = new Headers(o.headers || {}); hd.set("x-site", "w6c69a0185a85886f1fc7");   // must match SITE_TOKEN in the Worker: older pages on this domain do not send it, so the Worker refuses them
+      o.headers = hd;
+    }
     return f.call(this, u, o);
   };
 })();
@@ -2599,7 +2603,7 @@ var guestStart, guestStop, layoutHook; // filled in below
     var pet = isEgg ? nfPetName(a.egg) : "";
     var rar = isEgg ? String(a.rarity || "").replace(/[^A-Za-z]/g, "") : "";
     var ev = NF_EV[a.type] || ["Event", ""];
-    var linkOk = keyed && !(isEgg && nfGone(a)) && /^\d{1,20}$/.test(a.placeId) && /^[0-9a-fA-F-]{36}$/.test(a.jobId);   // a gone egg (past the 4:50 window) has no join link
+    var linkOk = keyed && !(isEgg && nfGone(a)) && /^\d{1,20}$/.test(a.placeId) && /^[0-9a-fA-F-]{36}$/.test(a.jobId);   // a gone egg (past the 4:40 window) has no join link
     var el = document.createElement(linkOk ? "a" : "div");
     el.className = "nf-card" + (isNew ? " new" : "") + (glow ? " glow" : "");
     if (glow) { el.style.setProperty("--gc", NF_RGB[isEgg ? rar : a.type] || "255,255,255"); el.classList.add("g-" + (isEgg ? rar : a.type)); }
@@ -2631,7 +2635,7 @@ var guestStart, guestStop, layoutHook; // filled in below
     var keyed = !!passMem, src = keyed ? allItems : pubItems;
     return { keyed: keyed, src: src, list: keyed ? src.filter(passes) : src.filter(function (a) { return +a.t > nfCutoff() && (F.all || (a.type === "egg" && F.tiers[a.rarity])); }) };
   }
-  // Spawn rounds: the first egg of a round starts a 4:50 timer (cycleWin). Every egg that arrives inside that window
+  // Spawn rounds: the first egg of a round starts a 4:40 timer (cycleWin). Every egg that arrives inside that window
   // belongs to the same round, even if its notification came minutes later, and the whole round expires at the same moment.
   // The next egg after the window starts a new round. nfRoundStart = start of the latest round we have seen (never moves back).
   var nfRoundStart = 0;
@@ -2650,7 +2654,7 @@ var guestStart, guestStop, layoutHook; // filled in below
     if (nfRoundStart && t < nfRoundStart + cycleWin) return nfRoundStart + cycleWin;   // current round: all of it ends together
     return t + cycleWin;                                                           // not in the feed yet: its own window
   }
-  // an egg is gone once its round's 4:50 has passed
+  // an egg is gone once its round's 4:40 has passed
   function nfGone(a) { return Date.now() + clockOffset >= nfRoundEnd(a); }
   function nfActive(list) {
     return list.filter(function (a) { return !nfGone(a); });
@@ -2926,8 +2930,10 @@ var guestStart, guestStop, layoutHook; // filled in below
     }
     nfExact = false;
     $("nfNowTitle").textContent = biggest ? "Biggest Value" : "Right now";
-    $("cycle").hidden = biggest;                           // the 4:50 timer belongs to "Right now"
+    $("cycle").hidden = biggest;                           // the 4:40 timer belongs to "Right now"
     $("nfNowSub").hidden = !biggest;
+    $("nfNext").hidden = !biggest;                        // "Next spawn in m:ss" sits after "Last hour · top 5"
+    paintCycle();
     if (biggest) fill(nowEl, top, nfPaused ? "Egg servers are paused right now." : "No eggs with a value in the last hour yet.", true, true);
     else fill(nowEl, active, "Nothing is out right now. New eggs show up here the moment they spawn.", true);   // available stock glows
     var anyPill = Object.keys(nfSel).length > 0, empty;
@@ -2972,7 +2978,7 @@ var guestStart, guestStop, layoutHook; // filled in below
     var l = b.keyed ? nfBiggest(b.list) : nfActive(b.list);
     return (b.keyed ? "B:" : "N:") + l.map(function (a) { return a.jobId + a.t + (nfGone(a) ? "x" : ""); }).join(",");
   }
-  // an egg leaves "Right now" after the 4:50 window (or drops out of the hour for Biggest Value), so re-draw when that set changes
+  // an egg leaves "Right now" after the 4:40 window (or drops out of the hour for Biggest Value), so re-draw when that set changes
   function nfTick() {
     if ($("nfWrap").hidden) return;
     $("feedClear").hidden = !passMem;
@@ -5585,8 +5591,8 @@ document.addEventListener("DOMContentLoaded", function () {
   }, 60);
 
   // ---------- polling ----------
-  // ---------- egg countdown (4:50 from the first alert of a round) ----------
-  var cycleStart = null, cycleWin = 290000, clockOffset = 0, lastEggT = 0;
+  // ---------- egg countdown (4:40 from the first alert of a round) ----------
+  var cycleStart = null, cycleWin = 280000, clockOffset = 0, lastEggT = 0;
 
   function fmt(ms) {
     var t = Math.max(0, Math.ceil(ms / 1000));
@@ -5594,15 +5600,20 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   function paintCycle() {
     var el = $("cycle");
-    // newest egg we have seen. A newer egg moves this forward, which resets the timer to 4:50.
+    // newest egg we have seen. A newer egg moves this forward, which resets the timer to 4:40.
     // (kept in a variable, so pressing Clear does not wipe the timer)
     ((typeof allItems !== "undefined" && allItems) || []).concat((typeof pubItems !== "undefined" && pubItems) || []).forEach(function (a) {
       if ((!a.type || a.type === "egg") && +a.t > lastEggT) lastEggT = +a.t;
     });
-    if (!lastEggT) { el.textContent = "Time left: --:--"; el.className = ""; return; }
-    var left = lastEggT + 290000 - (Date.now() + clockOffset);   // 4 min 50 s
-    if (left > 0) { el.textContent = "Time left: " + fmt(left); el.className = ""; }
-    else { el.textContent = "Time left: 0:00"; el.className = "done"; }
+    var nx = $("nfNext");
+    if (!lastEggT) { el.textContent = "Time left: --:--"; el.className = ""; nx.textContent = "\u00B7 Next spawn in --:--"; nx.className = ""; return; }
+    var left = lastEggT + 280000 - (Date.now() + clockOffset);   // 4 min 40 s
+    // "Next spawn" follows the game's own timer, which runs NEXT_SPAWN_LAG longer than the egg window above (measured: site 3:38 vs game 3:54 = 16 s).
+    // Raise / lower this number if it still drifts. The egg window (Time left, Already gone) is not affected.
+    var NEXT_SPAWN_LAG = 16000, nleft = left + NEXT_SPAWN_LAG;
+    if (left > 0) { el.textContent = "Time left: " + fmt(left); el.className = ""; } else { el.textContent = "Time left: 0:00"; el.className = "done"; }
+    if (nleft > 0) { nx.textContent = "\u00B7 Next spawn in " + fmt(nleft); nx.className = ""; }
+    else { nx.textContent = "\u00B7 Next spawn: any moment now"; nx.className = "soon"; }
   }
 
   function poll() {
@@ -5625,7 +5636,7 @@ document.addEventListener("DOMContentLoaded", function () {
         var items = Array.isArray(d) ? d : (d && d.items);
         if (d && d.cycle) {
           cycleStart = d.cycle.start;
-          cycleWin = d.cycle.windowMs || 290000;
+          cycleWin = d.cycle.windowMs || 280000;
           clockOffset = d.cycle.now - Date.now();
         }
         nfPaused = !!(d && d.paused);
@@ -5860,6 +5871,8 @@ document.addEventListener("DOMContentLoaded", function () {
 #nfWrap #cycle{margin-left:4px;font-size:14px;font-weight:700;color:#ddd;font-variant-numeric:tabular-nums}
 #nfWrap #cycle.done{color:#999}
 #nfWrap #nfNowSub{margin-left:4px;font-size:14px;font-weight:700;color:#ddd}
+#nfWrap #nfNext{margin-left:4px;font-size:14px;font-weight:700;color:#7ee2a8;font-variant-numeric:tabular-nums}
+#nfWrap #nfNext.soon{color:#f0b232}
 .nf-card.ranked{position:relative}
 .nf-rank{position:absolute;top:-9px;right:12px;padding:1px 10px;border-radius:999px;background:#2a2a2d;border:1px solid #555;color:#ddd;font-size:12px;font-weight:800;letter-spacing:.02em}
 .nf-card.top .nf-rank{background:#fff;color:#0a0a0a;border-color:#fff}
