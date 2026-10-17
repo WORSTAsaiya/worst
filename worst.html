@@ -697,8 +697,8 @@ body.wkSearching .vdet *{ animation:none !important; }
   </select>
   <label for="pgSel">Pages</label>
   <select id="pgSel">
-    <option value="1">Notifiers</option>
-    <option value="2">Wiki</option>
+    <option value="1">Live Spawn</option>
+    <option value="2">Egg Information</option>
     <option value="3">Calculator</option>
     <option value="5">Fusion</option>
   </select>
@@ -778,6 +778,7 @@ body.wkSearching .vdet *{ animation:none !important; }
         <div><b>Voice alert</b><small>Says the egg name out loud when one spawns. Click anywhere on the page once so your browser allows sound.</small></div>
         <button class="sw" id="guestVoiceSw" type="button" role="switch" aria-checked="true"></button>
       </div>
+      <div class="resetrow" style="margin:-6px 0 14px"><button class="reset" id="guestVoiceTest" type="button">Test voice</button></div>
       <h2>How to get alerts in Discord</h2>
       <ol>
         <li><b>Make a webhook.</b> In your Discord server open <code>Server Settings</code> &rarr; <code>Integrations</code> &rarr; <code>Webhooks</code> &rarr; <code>New Webhook</code>. Pick the channel, then press <code>Copy Webhook URL</code>.</li>
@@ -2819,12 +2820,17 @@ var guestStart, guestStop, layoutHook; // filled in below
     } catch (e) {}
   }
   var alarmNames = [];   // names of the eggs that just triggered the alarm
-  function alarmSpeak(text) {   // says the drop name out loud; returns false if this browser has no speech
+  function alarmSpeak(text) {   // says the text out loud; returns false if this browser has no speech
     try {
-      if (!window.speechSynthesis || !text) return false;
-      var u = new SpeechSynthesisUtterance(text);   // queued: a new alarm never cuts off one that is still talking
+      var ss = window.speechSynthesis;
+      if (!ss || !text) return false;
+      if (ss.paused) ss.resume();
+      var u = new SpeechSynthesisUtterance(text), started = false;   // queued: a new alarm never cuts off one that is still talking
       u.rate = 1; u.pitch = 1; u.volume = 1;
-      window.speechSynthesis.speak(u);
+      u.onstart = function () { started = true; };
+      u.onerror = function () { if (!started) alarmBeep(); };         // the browser refused to speak: beep instead
+      setTimeout(function () { if (!started && !ss.speaking) { try { ss.cancel(); } catch (e) {} alarmBeep(); } }, 2500);
+      ss.speak(u);
       return true;
     } catch (e) { return false; }
   }
@@ -2844,10 +2850,10 @@ var guestStart, guestStop, layoutHook; // filled in below
     return tpl.replace(/\{egg\}/gi, x ? x.name : "egg").replace(/\{value\}/gi, x && x.v > 0 ? alarmSay(x.v) : "").replace(/\{count\}/gi, String(count));
   }
   function alarmPlay(test) {   // speaks your custom text, or name + value (falls back to the old beeps if speech is unavailable)
-    var list = test === true ? [{ name: "Pure Jellyfish", v: 460090000 }] : alarmNames.slice();
+    var list = (test === true || test === "guesttest") ? [{ name: "Pure Jellyfish", v: 460090000 }] : alarmNames.slice();
     if (!list.length) { alarmBeep(); return; }
     list.sort(function (x, y) { return y.v - x.v; });                 // biggest value first
-    var say, tpl = test === "guest" ? "" : (alarmText || "").trim();   // guests (no key) always use the default phrase
+    var say, tpl = (test === "guest" || test === "guesttest") ? "" : (alarmText || "").trim();   // guests (no key) always use the default phrase
     if (tpl) {
       if (/\{(egg|value)\}/i.test(tpl)) {                             // uses egg / value: one line per egg (top 3)
         say = list.slice(0, 3).map(function (x) { return alarmFill(tpl, x, list.length); }).join(". ");
@@ -2877,10 +2883,11 @@ var guestStart, guestStop, layoutHook; // filled in below
     var fresh = false;
     alarmNames = [];
     top.forEach(function (a) {
-      var k = a.jobId + a.t;
+      var k = (a.jobId || "") + "|" + a.t + "|" + (a.egg || a.type || "");   // public alerts have no jobId, so it must not be part of a sum (undefined + number = NaN)
       if (alarmSeen[k]) return;
       alarmSeen[k] = true;                       // remember it, so it never rings twice
-      if (alarmReady && !nfGone(a)) { fresh = true; alarmNames.push({ name: nfPetName(a.egg) || a.egg || "egg", v: nfNum(a, nfPetName(a.egg)) }); } // first load / filter change only seeds silently
+      if (alarmReady && ((a.type && a.type !== "egg") ? (Date.now() + clockOffset - (+a.t)) < 120000 : !nfGone(a))) { fresh = true; if (a.type && a.type !== "egg") alarmNames.push({ name: (NF_EV[a.type] || ["Event"])[0], v: 0 });   // butterfly / racing: just the event name
+        else alarmNames.push({ name: nfPetName(a.egg) || a.egg || "egg", v: nfNum(a, nfPetName(a.egg)) }); } // first load / filter change only seeds silently
     });
     return fresh;
   }
@@ -2893,6 +2900,7 @@ var guestStart, guestStop, layoutHook; // filled in below
   var guestVoiceOn = lsGet("guestVoice") !== "0";   // visitors without a key: voice alert is on unless they switch it off
   function guestVoicePaint() { var b = $("guestVoiceSw"); b.classList.toggle("on", guestVoiceOn); b.setAttribute("aria-checked", guestVoiceOn ? "true" : "false"); }
   guestVoicePaint();
+  $("guestVoiceTest").addEventListener("click", function () { alarmUnlock(); alarmPlay("guesttest"); });
   $("guestVoiceSw").addEventListener("click", function () {
     guestVoiceOn = !guestVoiceOn; lsSet("guestVoice", guestVoiceOn ? "1" : "0"); guestVoicePaint();
     if (guestVoiceOn) { alarmUnlock(); alarmSpeak("Voice alert on"); }
@@ -2978,8 +2986,8 @@ var guestStart, guestStop, layoutHook; // filled in below
       var ring = alarmCheck(top);
       if (b.src.length) alarmReady = true;
       if (ring && alarmOn) alarmPlay();
-    } else {   // no key: new eggs in the list (already limited by the Rarity dropdown) are spoken too
-      var gring = alarmCheck(b.list.filter(function (a) { return !a.type || a.type === "egg"; }));
+    } else {   // no key: new eggs and events in the list (already limited by the Rarity dropdown) are spoken too
+      var gring = alarmCheck(b.list);   // eggs + Butterfly Bloom / Racing events
       if (b.src.length) alarmReady = true;
       if (gring && guestVoiceOn) alarmPlay("guest");
     }
