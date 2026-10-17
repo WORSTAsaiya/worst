@@ -2930,9 +2930,9 @@ var guestStart, guestStop, layoutHook; // filled in below
     }
     nfExact = false;
     $("nfNowTitle").textContent = biggest ? "Biggest Value" : "Right now";
-    $("cycle").hidden = biggest;                           // the 4:40 timer belongs to "Right now"
+    $("cycle").hidden = biggest || b.keyed;                           // the 4:40 timer belongs to "Right now"
     $("nfNowSub").hidden = !biggest;
-    $("nfNext").hidden = !biggest;                        // "Next spawn in m:ss" sits after "Last hour · top 5"
+    $("nfNext").hidden = !biggest || b.keyed;                        // "Next spawn in m:ss" sits after "Last hour · top 5"
     paintCycle();
     if (biggest) fill(nowEl, top, nfPaused ? "Egg servers are paused right now." : "No eggs with a value in the last hour yet.", true, true);
     else fill(nowEl, active, "Nothing is out right now. New eggs show up here the moment they spawn.", true);   // available stock glows
@@ -5609,14 +5609,17 @@ document.addEventListener("DOMContentLoaded", function () {
     times.sort(function (x, y) { return x - y; });
     times.forEach(function (t) {
       if (lastEggT && t < lastEggT) return;                         // belongs to an earlier round
-      if (!lastEggT || t >= lastEggT + 275000) lastEggT = t;        // first egg after the countdown hit 0: new round
+      if (!lastEggT || t >= lastEggT + (passMem ? 275000 : 300000)) lastEggT = t;        // first egg after the countdown hit 0: new round
     });
     var nx = $("nfNext");
+    if (passMem) { el.hidden = true; nx.hidden = true; return; }   // vip / admin / guest keys: no countdown shown
     if (!lastEggT) { el.textContent = "Time left: --:--"; el.className = ""; nx.textContent = "\u00B7 Next spawn in --:--"; nx.className = ""; return; }
-    var left = lastEggT + 280000 - (Date.now() + clockOffset);   // egg window (4 min 40 s) from the round's first egg
+    if (!passMem) cycleWin = 300000;   // no key (public visitors): exactly 5:00. Keys (vip / admin / guest) keep their own timer below.
+    var win = passMem ? 280000 : 300000;
+    var left = lastEggT + win - (Date.now() + clockOffset);   // egg window (4 min 40 s) from the round's first egg
     // "Next spawn" follows the game's own timer, which runs NEXT_SPAWN_LAG longer than the egg window above (measured: site 3:38 vs game 3:54 = 16 s).
     // Raise / lower this number if it still drifts. The egg window (Time left, Already gone) is not affected.
-    var NEXT_SPAWN_LAG = -5000, nleft = left + NEXT_SPAWN_LAG;   // 280 s - 5 s = 4:35 from the round's first egg
+    var NEXT_SPAWN_LAG = passMem ? -5000 : 0, nleft = left + NEXT_SPAWN_LAG;   // 280 s - 5 s = 4:35 from the round's first egg
     if (left > 0) { el.textContent = "Time left: " + fmt(left); el.className = ""; } else { el.textContent = "Time left: 0:00"; el.className = "done"; }
     if (nleft > 0) { nx.textContent = "\u00B7 Next spawn in " + fmt(nleft); nx.className = ""; }
     else { nx.textContent = "\u00B7 Next spawn: any moment now"; nx.className = "soon"; }
