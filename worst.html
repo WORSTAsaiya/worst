@@ -39,6 +39,7 @@
   #opts { flex:0 0 180px; box-sizing:border-box; }
   #vals { flex:0 0 270px; box-sizing:border-box; }
   #eggs { flex:0 0 220px; box-sizing:border-box; }
+  #joinDD { flex:0 0 270px; box-sizing:border-box; }   /* Admin Dropdown: same size as Egg Values */
   #eggCount { color:#b5bac1; font-weight:400; font-size:13px; }
   #eggList { max-height:320px; overflow-y:auto; }
   .egghead { font-size:12px; font-weight:700; margin:10px 0 6px; }
@@ -375,7 +376,7 @@
     #valDetail, #valuesPage { max-width:none; justify-self:stretch; max-height:none; }
     .card { order:1; padding:22px 18px; } #left { order:2; } #right { order:3; }
     #left, #right { max-width:none; justify-self:stretch; }
-    #opts, #vals, #eggs, #accts { flex:1 1 100%; }
+    #opts, #vals, #eggs, #accts, #joinDD { flex:1 1 100%; }
     #feedPanel { width:100%; }
     #feed { max-height:40vh; }
   }
@@ -729,6 +730,30 @@ body.wkSearching .vdet *{ animation:none !important; }
         <div id="acctList"></div>
         <div class="afoot"><span id="acctNext">Loading...</span></div>
         <div id="acctErr"></div>
+      </div>
+    </details>
+    <details class="panel" id="joinDD" hidden>
+      <summary><span>Admin Dropdown <span id="jTag" style="font-size:12px;font-weight:400;color:#b5bac1"></span></span></summary>
+      <div class="drop">
+      <div class="opt">
+        <div><b>Join Biggest Egg Value</b><small>Joins the first NEW egg server that matches the settings below (even if it is not in Biggest Value), then turns itself off. Keep this tab open.</small></div>
+        <button class="sw" id="jSw" type="button" role="switch" aria-checked="false"></button>
+      </div>
+      <div id="jStatus" style="font-size:12px;color:#b5bac1;margin:-2px 0 12px"></div>
+      <p class="sub">Mutation</p>
+      <div class="chips" id="jChips">
+        <button class="chip" type="button" data-key="golden">Golden</button>
+        <button class="chip" type="button" data-key="silver">Silver</button>
+        <button class="chip" type="button" data-key="parasite">Parasite</button>
+        <button class="chip" type="button" data-key="rainbow">Rainbow</button>
+        <button class="chip" type="button" data-key="bloom">Bloom</button>
+        <button class="chip" type="button" data-key="spiritbloom">Spirit Bloom</button>
+      </div>
+      <div class="srow"><label for="jKgMin">Minimum Kg <output id="jKgMinOut"></output></label><input type="range" id="jKgMin" min="0" max="199" step="1" value="0"></div>
+      <div class="srow"><label for="jKgMax">Maximum Kg <output id="jKgMaxOut"></output></label><input type="range" id="jKgMax" min="1" max="200" step="1" value="200"></div>
+      <div class="srow"><label for="jVMin">Minimum Value <output id="jVMinOut"></output></label><input type="range" id="jVMin" min="0" max="199" step="1" value="0"></div>
+      <div class="srow"><label for="jVMax">Maximum Value <output id="jVMaxOut"></output></label><input type="range" id="jVMax" min="1" max="200" step="1" value="200"></div>
+      <div class="resetrow"><button class="reset" id="jReset" type="button">Reset filters</button></div>
       </div>
     </details>
     <section class="panel" id="howto">
@@ -2265,7 +2290,8 @@ var guestStart, guestStop, layoutHook; // filled in below
     return last;
   }
 
-  function passes(it) {
+  function passes(it) { return passesF(F, it); }
+  function passesF(F, it) {   // F = a filter set: the Egg Values one (alarm) or the Admin Dropdown one (Instant Join)
     if (!F.all && !F.tiers[it.rarity]) return false;
 
     var wanted = Object.keys(F.mut);
@@ -2445,6 +2471,7 @@ var guestStart, guestStop, layoutHook; // filled in below
     allItems = items.filter(function (it) { return +it.t > clearT; });
     if (wasFirst) setTimeout(function () { if (!$("left").hidden) cascadeFeed(0); }, 0);
     render();
+    joinCheck();
   }
 
   // ---------- public feed (no key): rare egg alerts from /alerts ----------
@@ -2797,6 +2824,71 @@ var guestStart, guestStop, layoutHook; // filled in below
   });
   $("alarmTest").addEventListener("click", alarmPlay);
   document.addEventListener("pointerdown", function () { if (alarmOn) alarmUnlock(); });
+
+  // ---------- Admin Dropdown: "Join Biggest Egg Value" (Instant Join, admin key only) ----------
+  // Its own mutation / kg / value settings (separate from Egg Values, which only drive the alarm).
+  // When armed, the first NEW egg that matches (even if it is not in Biggest Value) opens its server once, then the switch turns itself off.
+  var JF = defaults(), jOn = false, jSeen = {};
+  function jLoad() {
+    try {
+      var o = JSON.parse(localStorage.getItem("joinFilters") || "null"); if (!o) return;
+      var f = defaults();
+      MUTS.forEach(function (m) { if (o.mut && o.mut[m]) f.mut[m] = true; });
+      f.kgMin = clampInt(o.kgMin, 0, 199, 0);  f.kgMax = clampInt(o.kgMax, 1, 200, 200);
+      f.vMin = clampInt(o.vMin, 0, 199, 0);    f.vMax = clampInt(o.vMax, 1, 200, 200);
+      if (f.kgMax < f.kgMin) f.kgMax = f.kgMin;
+      if (f.vMax < f.vMin) f.vMax = f.vMin;
+      JF = f;
+    } catch (e) {}
+  }
+  function jSave() { try { localStorage.setItem("joinFilters", JSON.stringify(JF)); } catch (e) {} }
+  function jStatus(t) { $("jStatus").textContent = t || ""; $("jTag").textContent = jOn ? "\u00B7 armed" : ""; }
+  function jPaint() {
+    var b = $("jSw"); b.classList.toggle("on", jOn); b.setAttribute("aria-checked", jOn ? "true" : "false");
+    document.querySelectorAll("#jChips .chip").forEach(function (c) { c.classList.toggle("on", !!JF.mut[c.dataset.key]); });
+    $("jKgMin").value = JF.kgMin; $("jKgMax").value = JF.kgMax; $("jVMin").value = JF.vMin; $("jVMax").value = JF.vMax;
+    $("jKgMinOut").textContent = kgLabel(JF.kgMin); $("jKgMaxOut").textContent = kgLabel(JF.kgMax);
+    $("jVMinOut").textContent = valLabel(JF.vMin, true); $("jVMaxOut").textContent = valLabel(JF.vMax, false);
+  }
+  function jSeed() { allItems.forEach(function (a) { jSeen[a.jobId + a.t] = true; }); }   // eggs already out when you arm it do not count
+  function jOff(msg) { jOn = false; jPaint(); jStatus(msg); }
+  function jFilterChanged() { jSave(); jPaint(); if (jOn) { jSeed(); jStatus("Armed. Waiting for a matching new egg..."); } }
+  function joinCheck() {   // called after every feed refresh
+    if (!jOn) return;
+    if (!(window.isAdmin === true && passMem)) { jOff(""); return; }
+    nfUpdateRound();
+    var hits = allItems.filter(function (a) {
+      var k = a.jobId + a.t, fresh = !jSeen[k];
+      jSeen[k] = true;
+      return fresh && (!a.type || a.type === "egg") && !nfGone(a) && /^\d{1,20}$/.test(a.placeId) && /^[0-9a-fA-F-]{36}$/.test(a.jobId) && passesF(JF, a);
+    });
+    if (!hits.length) return;
+    hits.sort(function (x, y) { return (parseValue(y.value) || 0) - (parseValue(x.value) || 0) || (+y.t - +x.t); });
+    var a = hits[0];
+    jOff("Joined " + nfPetName(a.egg) + (a.value ? " (" + a.value + ")" : "") + ". Turned itself off.");
+    joinNow("?placeId=" + a.placeId + "&jobId=" + a.jobId);
+  }
+  jLoad(); jPaint();
+  $("jSw").addEventListener("click", function () {
+    if (!jOn && !(window.isAdmin === true && passMem)) return;
+    jOn = !jOn; jPaint();
+    if (jOn) { jSeed(); jStatus("Armed. Waiting for a matching new egg..."); schedule(); poll(); } else jStatus("");
+  });
+  $("jChips").addEventListener("click", function (e) {
+    var c = e.target.closest(".chip"); if (!c) return;
+    if (JF.mut[c.dataset.key]) delete JF.mut[c.dataset.key]; else JF.mut[c.dataset.key] = true;
+    jFilterChanged();
+  });
+  $("jKgMin").addEventListener("input", function () { JF.kgMin = +this.value; if (JF.kgMax < JF.kgMin) JF.kgMax = JF.kgMin; jFilterChanged(); });
+  $("jKgMax").addEventListener("input", function () { JF.kgMax = +this.value; if (JF.kgMin > JF.kgMax) JF.kgMin = JF.kgMax; jFilterChanged(); });
+  $("jVMin").addEventListener("input", function () { JF.vMin = +this.value; if (JF.vMax < JF.vMin) JF.vMax = JF.vMin; jFilterChanged(); });
+  $("jVMax").addEventListener("input", function () { JF.vMax = +this.value; if (JF.vMin > JF.vMax) JF.vMin = JF.vMax; jFilterChanged(); });
+  $("jReset").addEventListener("click", function () { JF = defaults(); jFilterChanged(); });
+  function jAdminSync() {   // the dropdown only exists for the admin key; signing out disarms it
+    var on = window.isAdmin === true && !!passMem;
+    $("joinDD").hidden = !on;
+    if (!on && jOn) jOff("");
+  }
   
   function nfRender() {
     nfUpdateRound();
@@ -5527,6 +5619,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll("#nfWrap span[data-t]").forEach(function (s) { s.textContent = nfAgo(+s.dataset.t); });
     paintCycle();
     nfTick();
+    jAdminSync();
   }, 1000);
 
   loadF();
@@ -5538,7 +5631,7 @@ document.addEventListener("DOMContentLoaded", function () {
   var pollTimer;
   function schedule() {
     clearTimeout(pollTimer);
-    if (document.hidden && !alarmOn) return;
+    if (document.hidden && !alarmOn && !jOn) return;
     pollTimer = setTimeout(function () { poll(); schedule(); }, POLL_MS);
   }
   document.addEventListener("visibilitychange", function () {
@@ -5736,7 +5829,7 @@ document.addEventListener("DOMContentLoaded", function () {
   body.nfMode #nfWrap{grid-column:2;max-width:none;margin-top:8px}
   body.nfMode #right{grid-column:3;justify-self:stretch;max-width:none}
   body.nfMode .filters{flex-direction:column;flex-wrap:nowrap;align-items:stretch}
-  body.nfMode #opts,body.nfMode #vals,body.nfMode #eggs,body.nfMode #accts{flex:none;width:100%}
+  body.nfMode #opts,body.nfMode #vals,body.nfMode #eggs,body.nfMode #accts,body.nfMode #joinDD{flex:none;width:100%}
 }
 @media(max-width:1200px){body.nfMode #nfWrap{grid-column:1;order:2;max-width:none}body.nfMode #left{order:3}body.nfMode #right{order:4}}
 
