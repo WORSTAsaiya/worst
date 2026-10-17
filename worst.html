@@ -56,6 +56,20 @@
   details.panel { position:relative; }
   details.panel > .drop { position:absolute; top:100%; left:0; right:0; margin-top:6px; z-index:20; box-sizing:border-box;
                           background:#1e1f22; border-radius:12px; padding:16px; box-shadow:0 12px 28px rgba(0,0,0,.55); }
+  /* dropdown open animation: the panel drops down, then its options slide in one after another */
+  @keyframes ddDrop { from { opacity:0; transform:translateY(-10px) scaleY(.92); } to { opacity:1; transform:none; } }
+  @keyframes ddItem { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:none; } }
+  details.panel[open] > .drop { transform-origin:top center; animation:ddDrop .26s cubic-bezier(.2,.8,.2,1) both; }
+  details.panel[open] > .drop > * { animation:ddItem .3s cubic-bezier(.2,.8,.2,1) both; }
+  details.panel[open] > .drop > :nth-child(1) { animation-delay:.05s; }
+  details.panel[open] > .drop > :nth-child(2) { animation-delay:.09s; }
+  details.panel[open] > .drop > :nth-child(3) { animation-delay:.13s; }
+  details.panel[open] > .drop > :nth-child(4) { animation-delay:.17s; }
+  details.panel[open] > .drop > :nth-child(5) { animation-delay:.21s; }
+  details.panel[open] > .drop > :nth-child(6) { animation-delay:.25s; }
+  details.panel[open] > .drop > :nth-child(7) { animation-delay:.29s; }
+  details.panel[open] > .drop > :nth-child(n+8) { animation-delay:.33s; }
+  @media (prefers-reduced-motion: reduce) { details.panel[open] > .drop, details.panel[open] > .drop > * { animation:none; } }
   #left { position:relative; z-index:5; }
   /* ---- Accounts dropdown (admin key only) ---- */
   #accts { flex:0 0 220px; box-sizing:border-box; }
@@ -1857,7 +1871,7 @@ var guestStart, guestStop, layoutHook; // filled in below
 })();
   var FEED_URL = "https://eggfeed.asaiyamain.workers.dev/feed";
   var unlocked = false, authChecked = false;   // the password is checked by the Worker, it is not stored in this file
-  var passMem = "";   // the typed password lives only in memory, so a reload asks for it again
+  var passMem = "";   // the key in use lives in memory; a copy is kept in this browser (localStorage "keyAuto") so a reload / reopen signs in again. Logout or a rejected key deletes the copy
   // Optional: show an image instead of the built-in "Welcome" text during the unlock animation.
   // Paste a link, or the file name of an image uploaded next to join.html. Empty = built-in Welcome.
   var WELCOME_IMAGE = "";
@@ -5240,6 +5254,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // the Worker checks the password, so it never appears in this file
   function relock() {   // a typed key stopped working: back to the plain visitor view with "Input key"
     var wasIn = !!passMem;
+    try { localStorage.removeItem("keyAuto"); } catch (e) {}   // Logout / rejected key: forget the saved key too
     window.isAdmin = false;
     passMem = "";
     LAYOUT = ""; guestStop();
@@ -5326,6 +5341,7 @@ document.addEventListener("DOMContentLoaded", function () {
             var admin = d.layout !== "guest";
             var label = String(d.label || d.name || d.owner || "").trim();   // key owner name, sent by the Worker for guest keys
             passMem = pw;
+            try { localStorage.setItem("keyAuto", pw); } catch (e) {}   // stay signed in after a refresh / reopen
             LAYOUT = "owner";            // admin AND guest keys both get the full owner layout
             window.isAdmin = admin;           // ...but only the admin gets "Manage passwords"
             setKeyState(admin ? "admin" : "guest", label, "");
@@ -5335,8 +5351,9 @@ document.addEventListener("DOMContentLoaded", function () {
           });
         }
         return r.text().then(function (t) {
-          setKeyState("", "", t === "locked" ? "Enter a key" : (t || "Wrong key"));
-          shake();
+          if (r.status === 401 || r.status === 403) { try { localStorage.removeItem("keyAuto"); } catch (e) {} }   // the saved key no longer works
+          setKeyState("", "", fromUser ? (t === "locked" ? "Enter a key" : (t || "Wrong key")) : (r.status === 401 || r.status === 403 ? "Saved key no longer works" : (t || "")));
+          if (fromUser) shake();
         });
       })
       .catch(function () { done(); setKeyState("", "", "Could not reach the server"); });
@@ -5562,6 +5579,10 @@ document.addEventListener("DOMContentLoaded", function () {
   loadInviteCard();
   try { localStorage.removeItem("eggPw"); } catch (e) {}   // clean up the password older versions saved
   setTimeout(unlock, 0);   // no password screen: open the webhook page right away (a key is typed in the top bar)
+  setTimeout(function () {   // auto sign-in with the key saved by the last successful login
+    var saved = ""; try { saved = localStorage.getItem("keyAuto") || ""; } catch (e) {}
+    if (saved && !passMem) checkAuth(saved, false);
+  }, 60);
 
   // ---------- polling ----------
   // ---------- egg countdown (4:50 from the first alert of a round) ----------
