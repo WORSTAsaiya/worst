@@ -682,8 +682,8 @@ body.wkSearching .vdet *{ animation:none !important; }
   </select>
   <label for="pgSel">Pages</label>
   <select id="pgSel">
-    <option value="1">Live Drops</option>
-    <option value="2">Eggs</option>
+    <option value="1">Notifiers</option>
+    <option value="2">Wiki</option>
     <option value="3">Calculator</option>
     <option value="5">Fusion</option>
   </select>
@@ -2624,7 +2624,7 @@ var guestStart, guestStop, layoutHook; // filled in below
   var NF_HOUR = 3600000, NF_PAGE = 50;
   function nfCutoff() { return Date.now() + clockOffset - NF_HOUR; }
   var nfStore = {}, nfMore = false, nfPaged = false, nfLoading = false, nfLogOpen = false;
-  var nfQuery = "", nfSRes = {}, nfSMore = false, nfSMoreA = false, nfSMoreH = false, nfSLoading = false, nfSSeq = 0, nfSTimer = 0, nfExact = false;
+  var nfQuery = "", nfSTop = [], nfSRes = {}, nfSMore = false, nfSMoreA = false, nfSMoreH = false, nfSLoading = false, nfSSeq = 0, nfSTimer = 0, nfExact = false;
   function nfSearching() { return nfQuery.length >= 2; }
   function nfKey(a) { return a.id != null ? (a.src === "h" ? "h" : "i") + a.id : a.type + "|" + a.t + "|" + a.egg; }   // "h" = hopper history row (its ids are a separate counter)
   function nfAuth() { return passMem ? { "x-pass": encodeURIComponent(passMem) } : {}; }
@@ -2704,13 +2704,14 @@ var guestStart, guestStop, layoutHook; // filled in below
     // no key: public alert history. With a guest / admin key: ONLY the egg hopper history (egg servers: kg, mutation), never the public alerts
     var ua = passMem ? "" : API + "/alerts?q=" + encodeURIComponent(q) + "&limit=" + NF_PAGE;
     var uh = passMem ? API + "/hist?q=" + encodeURIComponent(q) + "&limit=" + NF_PAGE : "";
+    var uhFirst = uh ? uh + "&top=1" : "";   // first page also asks for the biggest-value eggs of the whole history
     if (more) {
       if (ua && nfSMoreA) { var ma = nfMinId(nfSRes, false); if (isFinite(ma)) jobs.push({ u: ua + "&before=" + ma, h: false }); }
       if (uh && nfSMoreH) { var mh = nfMinId(nfSRes, true); if (isFinite(mh)) jobs.push({ u: uh + "&before=" + mh, h: true }); }
       if (!jobs.length) return;
     } else {
       if (ua) jobs.push({ u: ua, h: false });
-      if (uh) jobs.push({ u: uh, h: true });
+      if (uh) jobs.push({ u: uhFirst, h: true });
       nfSMoreA = false; nfSMoreH = false;
     }
     nfSLoading = true; nfRender();
@@ -2723,6 +2724,7 @@ var guestStart, guestStop, layoutHook; // filled in below
           var m = false;
           if (d && Array.isArray(d.items)) {
             d.items.forEach(function (a) { var k = nfKey(a); if (!nfSRes[k]) nfSRes[k] = a; });
+            if (j.h && Array.isArray(d.top)) nfSTop = d.top;
             m = d.more === true && d.items.length > 0;
           }
           if (j.h) nfSMoreH = m; else nfSMoreA = m;
@@ -2736,7 +2738,7 @@ var guestStart, guestStop, layoutHook; // filled in below
     clearTimeout(nfSTimer);
     var v = this.value.trim().toLowerCase().slice(0, 40);
     nfSTimer = setTimeout(function () {
-      nfQuery = v; nfSSeq++; nfSRes = {}; nfSMore = false; nfSLoading = false;
+      nfQuery = v; nfSSeq++; nfSRes = {}; nfSTop = []; nfSMore = false; nfSLoading = false;
       if (nfSearching()) nfSearchGo(false); else nfRender();
     }, 300);
   });
@@ -2828,13 +2830,18 @@ var guestStart, guestStop, layoutHook; // filled in below
     else if (b.keyed) empty = nfPaused ? "Egg servers are paused right now." : (b.src.length ? "No alerts match your filters." : "Waiting for the first alert...");
     else empty = "No eggs in the last hour. Search an egg above to see when it last spawned.";
     nfExact = searching;                                   // search results also show the exact date + time
-    var topS = searching && passMem && hist.length ? nfTopOf(hist) : [];   // key holders (guest / admin) only
+    var topS = [];
+    if (searching && passMem && hist.length) {   // server's biggest-of-everything list first, plus anything already loaded
+      var seenTop = {}, pool = nfSTop.filter(passes).concat(nfTopOf(hist));
+      topS = nfTopOf(pool.filter(function (a) { var k = nfKey(a); if (seenTop[k]) return false; seenTop[k] = true; return true; }));
+    }   // key holders (guest / admin) only
     if (topS.length) {   // search: the 5 biggest results first (ranked like Biggest Value), then everything else newest first
       feedEl.textContent = "";
       var cardOf = function (a, glow, rank) { return nfCard(a, b.keyed && a.src === "h", !!newKeys[a.jobId + a.t], glow, rank, false); };
       feedEl.appendChild(line("div", "Biggest value \u00B7 top " + topS.length + " of these results", "nf-subhead"));
       topS.forEach(function (a, i) { feedEl.appendChild(cardOf(a, i === 0, i + 1)); });
-      var rest = hist.filter(function (a) { return topS.indexOf(a) < 0; });
+      var topKeys = {}; topS.forEach(function (a) { topKeys[nfKey(a)] = true; });
+      var rest = hist.filter(function (a) { return !topKeys[nfKey(a)]; });
       if (rest.length) {
         feedEl.appendChild(line("div", "More results \u00B7 newest first", "nf-subhead"));
         rest.forEach(function (a) { feedEl.appendChild(cardOf(a, false, 0)); });
