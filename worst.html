@@ -1192,7 +1192,7 @@ var guestStart, guestStop, layoutHook; // filled in below
 
   // top bar, same spot as the old Manage passwords button:
   //   "Input key" -> admin key = "Welcome Admin" (+ Manage passwords), guest key = "Welcome <name>" (plain text)
-  var keysBtn = mk("button", "", "Manage passwords");
+  var keysBtn = mk("button", "", "Manage");
   keysBtn.id = "keysBtn"; keysBtn.type = "button"; keysBtn.hidden = true;
   var keyBox = mk("div"); keyBox.id = "keyBox";
   var keyIn = document.createElement("input");
@@ -1233,7 +1233,7 @@ var guestStart, guestStop, layoutHook; // filled in below
   var dlg = document.createElement("dialog");
   dlg.id = "keysDlg";
   dlg.innerHTML =
-    '<h3>Manage passwords</h3>' +
+    '<h3>Admin Panel</h3>' +
     '<p class="ksub">One password per person. Each one locks to the first network that uses it.</p>' +
     '<div class="kform"><input class="g-in" id="kLabel" type="text" placeholder="Label, for example Voysae" maxlength="40" autocomplete="off"><input class="g-in" id="kPass" type="text" placeholder="Password (empty = generate one)" maxlength="64" autocomplete="off" spellcheck="false"><button id="kCreate" type="button">Create</button></div>' +
     '<div id="kReveal" hidden></div><div id="kErr"></div><div id="kList"></div>' +
