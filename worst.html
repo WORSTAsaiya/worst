@@ -2311,7 +2311,7 @@ var guestStart, guestStop, layoutHook; // filled in below
   }
 
   function syncUI() {
-    document.querySelectorAll(".sw").forEach(function (b) {
+    document.querySelectorAll(".sw[data-tier]").forEach(function (b) {   // only the old tier switches, never the alarm / join toggles
       var t = b.dataset.tier;
       var on = t === "All" ? F.all : (!F.all && !!F.tiers[t]);
       b.classList.toggle("on", on);
