@@ -1138,6 +1138,22 @@ var guestStart, guestStop, layoutHook; // filled in below
     ".klog b{display:block;font-size:13px;margin-bottom:3px}",
     ".klog span{color:#b5bac1}",
     "#kLogsStatus{font-size:12px;color:#b5bac1;margin-top:8px;min-height:16px}",
+    "#kNotif{margin-top:16px;padding-top:12px;border-top:1px solid #3a3c42}",
+    "#kNotif h3{margin:0 0 2px}",
+    ".nrow{display:flex;align-items:center;gap:8px;background:#1e1f22;border-radius:8px;padding:9px 12px;margin-top:8px}",
+    ".nrow b{flex:1;font-size:14px}",
+    ".nrow button{padding:6px 12px;border:0;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;color:#fff;background:#4e5058}",
+    ".nrow .nsw{min-width:54px;background:#4e5058}",
+    ".nrow .nsw.on{background:#2ea043}",
+    ".nrow .ndel.on{background:#3498db}",
+    "#nGuestBox{background:#1e1f22;border-radius:8px;padding:10px 12px;margin-top:8px}",
+    "#nGuestBox .kform{margin-bottom:6px}",
+    "#nGuestBox .kform .nrm{background:transparent;border:1px solid #ff7b72;color:#ff7b72}",
+    "#nHookState{font-size:12px;color:#b5bac1;margin-bottom:10px;word-break:break-word}",
+    ".nmax label{display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:4px}",
+    ".nmax input[type=range]{width:100%}",
+    ".nmax small{display:block;font-size:11px;color:#b5bac1;margin-top:4px}",
+    "#nStatus{font-size:12px;color:#b5bac1;min-height:16px;margin-top:8px}",
     "#kClose{margin-top:6px;padding:10px 18px;border:0;border-radius:8px;background:#4e5058;color:#fff;font-weight:700;cursor:pointer}"
   ].join("\n");
   var st = document.createElement("style");
@@ -1222,6 +1238,17 @@ var guestStart, guestStop, layoutHook; // filled in below
     '<div class="kform"><input class="g-in" id="kLabel" type="text" placeholder="Label, for example Voysae" maxlength="40" autocomplete="off"><input class="g-in" id="kPass" type="text" placeholder="Password (empty = generate one)" maxlength="64" autocomplete="off" spellcheck="false"><button id="kCreate" type="button">Create</button></div>' +
     '<div id="kReveal" hidden></div><div id="kErr"></div><div id="kList"></div>' +
     '<div id="kLogBtns"><button id="kAdminLogs" type="button">Admin logs</button><button id="kGuestLogs" type="button">Guest logs</button></div>' +
+    '<div id="kNotif"><h3>Notifier page</h3><p class="ksub">Pause egg servers for a group. Eggs keep being saved while a group is paused.</p>' +
+      '<div class="nrow"><b>Admin</b><button id="nAdmin" class="nsw" type="button">On</button></div>' +
+      '<div class="nrow"><b>Vip</b><button id="nVipDelay" class="ndel" type="button">Enable delay</button><button id="nVip" class="nsw" type="button">On</button></div>' +
+      '<div class="nrow"><b>Guest</b><button id="nGuestDelay" class="ndel" type="button">Enable delay</button><button id="nGuest" class="nsw" type="button">Off</button></div>' +
+      '<div id="nGuestBox" hidden>' +
+        '<div class="kform"><input class="g-in" id="nHook" type="text" placeholder="Guest webhook (egg server links are sent here)" maxlength="200" autocomplete="off" spellcheck="false"><button id="nHookSave" type="button">Save</button><button id="nHookRm" class="nrm" type="button">Remove</button></div>' +
+        '<div id="nHookState"></div>' +
+        '<div class="nmax"><label for="nMax">Max send <output id="nMaxOut"></output></label><input type="range" id="nMax" min="0" max="199" step="1" value="0"><small>Guest webhooks only get eggs up to this money/s. 0 sends nothing, 1Qa sends everything.</small></div>' +
+      '</div>' +
+      '<div id="nStatus"></div>' +
+    '</div>' +
     '<div id="kLogs" hidden><h3 id="kLogsTitle">Logs</h3><div id="kLogsStatus"></div><div id="kLogsList"></div></div>' +
     '<button id="kClose" type="button">Close</button>';
   document.body.appendChild(dlg);
@@ -1623,7 +1650,7 @@ var guestStart, guestStop, layoutHook; // filled in below
       if (!keys.length) { list.appendChild(mk("div", "empty", "No guest passwords yet. Create the first one above.")); return; }
       keys.forEach(function (k) {
         var row = mk("div", "krow");
-        row.appendChild(mk("b", "", k.label));
+        row.appendChild(mk("b", "", k.label + (k.vip ? "  \u00B7 VIP" : "")));
         var meta = !k.enabled ? "Disabled" : k.bound ? "Locked to a network" : "Waiting for first login";
         if (k.enabled && k.lastUsed) meta += " | last used " + agoText(k.lastUsed);
         row.appendChild(mk("span", "kmeta" + (k.enabled ? "" : " off"), meta));
@@ -1646,6 +1673,9 @@ var guestStart, guestStop, layoutHook; // filled in below
         });
         btn(k.enabled ? "Disable" : "Enable", "", function () {
           apost("/admin/enable", { id: k.id, enabled: !k.enabled }).then(function (r) { if (r) loadKeys(); });
+        });
+        btn(k.vip ? "Make Guest" : "Make VIP", "", function () {
+          apost("/admin/vip", { id: k.id, vip: !k.vip }).then(function (r) { if (r) loadKeys(); });
         });
         btn("Rename", "", function () {
           var n = prompt("New label", k.label);
@@ -1681,12 +1711,66 @@ var guestStart, guestStop, layoutHook; // filled in below
       });
     });
   }
+  // ---------------- notifier toggles (pause egg servers per group) ----------------
+  var nSt = null, nStatus = $("nStatus");
+  function nSig2(v) { var m = Math.pow(10, Math.floor(Math.log10(v)) - 1); return Math.round(v / m) * m; }
+  function nValAt(p) { return p <= 0 ? 0 : nSig2(Math.pow(10, 5 + (p - 1) / 198 * 10)); }   // 0, then $100K/s ... $1Qa/s (same scale as the Egg Values slider)
+  function nCompact(n) {
+    var u = ["", "K", "M", "B", "T", "Qa"], i = 0;
+    while (n >= 1000 && i < u.length - 1) { n /= 1000; i++; }
+    var t = n >= 100 ? n.toFixed(0) : n >= 10 ? n.toFixed(1) : n.toFixed(2);
+    if (t.indexOf(".") >= 0) t = t.replace(/\.?0+$/, "");
+    return t + u[i];
+  }
+  function nMaxLabel(p) { return p <= 0 ? "$0/s (nothing sent)" : p >= 199 ? "$1Qa/s (everything)" : "$" + nCompact(nValAt(p)) + "/s"; }
+  function nPaint(d) {
+    nSt = d;
+    function sw(id, on) { var b = $(id); b.textContent = on ? "On" : "Off"; b.classList.toggle("on", !!on); }
+    function dl(id, on) { var b = $(id); b.textContent = on ? "Delay on (" + Math.round((d.delayMs || 5000) / 1000) + "s)" : "Enable delay"; b.classList.toggle("on", !!on); }
+    sw("nAdmin", d.admin.on); sw("nVip", d.vip.on); sw("nGuest", d.guest.on);
+    dl("nVipDelay", d.vip.delay); dl("nGuestDelay", d.guest.delay);
+    $("nGuestBox").hidden = !d.guest.on;
+    $("nHook").value = ""; $("nHook").placeholder = d.guest.hasHook ? "Webhook saved (paste a new one to replace it)" : "Guest webhook (egg server links are sent here)";
+    $("nHookState").textContent = d.guest.hasHook ? "Webhook saved (ends ..." + d.guest.hookTail + "). New egg servers up to Max send are posted there." : "No webhook yet. Guests still see the newest 100 eggs while Guest is on.";
+    $("nMax").value = d.guest.maxPos; $("nMaxOut").textContent = nMaxLabel(d.guest.maxPos);
+  }
+  function nSend(body, okText) {
+    nStatus.textContent = "Saving...";
+    return apost("/admin/toggle", body).then(function (r) {
+      if (!r) { nStatus.textContent = ""; return; }
+      nPaint(parse(r, nSt)); nStatus.textContent = okText || "Saved.";
+    });
+  }
+  function nLoad() {
+    nStatus.textContent = "";
+    return apost("/admin/toggles", {}).then(function (r) { if (r) nPaint(parse(r, null) || nSt); });
+  }
+  $("nAdmin").addEventListener("click", function () { if (nSt) nSend({ group: "admin", on: !nSt.admin.on }, nSt.admin.on ? "Admin paused." : "Admin on."); });
+  $("nVip").addEventListener("click", function () { if (nSt) nSend({ group: "vip", on: !nSt.vip.on }, nSt.vip.on ? "Vip paused." : "Vip on."); });
+  $("nVipDelay").addEventListener("click", function () { if (nSt) nSend({ group: "vip", delay: !nSt.vip.delay }, nSt.vip.delay ? "Vip delay off." : "Vip now gets eggs 5 seconds after you."); });
+  $("nGuestDelay").addEventListener("click", function () { if (nSt) nSend({ group: "guest", delay: !nSt.guest.delay }, nSt.guest.delay ? "Guest delay off." : "Guest now gets eggs 5 seconds after you."); });
+  $("nGuest").addEventListener("click", function () {
+    if (!nSt) return;
+    if (nSt.guest.on && nSt.guest.hasHook && !confirm("Turn Guest off? Their list empties and the guest webhook is removed.")) return;
+    nSend({ group: "guest", on: !nSt.guest.on }, nSt.guest.on ? "Guest off. Webhook cleared." : "Guest on. Add a webhook if you want egg links sent to a channel.");
+  });
+  $("nHookSave").addEventListener("click", function () {
+    var v = $("nHook").value.trim();
+    if (!v) { nStatus.textContent = "Paste a Discord webhook link first."; return; }
+    nSend({ group: "guest", hook: v }, "Webhook saved. A test message was sent to the channel.");
+  });
+  $("nHookRm").addEventListener("click", function () { nSend({ group: "guest", hook: "" }, "Webhook removed."); });
+  $("nMax").addEventListener("input", function () { $("nMaxOut").textContent = nMaxLabel(+this.value); });
+  $("nMax").addEventListener("change", function () {
+    var p = +this.value;
+    nSend({ group: "guest", max: nValAt(p), maxPos: p }, "Max send set to " + nMaxLabel(p) + ".");
+  });
   $("kAdminLogs").addEventListener("click", function () { loadAuditLogs("admin"); });
   $("kGuestLogs").addEventListener("click", function () { loadAuditLogs("guest"); });
   keysBtn.addEventListener("click", function () {
     kReveal.hidden = true; kErr.textContent = ""; $("kLogs").hidden = true;
     if (!dlg.open) dlg.showModal();
-    loadKeys();
+    loadKeys(); nLoad();
   });
   $("kClose").addEventListener("click", function () { dlg.close(); });
   dlg.addEventListener("click", function (e) { if (e.target === dlg) dlg.close(); });
@@ -2291,7 +2375,7 @@ var guestStart, guestStop, layoutHook; // filled in below
 
   // ---------- live feed ----------
   var feedEl = $("feed");
-  var allItems = [];
+  var allItems = [], nfPaused = false;   // nfPaused: the owner paused egg servers for this key's group
   var seenKeys = {};
   var newKeys = {};
   var firstLoad = true;
@@ -2450,6 +2534,17 @@ var guestStart, guestStop, layoutHook; // filled in below
       .slice(0, NF_TOP)
       .map(function (x) { return x.a; });
   }
+  // the 5 highest money-per-second eggs of a list (search results: any age), best first
+  function nfTopOf(list) {
+    nfMaps();
+    return list
+      .filter(function (a) { return !a.type || a.type === "egg"; })
+      .map(function (a) { return { a: a, v: nfNum(a, nfPetName(a.egg)) }; })
+      .filter(function (x) { return x.v > 0; })
+      .sort(function (x, y) { return (y.v - x.v) || (+y.a.t - +x.a.t); })
+      .slice(0, NF_TOP)
+      .map(function (x) { return x.a; });
+  }
   // glow colour per egg rarity / event (r,g,b)
   var NF_RGB = { Secret: "112,112,120", Eternal: "214,150,236", Divine: "255,214,10", butterfly: "46,204,113", race: "231,32,32" };   // Secret ash black, Eternal pinkish lavender, Divine lightning gold, Butterfly green, Racing red
   function nfCard(a, keyed, isNew, glow, rank, gone) {
@@ -2458,7 +2553,7 @@ var guestStart, guestStop, layoutHook; // filled in below
     var pet = isEgg ? nfPetName(a.egg) : "";
     var rar = isEgg ? String(a.rarity || "").replace(/[^A-Za-z]/g, "") : "";
     var ev = NF_EV[a.type] || ["Event", ""];
-    var linkOk = keyed && !(a.src === "h" && Date.now() + clockOffset - +a.t > 290000) && /^\d{1,20}$/.test(a.placeId) && /^[0-9a-fA-F-]{36}$/.test(a.jobId);
+    var linkOk = keyed && !(isEgg && nfGone(a)) && /^\d{1,20}$/.test(a.placeId) && /^[0-9a-fA-F-]{36}$/.test(a.jobId);   // a gone egg (past the 4:50 window) has no join link
     var el = document.createElement(linkOk ? "a" : "div");
     el.className = "nf-card" + (isNew ? " new" : "") + (glow ? " glow" : "");
     if (glow) { el.style.setProperty("--gc", NF_RGB[isEgg ? rar : a.type] || "255,255,255"); el.classList.add("g-" + (isEgg ? rar : a.type)); }
@@ -2490,11 +2585,29 @@ var guestStart, guestStop, layoutHook; // filled in below
     var keyed = !!passMem, src = keyed ? allItems : pubItems;
     return { keyed: keyed, src: src, list: keyed ? src.filter(passes) : src.filter(function (a) { return +a.t > nfCutoff() && (F.all || (a.type === "egg" && F.tiers[a.rarity])); }) };
   }
-  // an egg is gone once the 4:50 window since it spawned has passed
-  function nfGone(a) { return Date.now() + clockOffset - (+a.t) >= cycleWin; }
+  // Spawn rounds: the first egg of a round starts a 4:50 timer (cycleWin). Every egg that arrives inside that window
+  // belongs to the same round, even if its notification came minutes later, and the whole round expires at the same moment.
+  // The next egg after the window starts a new round. nfRoundStart = start of the latest round we have seen (never moves back).
+  var nfRoundStart = 0;
+  function nfUpdateRound() {
+    var times = [];
+    allItems.concat(pubItems).forEach(function (a) { if ((!a.type || a.type === "egg") && +a.t > 0) times.push(+a.t); });
+    times.sort(function (x, y) { return x - y; });
+    times.forEach(function (t) {
+      if (nfRoundStart && t < nfRoundStart) return;                       // belongs to an earlier round
+      if (!nfRoundStart || t >= nfRoundStart + cycleWin) nfRoundStart = t;   // first egg after the window: a new round
+    });
+  }
+  function nfRoundEnd(a) {
+    var t = +a.t;
+    if (nfRoundStart && t < nfRoundStart) return 0;                                // an earlier round: already over
+    if (nfRoundStart && t < nfRoundStart + cycleWin) return nfRoundStart + cycleWin;   // current round: all of it ends together
+    return t + cycleWin;                                                           // not in the feed yet: its own window
+  }
+  // an egg is gone once its round's 4:50 has passed
+  function nfGone(a) { return Date.now() + clockOffset >= nfRoundEnd(a); }
   function nfActive(list) {
-    var now = Date.now() + clockOffset;
-    return list.filter(function (a) { return now - (+a.t) < cycleWin; });
+    return list.filter(function (a) { return !nfGone(a); });
   }
   // History pills: none selected = everything, otherwise only the selected kinds
   function nfPass(a) {
@@ -2525,13 +2638,8 @@ var guestStart, guestStop, layoutHook; // filled in below
     var list = Object.keys(map).map(function (k) { return map[k]; })
       .filter(function (a) { return (searching || +a.t > clearT) && nfPass(a) && (!limited || +a.t > cut); })
       .sort(function (x, y) { return (+y.t - +x.t) || ((+y.id || 0) - (+x.id || 0)); });
-    if (searching && passMem) {   // the same spawn in both lists: keep the hopper entry (it has kg and mutation)
-      var hops = list.filter(function (a) { return a.src === "h"; });
-      if (hops.length) list = list.filter(function (a) {
-        if (a.src === "h") return true;
-        var p = nfPetName(a.egg);
-        return !hops.some(function (x) { return Math.abs(+x.t - +a.t) <= 120000 && nfPetName(x.egg) === p; });
-      });
+    if (searching && passMem) {   // key holders only see egg-server (hopper) history, never the public alert history
+      list = list.filter(function (a) { return a.src === "h"; });
     }
     return list;
   }
@@ -2588,15 +2696,15 @@ var guestStart, guestStop, layoutHook; // filled in below
     var q = nfQuery;
     if (q.length < 2 || (more && (nfSLoading || !nfSMore))) return;
     var seq = nfSSeq, jobs = [];
-    // alert history for everyone; with a guest / admin key the egg hopper history is searched too (kg, mutation)
-    var ua = API + "/alerts?q=" + encodeURIComponent(q) + "&limit=" + NF_PAGE;
+    // no key: public alert history. With a guest / admin key: ONLY the egg hopper history (egg servers: kg, mutation), never the public alerts
+    var ua = passMem ? "" : API + "/alerts?q=" + encodeURIComponent(q) + "&limit=" + NF_PAGE;
     var uh = passMem ? API + "/hist?q=" + encodeURIComponent(q) + "&limit=" + NF_PAGE : "";
     if (more) {
-      if (nfSMoreA) { var ma = nfMinId(nfSRes, false); if (isFinite(ma)) jobs.push({ u: ua + "&before=" + ma, h: false }); }
+      if (ua && nfSMoreA) { var ma = nfMinId(nfSRes, false); if (isFinite(ma)) jobs.push({ u: ua + "&before=" + ma, h: false }); }
       if (uh && nfSMoreH) { var mh = nfMinId(nfSRes, true); if (isFinite(mh)) jobs.push({ u: uh + "&before=" + mh, h: true }); }
       if (!jobs.length) return;
     } else {
-      jobs.push({ u: ua, h: false });
+      if (ua) jobs.push({ u: ua, h: false });
       if (uh) jobs.push({ u: uh, h: true });
       nfSMoreA = false; nfSMoreH = false;
     }
@@ -2643,6 +2751,7 @@ var guestStart, guestStop, layoutHook; // filled in below
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && nfLogOpen) nfSetLog(false); });
 
   function nfRender() {
+    nfUpdateRound();
     nfMaps();
     var b = nfBase(), active = nfActive(b.list), searching = nfSearching();
     var hist = searching ? nfLogItems() : b.list.filter(nfPass);
@@ -2660,15 +2769,26 @@ var guestStart, guestStop, layoutHook; // filled in below
     $("nfNowTitle").textContent = biggest ? "Biggest Value" : "Right now";
     $("cycle").hidden = biggest;                           // the 4:50 timer belongs to "Right now"
     $("nfNowSub").hidden = !biggest;
-    if (biggest) fill(nowEl, top, "No eggs with a value in the last hour yet.", true, true);
+    if (biggest) fill(nowEl, top, nfPaused ? "Egg servers are paused right now." : "No eggs with a value in the last hour yet.", true, true);
     else fill(nowEl, active, "Nothing is out right now. New eggs show up here the moment they spawn.", true);   // available stock glows
     var anyPill = Object.keys(nfSel).length > 0, empty;
     if (searching) empty = nfSLoading ? "Searching..." : "No spawns found for \"" + nfQuery + "\".";
     else if (anyPill) empty = "No alerts match your filters.";
-    else if (b.keyed) empty = b.src.length ? "No alerts match your filters." : "Waiting for the first alert...";
+    else if (b.keyed) empty = nfPaused ? "Egg servers are paused right now." : (b.src.length ? "No alerts match your filters." : "Waiting for the first alert...");
     else empty = "No eggs in the last hour. Search an egg above to see when it last spawned.";
     nfExact = searching;                                   // search results also show the exact date + time
-    fill(feedEl, hist, empty, false);
+    var topS = searching && passMem && hist.length ? nfTopOf(hist) : [];   // key holders (guest / admin) only
+    if (topS.length) {   // search: the 5 biggest results first (ranked like Biggest Value), then everything else newest first
+      feedEl.textContent = "";
+      var cardOf = function (a, glow, rank) { return nfCard(a, b.keyed && a.src === "h", !!newKeys[a.jobId + a.t], glow, rank, false); };
+      feedEl.appendChild(line("div", "Biggest value \u00B7 top " + topS.length + " of these results", "nf-subhead"));
+      topS.forEach(function (a, i) { feedEl.appendChild(cardOf(a, i === 0, i + 1)); });
+      var rest = hist.filter(function (a) { return topS.indexOf(a) < 0; });
+      if (rest.length) {
+        feedEl.appendChild(line("div", "More results \u00B7 newest first", "nf-subhead"));
+        rest.forEach(function (a) { feedEl.appendChild(cardOf(a, false, 0)); });
+      }
+    } else fill(feedEl, hist, empty, false);
     nfExact = false;
     if (searching && nfSMore && !nfSLoading && hist.length) {
       var mb = document.createElement("button"); mb.type = "button"; mb.className = "nf-more"; mb.textContent = "Show older spawns";
@@ -5337,7 +5457,9 @@ document.addEventListener("DOMContentLoaded", function () {
           cycleWin = d.cycle.windowMs || 290000;
           clockOffset = d.cycle.now - Date.now();
         }
-        if (Array.isArray(items)) setItems(items);
+        nfPaused = !!(d && d.paused);
+        if (nfPaused) { allItems = []; lastSig = ""; render(); }   // paused: the list empties by itself (nothing is deleted on the server)
+        else if (Array.isArray(items)) setItems(items);
         paintCycle();
       })
       .catch(function () {});
@@ -5605,6 +5727,7 @@ a.nf-card:hover{transform:translateY(-2px);border-color:#777;background:rgba(255
 .nf-time{font-size:13px;color:#d0d0d0;text-shadow:0 1px 3px rgba(0,0,0,.9)}
 .nf-val{font-size:16px;font-weight:800;color:#fff;letter-spacing:-.01em;text-shadow:0 1px 3px rgba(0,0,0,.9)}
 .nf-meta{font-size:12px;color:#aaa;word-break:break-word}
+.nf-subhead{grid-column:1/-1;margin:8px 0 -2px;font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#b5b5ba}
 .nf-empty{grid-column:1/-1;padding:18px 10px;text-align:center;font-size:14px;color:#aaa}
 
 @media(max-width:560px){#nfWrap{padding:14px}#feedNow,#nfWrap #feed{grid-template-columns:minmax(0,1fr)}}
