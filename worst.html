@@ -682,8 +682,8 @@ body.wkSearching .vdet *{ animation:none !important; }
   </select>
   <label for="pgSel">Pages</label>
   <select id="pgSel">
-    <option value="1">Notifiers</option>
-    <option value="2">Wiki</option>
+    <option value="1">Live Drops</option>
+    <option value="2">Eggs</option>
     <option value="3">Calculator</option>
     <option value="5">Fusion</option>
   </select>
@@ -694,6 +694,11 @@ body.wkSearching .vdet *{ animation:none !important; }
     <details class="panel" id="vals">
       <summary>Egg Values</summary>
       <div class="drop">
+      <div class="opt">
+        <div><b>Alarm if good egg spawns</b><small>3 second sound when a new egg that matches these Egg Values enters Biggest Value</small></div>
+        <button class="sw" id="alarmSw" type="button" role="switch" aria-checked="false"></button>
+      </div>
+      <div class="resetrow" style="margin:-4px 0 12px"><button class="reset" id="alarmTest" type="button">Test sound</button></div>
       <p class="sub">Mutation</p>
       <div class="chips" id="chips">
         <button class="chip" type="button" data-key="golden">Golden</button>
@@ -1947,8 +1952,8 @@ var guestStart, guestStop, layoutHook; // filled in below
     "Eternal Lunar Dragon": "https://asaiya2.github.io/steal-an-egg/Lunar_Dragon.png",
     "Unicorn": "https://asaiya2.github.io/steal-an-egg/Unicorn.png",
     // Cherry Blossom
-    "Crane": "https://static.wikia.nocookie.net/stealanegg/images/2/20/Crane.png/revision/latest?cb=20260903140823",
-    "Salamander": "https://static.wikia.nocookie.net/stealanegg/images/5/53/Salamander.png/revision/latest?cb=20260903135533",
+    "Crane": "https://stealanegg.tools/images/Crane_Egg.png",
+    "Salamander": "https://stealanegg.tools/images/Salamander_Egg.png",
     "Red Panda": "https://static.wikia.nocookie.net/stealanegg/images/8/8b/Red_Panda.png/revision/latest?cb=20260903135550",
     "Snowy Owl": "https://static.wikia.nocookie.net/stealanegg/images/c/c6/Snowy_Owl.png/revision/latest?cb=20260903135600",
     "Koi": "https://static.wikia.nocookie.net/stealanegg/images/6/66/Koi.png/revision/latest?cb=20260903135610",
@@ -2055,7 +2060,7 @@ var guestStart, guestStop, layoutHook; // filled in below
     "Sabertooth": "https://stealegg.com/assets/images/pets/sabertooth-reviewed.webp",
     "Baby Aurora Dragon": "https://static.wikia.nocookie.net/stealanegg/images/1/17/Baby_Aurora_Dragon.png/revision/latest?cb=20260910041443",
     "Shadow Dragon": "https://static.wikia.nocookie.net/stealanegg/images/d/d5/Shadow_Dragon.png/revision/latest?cb=20260910041434",
-    "Scorched Dragon": "https://static.wikia.nocookie.net/stealanegg/images/c/c2/Scorched_Dragon.png/revision/latest?cb=20260910041417",
+    "Scorched Dragon": "https://stealanegg.tools/images/Scorched_Dragon_Egg.png",
     "Drilla": "https://static.wikia.nocookie.net/stealanegg/images/c/c9/Drilla.png/revision/latest?cb=20260908022914",
     "Void Dragon": "https://static.wikia.nocookie.net/stealanegg/images/f/fb/Void_Dragon.png/revision/latest?cb=20260907221522",
     "Ember Dragon": "https://static.wikia.nocookie.net/stealanegg/images/b/bb/Ember_Dragon.png/revision/latest?cb=20260910041425",
@@ -2121,8 +2126,8 @@ var guestStart, guestStop, layoutHook; // filled in below
     "Citadel Snail #007": "Citadel_Snail_Egg.png",
     "Lava Frog": "Lava_frog_Egg.png",
     "Balrog": "???",
-    "Race Cheetah": "???",
-    "Race Bird": "???",
+    "Race Cheetah": "https://stealanegg.tools/images/Race_Cheetah_Egg.png",
+    "Race Bird": "https://stealanegg.tools/images/Race_Bird_Egg.png",
     // these eggs are only on the Fandom wiki
     "Ice Dragon": "https://static.wikia.nocookie.net/stealanegg/images/2/2c/Ice_Dragon_Egg.png/revision/latest/scale-to-width-down/340?cb=20260902163726",
     "Lava Dragon": "https://static.wikia.nocookie.net/stealanegg/images/4/41/Lava_Dragon_Egg.png/revision/latest/scale-to-width-down/340?cb=20260902163828",
@@ -2137,9 +2142,9 @@ var guestStart, guestStop, layoutHook; // filled in below
     "Brr Brr Patapim": "https://static.wikia.nocookie.net/stealanegg/images/1/1e/Brr_Brr_Patapim_Egg.png/revision/latest/scale-to-width-down/340?cb=20260902163150",
     // TEMPORARY: Google image-search thumbnails. These can stop working any time, replace with files you host
     "Stag": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSLKPExP7jRduWyglC-__A_sdH_-wlknEshBWTMFj5MVQ&s=10",
-    "Scorched Dragon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTZ2HLU6Vt--0o7tKFQcWzz8iyKfmQmjSpYiJ2JWOH6OA&s=10",
-    "Salamander": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTXIbefJs8ErVgbwzxuiFX4OnF-Pab5_SHAXpewAJqw7Q&s",
-    "Crane": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTiB46fXb10ljTXAvMW9-UmzVppVXax5fGMsL83CbknPg&s=10"
+    "Scorched Dragon": "https://stealanegg.tools/images/Scorched_Dragon_Egg.png",
+    "Salamander": "https://stealanegg.tools/images/Salamander_Egg.png",
+    "Crane": "https://stealanegg.tools/images/Crane_Egg.png"
   };
   // 2) Pets that hatch from the same egg:  "Egg_File.png": "Pet|Pet|Pet",
   var EGG_ART_GROUPS = {
@@ -2296,7 +2301,7 @@ var guestStart, guestStop, layoutHook; // filled in below
     renderEggs();
   }
 
-  function changed() { syncUI(); saveF(); render(); }
+  function changed() { syncUI(); saveF(); alarmReady = false; render(); }
 
   $("chips").addEventListener("click", function (e) {
     var c = e.target.closest(".chip");
@@ -2638,8 +2643,8 @@ var guestStart, guestStop, layoutHook; // filled in below
     var list = Object.keys(map).map(function (k) { return map[k]; })
       .filter(function (a) { return (searching || +a.t > clearT) && nfPass(a) && (!limited || +a.t > cut); })
       .sort(function (x, y) { return (+y.t - +x.t) || ((+y.id || 0) - (+x.id || 0)); });
-    if (searching && passMem) {   // key holders only see egg-server (hopper) history, never the public alert history
-      list = list.filter(function (a) { return a.src === "h"; });
+    if (searching && passMem) {   // key holders only see egg-server (hopper) history, and only what Egg Values allows
+      list = list.filter(function (a) { return a.src === "h" && passes(a); });
     }
     return list;
   }
@@ -2750,6 +2755,47 @@ var guestStart, guestStop, layoutHook; // filled in below
   document.addEventListener("click", function (e) { if (nfLogOpen && !e.target.closest("#nfDD")) nfSetLog(false); });
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && nfLogOpen) nfSetLog(false); });
 
+  // ---------- alarm: a new egg that matches Egg Values enters Biggest Value ----------
+  var alarmOn = lsGet("eggAlarm") === "1", alarmSeen = {}, alarmReady = false, alarmCtx = null;
+  function alarmPaint() { var b = $("alarmSw"); b.classList.toggle("on", alarmOn); b.setAttribute("aria-checked", alarmOn ? "true" : "false"); }
+  function alarmUnlock() {   // browsers only allow sound after a click, so this runs on the toggle and on any click
+    try {
+      if (!alarmCtx) alarmCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (alarmCtx.state === "suspended") alarmCtx.resume();
+    } catch (e) {}
+  }
+  function alarmPlay() {   // 6 beeps x 0.5 s = 3 seconds
+    alarmUnlock();
+    if (!alarmCtx) return;
+    var t0 = alarmCtx.currentTime + 0.05;
+    for (var i = 0; i < 6; i++) {
+      var o = alarmCtx.createOscillator(), g = alarmCtx.createGain(), s = t0 + i * 0.5;
+      o.type = "square"; o.frequency.value = i % 2 ? 1175 : 880;
+      g.gain.setValueAtTime(0.0001, s);
+      g.gain.exponentialRampToValueAtTime(0.25, s + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, s + 0.4);
+      o.connect(g); g.connect(alarmCtx.destination);
+      o.start(s); o.stop(s + 0.45);
+    }
+  }
+  function alarmCheck(top) {   // top = the Biggest Value list (already filtered by Egg Values)
+    var fresh = false;
+    top.forEach(function (a) {
+      var k = a.jobId + a.t;
+      if (alarmSeen[k]) return;
+      alarmSeen[k] = true;                       // remember it, so it never rings twice
+      if (alarmReady && !nfGone(a)) fresh = true; // first load / filter change only seeds silently
+    });
+    return fresh;
+  }
+  alarmPaint();
+  $("alarmSw").addEventListener("click", function () {
+    alarmOn = !alarmOn; lsSet("eggAlarm", alarmOn ? "1" : "0"); alarmPaint();
+    if (alarmOn) { alarmUnlock(); schedule(); }
+  });
+  $("alarmTest").addEventListener("click", alarmPlay);
+  document.addEventListener("pointerdown", function () { if (alarmOn) alarmUnlock(); });
+  
   function nfRender() {
     nfUpdateRound();
     nfMaps();
@@ -2758,6 +2804,11 @@ var guestStart, guestStop, layoutHook; // filled in below
     var biggest = b.keyed;                                 // admin / guest key: "Right now" becomes "Biggest Value"
     var top = biggest ? nfBiggest(b.list) : null;
     nfNowSig = nfNowKey(b);
+    if (biggest) {
+      var ring = alarmCheck(top);
+      if (b.src.length) alarmReady = true;
+      if (ring && alarmOn) alarmPlay();
+    }
     function fill(box, list, emptyText, glow, ranked) {
       box.textContent = "";
       if (!list.length) { box.appendChild(line("div", emptyText, "nf-empty")); return; }
@@ -5480,7 +5531,7 @@ document.addEventListener("DOMContentLoaded", function () {
   var pollTimer;
   function schedule() {
     clearTimeout(pollTimer);
-    if (document.hidden) return;
+    if (document.hidden && !alarmOn) return;
     pollTimer = setTimeout(function () { poll(); schedule(); }, POLL_MS);
   }
   document.addEventListener("visibilitychange", function () {
