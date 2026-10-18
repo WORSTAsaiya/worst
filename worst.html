@@ -1077,11 +1077,12 @@ var guestStart, guestStop, layoutHook; // filled in below
   var GEGGS = [
     ["RazorFang", "Secret"], ["Gargoyle", "Secret"], ["Centaur", "Secret"], ["Pure Jellyfish", "Secret"], ["Mutant Shark", "Secret"],
     ["Cosmic Skeleton", "Secret"], ["Cosmic Dragon", "Secret"], ["Cerberus", "Secret"], ["Kraken", "Secret"], ["Yeti", "Secret"],
-    ["Tralaledon", "Secret"], ["T-Rex", "Secret"], ["Stag", "Secret"], ["Starry Fox", "Secret"], ["King Snake", "Secret"],
+    ["Tralaledon", "Secret"], ["T-Rex", "Secret"], ["Stag", "Secret"], ["Starry Fox", "Secret"], ["King Snake", "Secret"], ["Graveyard Brute", "Secret"], ["Werewolf", "Secret"],
     ["Skeleton Horse", "Eternal"], ["Pegasus", "Eternal"], ["Oni Tiger", "Eternal"], ["Gorilla King", "Eternal"], ["Ice Dragon", "Eternal"],
     ["Mosasaurus", "Eternal"], ["El Maja", "Eternal"], ["Phoenix", "Eternal"], ["Lava Dragon", "Eternal"],
     ["Eternal Lunar Dragon", "Eternal"], ["Celestial Sunlion", "Eternal"],
-    ["World Burner", "Divine"], ["ArchAngel", "Divine"], ["Nightflame", "Divine"], ["Kitsune", "Divine"], ["Unicorn", "Divine"], ["Royal Skywhale", "Divine"]
+    ["Ghost Reaper", "Eternal"], ["Abomination Kong", "Eternal"],
+    ["World Burner", "Divine"], ["ArchAngel", "Divine"], ["Nightflame", "Divine"], ["Kitsune", "Divine"], ["Unicorn", "Divine"], ["Royal Skywhale", "Divine"], ["Voidseer Pumpkin", "Divine"]
   ];
 
   function keyOf(s) { return String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "").replace(/egg$/, ""); }
@@ -2153,6 +2154,18 @@ var guestStart, guestStop, layoutHook; // filled in below
     "Bombo Croco": "https://stealanegg.tools/images/Bombo_Croco.png",
     "Ostrich": "https://stealanegg.tools/images/Ostrich.png",
     "Amethyst Runebear": "https://stealanegg.tools/images/Amethyst_Runebear.png",
+    // Halloween Dimension
+    "Voidseer Pumpkin": "https://stealanegg.tools/images/Voidseer_Pumpkin_Pet.png",
+    "Graveyard Brute": "https://stealanegg.tools/images/Graveyard_Brute_Pet.png",
+    "Werewolf": "https://stealanegg.tools/images/Werewolf_Pet.png",
+    "Ghost Reaper": "https://stealanegg.tools/images/Ghost_Reaper_Pet.png",
+    "Abomination Kong": "https://stealanegg.tools/images/Abomination_Kong_Pet.png",
+    "Soul Phantom": "https://stealanegg.tools/images/Soul_Phantom_Pet.png",
+    "Bone Emperor": "https://stealanegg.tools/images/Bone_Emperor_Pet.png",
+    "Zombified Bone Emperor": "https://stealanegg.tools/images/Zombified_Bone_Emperor_Pet.png",
+    "Zombified Grave Cerberus": "https://stealanegg.tools/images/Zombified_Grave_Cerberus_Pet.png",
+    "Zombified Night Fang": "https://stealanegg.tools/images/Zombified_Night_Fang_Pet.png",
+    "Zombified Pumpkin Fiend": "https://stealanegg.tools/images/Zombified_Pumpkin_Fiend_Pet.png",
     // Need an egg that is not listed? Add a line: "Egg Name": "https://link",
     // Need an egg that is not listed? Add a line like:  "Egg Name": "https://link",
   };
@@ -2381,18 +2394,23 @@ var guestStart, guestStop, layoutHook; // filled in below
     ["Cosmic Skeleton", "Secret", "https://static.wikia.nocookie.net/stealanegg/images/9/97/Cosmic_Skeleton_Boss.png/revision/latest/scale-to-width-down/185?cb=20260904110709"],
     ["Stag", "Secret", "https://github.com/Asaiya2/steal-an-egg/blob/main/stag.webp?raw=true"],
     ["Starry Fox", "Secret", "https://asaiya2.github.io/steal-an-egg/Starry_fox.png"],
+    ["Graveyard Brute", "Secret", "https://stealanegg.tools/images/Graveyard_Brute_Pet.png"],
+    ["Werewolf", "Secret", "https://stealanegg.tools/images/Werewolf_Pet.png"],
     ["Skeleton Horse", "Eternal", "https://stealanegg.tools/images/Skeleton_Horse.png"],
     ["Pegasus", "Eternal", "https://stealanegg.tools/images/Pegasus.png"],
     ["Oni Tiger", "Eternal", "https://asaiya2.github.io/steal-an-egg/Oni_Tiger.png"],
     ["Gorilla King", "Eternal", "https://asaiya2.github.io/steal-an-egg/Gorrila.png"],
     ["Eternal Lunar Dragon", "Eternal", "https://asaiya2.github.io/steal-an-egg/Lunar_Dragon.png"],
     ["Celestial Sunlion", "Eternal", "https://asaiya2.github.io/steal-an-egg/sunlion.png"],
+    ["Ghost Reaper", "Eternal", "https://stealanegg.tools/images/Ghost_Reaper_Pet.png"],
+    ["Abomination Kong", "Eternal", "https://stealanegg.tools/images/Abomination_Kong_Pet.png"],
     ["World Burner", "Divine", "https://stealanegg.tools/images/World_Burner.png"],
     ["ArchAngel", "Divine", "https://stealanegg.tools/images/ArchAngel.png"],
     ["Nightflame", "Divine", "https://stealegg.com/assets/images/pets/nightflame-reviewed.webp"],
     ["Kitsune", "Divine", "https://asaiya2.github.io/steal-an-egg/Kitsune.png"],
     ["Unicorn", "Divine", "https://asaiya2.github.io/steal-an-egg/Unicorn.png"],
-    ["Royal Skywhale", "Divine", "https://stealegg.com/assets/images/pets/royal-skywhale-enchanted.webp"]
+    ["Royal Skywhale", "Divine", "https://stealegg.com/assets/images/pets/royal-skywhale-enchanted.webp"],
+    ["Voidseer Pumpkin", "Divine", "https://stealanegg.tools/images/Voidseer_Pumpkin_Pet.png"]
   ];
   var eggSig = "";
 
@@ -3491,7 +3509,30 @@ var guestStart, guestStop, layoutHook; // filled in below
     ["Race Cheetah", "Secret", 250000000, 400, false],
     ["Race Bird", "Cosmic", 16000000, 400, false],
     ["Race Lizard", "Mythic", 800000, 400, false],
-    ["Race Seahorse", "Legendary", 140000, 400, false]
+    ["Race Seahorse", "Legendary", 140000, 400, false],
+    ["Whiskers", "Epic", 2000, null, false],
+    ["Jesterpop", "Legendary", 40000, null, false],
+    ["Candlefang", "Mythic", 225000, null, false],
+    ["Spirit Knight", "Cosmic", 3000000, null, false],
+    ["Graveyard Brute", "Secret", 75000000, null, false],
+    ["Ghost Reaper", "Eternal", 300000000, null, false],
+    ["Hooded Gerbil", "Legendary", 300000, null, false],
+    ["Toadstool", "Mythic", 1600000, null, false],
+    ["Patchwork Imp", "Cosmic", 20000000, null, false],
+    ["Haunted Scorpio", "Cosmic", 30000000, null, false],
+    ["BloodBloom", "Secret", 450000000, null, false],
+    ["Shelltide Voyager", "Eternal", 1600000000, null, false],
+    ["Mimic Chest", "Legendary", 600000, null, false],
+    ["Crowshade", "Mythic", 4500000, null, false],
+    ["Hexed Pumpkin", "Cosmic", 150000000, null, false],
+    ["Werewolf", "Secret", 1300000000, null, false],
+    ["Abomination Kong", "Eternal", 3500000000, null, false],
+    ["Voidseer Pumpkin", "Divine", 14000000000, null, false],
+    ["Candy Corn", "Legendary", 17500, null, false],
+    ["Hollow Bat", "Mythic", 80000, null, false],
+    ["Scarecrow", "Cosmic", 3000000, null, false],
+    ["Pumpkin Golem", "Secret", 350000000, null, false],
+    ["Soul Phantom", "Eternal", 2500000000, null, false]
   ];
   // name, multiplier. Mutations add together: 1 + sum(multiplier - 1)
   var CALC_MUTS = [
@@ -3938,6 +3979,11 @@ document.addEventListener("DOMContentLoaded", function () {
     ["Store: Extinction Egg", "Glyptodon|Sabertooth"],
     ["Store: Dragon Egg", "Baby Aurora Dragon|Shadow Dragon|Scorched Dragon|Drilla|Void Dragon|Ember Dragon"],
     ["Racing Eggs", "Race Seahorse|Race Lizard|Race Bird|Race Cheetah|Engine Snail"],
+    ["Halloween: Graveyard", "Whiskers|Jesterpop|Candlefang|Spirit Knight|Graveyard Brute|Ghost Reaper"],
+    ["Halloween: Haunted Swamp", "Hooded Gerbil|Toadstool|Patchwork Imp|Haunted Scorpio|BloodBloom|Shelltide Voyager"],
+    ["Halloween: Abandoned Manor", "Mimic Chest|Crowshade|Hexed Pumpkin|Werewolf|Abomination Kong|Voidseer Pumpkin"],
+    ["Halloween: Dimension Egg", "Candy Corn|Hollow Bat|Scarecrow|Pumpkin Golem|Soul Phantom"],
+    ["Halloween: Zombified", "Bone Emperor|Zombified Bone Emperor|Zombified Grave Cerberus|Zombified Night Fang|Zombified Pumpkin Fiend"],
     ["Other (not sorted yet)", "Archdemon Dragon|Gigantus|Dunkleosteus|Giant Sloth|Terrorbird|Ring Guard|Ringlord|Skeletal Sabertooth|Skeletal Gigantus|Skeletal Dunkleosteus|Skeletal Glyptodon|Skeletal Terrorbird|Skeletal Giant Sloth|Mecha Dreadscale|Dreadscale|Mecha Krakenoid|Mecha Crocodon|Hazardhog|Krakenoid|Balrog|Strawberry Elephant|Toxic Crocodile|Mecha Crawler|Jitterbug|Mecha Froggo|Mecha Scorpio|Bombo Croco|Crocodon|Ostrich|Amethyst Runebear"]
   ];
 
@@ -4881,7 +4927,11 @@ document.addEventListener("DOMContentLoaded", function () {
     "Titan Temple": {"Spideron":37.51,"Crustacia":26.27,"Bladehide":16.83,"Mantaris":13.96,"Rhinotaur":4.36,"Mutant Shark":0.74,"Gorilla King":0.31,"Nightflame":0.02},
     "Angels & Demons": {"Light Dove":37.51,"Winged Lamb":26.27,"Sacred Moth":16.83,"Holy Peacock":13.96,"Pure Jellyfish":4.36,"Centaur":0.74,"Pegasus":0.31,"ArchAngel":0.02,
       "Flame Sprite":37.51,"Toro":26.27,"Imp":16.83,"Demon Hound":13.96,"Gargoyle":4.36,"RazorFang":0.74,"Skeleton Horse":0.31,"World Burner":0.02},
-    "Enchanted Forest": {"Prism Gecko":37.51,"Petal Beetle":26.27,"Enchanted Bluejay":16.83,"Astral Jackalope":13.96,"Spirit Panda":4.36,"Starry Fox":0.74,"Celestial Sunlion":0.31,"Royal Skywhale":0.02}
+    "Enchanted Forest": {"Prism Gecko":37.51,"Petal Beetle":26.27,"Enchanted Bluejay":16.83,"Astral Jackalope":13.96,"Spirit Panda":4.36,"Starry Fox":0.74,"Celestial Sunlion":0.31,"Royal Skywhale":0.02},
+    "Halloween: Graveyard": {"Whiskers":39.87,"Jesterpop":34.39,"Candlefang":19.62,"Spirit Knight":4.55,"Graveyard Brute":1.24,"Ghost Reaper":0.31},
+    "Halloween: Haunted Swamp": {"Hooded Gerbil":38.39,"Toadstool":27.27,"Patchwork Imp":18.83,"Haunted Scorpio":13.96,"BloodBloom":1.24,"Shelltide Voyager":0.31},
+    "Halloween: Abandoned Manor": {"Mimic Chest":43.1,"Crowshade":37.51,"Hexed Pumpkin":18.32,"Werewolf":0.74,"Abomination Kong":0.31,"Voidseer Pumpkin":0.056},
+    "Halloween: Dimension Egg": {"Candy Corn":51,"Hollow Bat":24,"Scarecrow":18,"Pumpkin Golem":6.5,"Soul Phantom":0.5}
   };
   // "1/2.9 (34%)": odds under 10 keep one decimal (no trailing .0), 10 or more are whole numbers with thousands commas
   function fmtSpawn(island, name) {
