@@ -2530,7 +2530,7 @@ var guestStart, guestStop, layoutHook; // filled in below
         var sig = d.items.map(function (a) { return a.type + a.t + a.egg; }).join(",");
         if (sig === pubSig) return;
         if (!nfPaged) nfMore = d.more === true;
-        pubSig = sig; pubItems = d.items.filter(function (a) { return +a.t > clearT; });
+        pubSig = sig; pubItems = d.items.filter(function (a) { return +a.t > clearT && (passMem || !nfHalloween(a)); });
         renderPublic();
       })
       .catch(function () {});
@@ -2656,10 +2656,23 @@ var guestStart, guestStop, layoutHook; // filled in below
     if (rank) { el.classList.add("ranked"); if (rank === 1) el.classList.add("top"); el.appendChild(line("span", "#" + rank, "nf-rank")); }
     return el;
   }
+  // Halloween spawns are key-user only. Apply this to every public feed/history/search view.
+  // Prefer the island/location metadata, with pet-name fallbacks for records missing that metadata.
+  var NF_HALLOWEEN_NAMES = /^(Voidseer Pumpkin|Graveyard Brute|Werewolf|Ghost Reaper|Abomination Kong|Whiskers|Jesterpop|Candlefang|Spirit Knight|Hooded Gerbil|Toadstool|Patchwork Imp|Haunted Scorpio|BloodBloom|Shelltide Voyager|Mimic Chest|Crowshade|Hexed Pumpkin|Candy Corn|Hollow Bat|Scarecrow|Pumpkin Golem|Soul Phantom|Bone Emperor|Zombified Bone Emperor|Zombified Grave Cerberus|Zombified Night Fang|Zombified Pumpkin Fiend)$/i;
+  function nfHalloween(a) {
+    if (!a || (a.type && a.type !== "egg")) return false;
+    // Use the same normalized pet name and island lookup as the visible cards.
+    // Some public API records omit location, or use a pet alias in `egg`.
+    var rawPet = a.egg || a.pet || a.name || a.petName || a.eggName || "";
+    var pet = String(nfPetName(rawPet) || rawPet).trim();
+    var island = [a.location, a.island, a.biome, a.eggLocation, a.eggIsland, a.area, a.zone,
+      NF_ISLAND && NF_ISLAND[pet]].filter(Boolean).join(" ");
+    return /halloween/i.test(island) || NF_HALLOWEEN_NAMES.test(pet);
+  }
   // which items pass Egg Options / Egg Values (keyed) or Egg Options (public)
   function nfBase() {
     var keyed = !!passMem, src = keyed ? allItems : pubItems;
-    return { keyed: keyed, src: src, list: keyed ? src.filter(passes) : src.filter(function (a) { return +a.t > nfCutoff() && (F.all || (a.type === "egg" && F.tiers[a.rarity])); }) };
+    return { keyed: keyed, src: keyed ? src : src.filter(function (a) { return !nfHalloween(a); }), list: keyed ? src.filter(passes) : src.filter(function (a) { return !nfHalloween(a) && +a.t > nfCutoff() && (F.all || (a.type === "egg" && F.tiers[a.rarity])); }) };
   }
   // Spawn rounds: the first egg of a round starts a 4:40 timer (cycleWin). Every egg that arrives inside that window
   // belongs to the same round, even if its notification came minutes later, and the whole round expires at the same moment.
@@ -2750,7 +2763,7 @@ var guestStart, guestStop, layoutHook; // filled in below
     else pubItems.forEach(function (a) { var k = nfKey(a); if (!nfStore[k]) nfStore[k] = a; });
     var cut = nfCutoff(), limited = !passMem && !searching;
     var list = Object.keys(map).map(function (k) { return map[k]; })
-      .filter(function (a) { return (searching || +a.t > clearT) && nfPass(a) && (!limited || +a.t > cut); })
+      .filter(function (a) { return (passMem || !nfHalloween(a)) && (searching || +a.t > clearT) && nfPass(a) && (!limited || +a.t > cut); })
       .sort(function (x, y) { return (+y.t - +x.t) || ((+y.id || 0) - (+x.id || 0)); });
     if (searching && passMem) {   // key holders only see egg-server (hopper) history, and only what Egg Values allows
       list = list.filter(function (a) { return a.src === "h" && passes(a); });
