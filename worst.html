@@ -2470,6 +2470,9 @@ var guestStart, guestStop, layoutHook; // filled in below
   // ---------- live feed ----------
   var feedEl = $("feed");
   var allItems = [], nfPaused = false;   // nfPaused: the owner paused egg servers for this key's group
+  // A key only gets the keyed view (Biggest Value, All time high, hopper history + join links) while its group is On.
+  // Group Off = the plain visitor view, exactly like no key. The key itself stays signed in (webhooks keep working).
+  function nfKeyed() { return !!passMem && !nfPaused; }
   var seenKeys = {};
   var newKeys = {};
   var firstLoad = true;
@@ -2545,11 +2548,11 @@ var guestStart, guestStop, layoutHook; // filled in below
       .then(function (d) {
         if (!d || !Array.isArray(d.items)) return;
         if (d.now) clockOffset = d.now - Date.now();
-        if (!passMem) { cycleStart = null; paintCycle(); }
+        if (!nfKeyed()) { cycleStart = null; paintCycle(); }
         var sig = d.items.map(function (a) { return a.type + a.t + a.egg; }).join(",");
         if (sig === pubSig) return;
         if (!nfPaged) nfMore = d.more === true;
-        pubSig = sig; pubItems = d.items.filter(function (a) { return +a.t > clearT && (passMem || !nfHalloween(a)); });
+        pubSig = sig; pubItems = d.items.filter(function (a) { return +a.t > clearT && (nfKeyed() || !nfHalloween(a)); });
         renderPublic();
       })
       .catch(function () {});
@@ -2690,7 +2693,7 @@ var guestStart, guestStop, layoutHook; // filled in below
   }
   // which items pass Egg Options / Egg Values (keyed) or Egg Options (public)
   function nfBase() {
-    var keyed = !!passMem, src = keyed ? allItems : pubItems;
+    var keyed = nfKeyed(), src = keyed ? allItems : pubItems;
     return { keyed: keyed, src: keyed ? src : src.filter(function (a) { return !nfHalloween(a); }), list: keyed ? src.filter(passes) : src.filter(function (a) { return !nfHalloween(a) && +a.t > nfCutoff() && (F.all || (a.type === "egg" && F.tiers[a.rarity])); }) };
   }
   // Spawn rounds: the first egg of a round starts a 4:40 timer (cycleWin). Every egg that arrives inside that window
@@ -2726,7 +2729,7 @@ var guestStart, guestStop, layoutHook; // filled in below
   // Pills: Racing is gone for everyone. Key holders get "All time high" instead of Butterfly; visitors without a key keep Butterfly.
   function nfPillSync() {
     if (!nfSel) return;
-    var keyed = !!passMem;
+    var keyed = nfKeyed();
     $("nfPillTop").hidden = !keyed;
     $("nfPillBut").hidden = keyed;
     delete nfSel.race;
@@ -2742,7 +2745,7 @@ var guestStart, guestStop, layoutHook; // filled in below
   var nfTopData = [], nfTopFor = null, nfTopAt = 0, nfTopLoading = false, nfTopErr = "";
   function nfTopTiers() { return Object.keys(nfSel).filter(function (k) { return k !== "top" && k !== "race" && k !== "butterfly"; }).sort().join(","); }
   function nfTopLoad() {
-    if (!passMem || !nfSel.top || nfTopLoading) return;
+    if (!nfKeyed() || !nfSel.top || nfTopLoading) return;
     var tiers = nfTopTiers();
     if (tiers === nfTopFor && Date.now() - nfTopAt < 60000) return;
     nfTopLoading = true;
@@ -2780,11 +2783,11 @@ var guestStart, guestStop, layoutHook; // filled in below
     var map = nfStore, searching = nfSearching();
     if (searching) map = nfSRes;
     else pubItems.forEach(function (a) { var k = nfKey(a); if (!nfStore[k]) nfStore[k] = a; });
-    var cut = nfCutoff(), limited = !passMem && !searching;
+    var cut = nfCutoff(), limited = !nfKeyed() && !searching;
     var list = Object.keys(map).map(function (k) { return map[k]; })
-      .filter(function (a) { return (passMem || !nfHalloween(a)) && (searching || +a.t > clearT) && nfPass(a) && (!limited || +a.t > cut); })
+      .filter(function (a) { return (nfKeyed() || !nfHalloween(a)) && (searching || +a.t > clearT) && nfPass(a) && (!limited || +a.t > cut); })
       .sort(function (x, y) { return (+y.t - +x.t) || ((+y.id || 0) - (+x.id || 0)); });
-    if (searching && passMem) {   // key holders only see egg-server (hopper) history, and only what Egg Values allows
+    if (searching && nfKeyed()) {   // key holders only see egg-server (hopper) history, and only what Egg Values allows
       list = list.filter(function (a) { return a.src === "h" && passes(a); });
     }
     return list;
@@ -2843,8 +2846,8 @@ var guestStart, guestStop, layoutHook; // filled in below
     if (q.length < 2 || (more && (nfSLoading || !nfSMore))) return;
     var seq = nfSSeq, jobs = [];
     // no key: public alert history. With a guest / admin key: ONLY the egg hopper history (egg servers: kg, mutation), never the public alerts
-    var ua = passMem ? "" : API + "/alerts?q=" + encodeURIComponent(q) + "&limit=" + NF_PAGE;
-    var uh = passMem ? API + "/hist?q=" + encodeURIComponent(q) + "&limit=" + NF_PAGE : "";
+    var ua = nfKeyed() ? "" : API + "/alerts?q=" + encodeURIComponent(q) + "&limit=" + NF_PAGE;
+    var uh = nfKeyed() ? API + "/hist?q=" + encodeURIComponent(q) + "&limit=" + NF_PAGE : "";
     var uhFirst = uh ? uh + "&top=1" : "";   // first page also asks for the biggest-value eggs of the whole history
     if (more) {
       if (ua && nfSMoreA) { var ma = nfMinId(nfSRes, false); if (isFinite(ma)) jobs.push({ u: ua + "&before=" + ma, h: false }); }
@@ -3104,7 +3107,7 @@ var guestStart, guestStop, layoutHook; // filled in below
     var topS = [];
     var lb = !searching && b.keyed && !!nfSel.top;   // "All time high" view
     if (lb) nfTopLoad();
-    if (searching && passMem && hist.length) {   // server's biggest-of-everything list first, plus anything already loaded
+    if (searching && nfKeyed() && hist.length) {   // server's biggest-of-everything list first, plus anything already loaded
       var seenTop = {}, pool = nfSTop.filter(passes).concat(nfTopOf(hist));
       topS = nfTopOf(pool.filter(function (a) { var k = nfKey(a); if (seenTop[k]) return false; seenTop[k] = true; return true; }));
     }   // key holders (guest / admin) only
@@ -3134,7 +3137,7 @@ var guestStart, guestStop, layoutHook; // filled in below
       var mb = document.createElement("button"); mb.type = "button"; mb.className = "nf-more"; mb.textContent = "Show older spawns";
       feedEl.appendChild(mb);
     }
-    $("feedClear").hidden = !passMem;   // Clear is only for guest / admin key holders
+    $("feedClear").hidden = !nfKeyed();   // Clear is only for guest / admin key holders
     nfPaintLog();
     var cnt = "";
     if (searching) cnt = nfSLoading && !hist.length ? "Searching..." : "Found " + hist.length + (nfSMore ? "+" : "") + " for \"" + nfQuery + "\"";
@@ -3152,7 +3155,7 @@ var guestStart, guestStop, layoutHook; // filled in below
   // an egg leaves "Right now" after the 4:40 window (or drops out of the hour for Biggest Value), so re-draw when that set changes
   function nfTick() {
     if ($("nfWrap").hidden) return;
-    $("feedClear").hidden = !passMem;
+    $("feedClear").hidden = !nfKeyed();
     if (nfSel.top) nfTopLoad();
     if (nfNowKey(nfBase()) !== nfNowSig) nfRender();
   }
@@ -5467,7 +5470,7 @@ document.addEventListener("DOMContentLoaded", function () {
     var wasIn = !!passMem;
     if (!keepSaved) { try { localStorage.removeItem("keyAuto"); } catch (e) {} }   // Logout / rejected key: forget the saved key too (not when another tab just took the admin lock: the saved key is shared with that tab)
     window.isAdmin = false;
-    passMem = "";
+    passMem = ""; nfPaused = false;
     LAYOUT = ""; guestStop();
     if (wasIn) setKeyState("", "", "");
     showView();
@@ -5822,17 +5825,17 @@ document.addEventListener("DOMContentLoaded", function () {
     times.sort(function (x, y) { return x - y; });
     times.forEach(function (t) {
       if (lastEggT && t < lastEggT) return;                         // belongs to an earlier round
-      if (!lastEggT || t >= lastEggT + (passMem ? 275000 : 300000)) lastEggT = t;        // first egg after the countdown hit 0: new round
+      if (!lastEggT || t >= lastEggT + (nfKeyed() ? 275000 : 300000)) lastEggT = t;        // first egg after the countdown hit 0: new round
     });
     var nx = $("nfNext");
-    if (passMem) { el.hidden = true; nx.hidden = true; return; }   // vip / admin / guest keys: no countdown shown
+    if (nfKeyed()) { el.hidden = true; nx.hidden = true; return; }   // vip / admin / guest keys: no countdown shown
     if (!lastEggT) { el.textContent = "Time left: --:--"; el.className = ""; nx.textContent = "\u00B7 Next spawn in --:--"; nx.className = ""; return; }
-    if (!passMem) cycleWin = 300000;   // no key (public visitors): exactly 5:00. Keys (vip / admin / guest) keep their own timer below.
-    var win = passMem ? 280000 : 300000;
+    if (!nfKeyed()) cycleWin = 300000;   // no key (public visitors): exactly 5:00. Keys (vip / admin / guest) keep their own timer below.
+    var win = nfKeyed() ? 280000 : 300000;
     var left = lastEggT + win - (Date.now() + clockOffset);   // egg window (4 min 40 s) from the round's first egg
     // "Next spawn" follows the game's own timer, which runs NEXT_SPAWN_LAG longer than the egg window above (measured: site 3:38 vs game 3:54 = 16 s).
     // Raise / lower this number if it still drifts. The egg window (Time left, Already gone) is not affected.
-    var NEXT_SPAWN_LAG = passMem ? -5000 : 0, nleft = left + NEXT_SPAWN_LAG;   // 280 s - 5 s = 4:35 from the round's first egg
+    var NEXT_SPAWN_LAG = nfKeyed() ? -5000 : 0, nleft = left + NEXT_SPAWN_LAG;   // 280 s - 5 s = 4:35 from the round's first egg
     if (left > 0) { el.textContent = "Time left: " + fmt(left); el.className = ""; } else { el.textContent = "Time left: 0:00"; el.className = "done"; }
     if (nleft > 0) { nx.textContent = "\u00B7 Next spawn in " + fmt(nleft); nx.className = ""; }
     else { nx.textContent = "\u00B7 Next spawn: any moment now"; nx.className = "soon"; }
@@ -5861,7 +5864,13 @@ document.addEventListener("DOMContentLoaded", function () {
           cycleWin = d.cycle.windowMs || 280000;
           clockOffset = d.cycle.now - Date.now();
         }
+        var wasPaused = nfPaused;
         nfPaused = !!(d && d.paused);
+        if (wasPaused !== nfPaused) {   // group switched On/Off by the owner: swap between the keyed view and the plain visitor view
+          nfQuery = ""; nfSSeq++; nfSRes = {}; nfSTop = []; nfSMore = false; nfSLoading = false; nfStore = {}; nfTopData = []; nfTopFor = null; pubSig = "";
+          var sb = $("nfSearch"); if (sb) sb.value = "";
+          nfPillSync(); pollPublic();
+        }
         if (nfPaused) { allItems = []; lastSig = ""; render(); }   // paused: the list empties by itself (nothing is deleted on the server)
         else if (Array.isArray(items)) setItems(items);
         paintCycle();
