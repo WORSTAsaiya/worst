@@ -862,8 +862,8 @@ body.wkSearching .vdet *{ animation:none !important; }
     <button class="nf-pill" type="button" data-t="Divine" aria-pressed="false">Divine</button>
     <button class="nf-pill" type="button" data-t="Eternal" aria-pressed="false">Eternal</button>
     <button class="nf-pill" type="button" data-t="Secret" aria-pressed="false">Secret</button>
-    <button class="nf-pill" type="button" data-t="race" aria-pressed="false">Racing</button>
-    <button class="nf-pill" type="button" data-t="butterfly" aria-pressed="false">Butterfly</button>
+    <button class="nf-pill" id="nfPillTop" type="button" data-t="top" aria-pressed="false" hidden>All time high</button>
+    <button class="nf-pill" id="nfPillBut" type="button" data-t="butterfly" aria-pressed="false">Butterfly</button>
     <button id="feedClear" class="feed-clear" type="button" hidden>Clear</button>
   </div>
   <div class="nf-grid" id="feed"><div class="nf-empty">Waiting for the first alert...</div></div>
@@ -2687,8 +2687,46 @@ var guestStart, guestStop, layoutHook; // filled in below
   }
   // History pills: none selected = everything, otherwise only the selected kinds
   function nfPass(a) {
-    if (!Object.keys(nfSel).length) return true;
+    var keys = Object.keys(nfSel).filter(function (k) { return k !== "top"; });   // "All time high" is a view, not a rarity filter
+    if (!keys.length) return true;
     return (!a.type || a.type === "egg") ? !!nfSel[a.rarity] : !!nfSel[a.type];
+  }
+  // Pills: Racing is gone for everyone. Key holders get "All time high" instead of Butterfly; visitors without a key keep Butterfly.
+  function nfPillSync() {
+    if (!nfSel) return;
+    var keyed = !!passMem;
+    $("nfPillTop").hidden = !keyed;
+    $("nfPillBut").hidden = keyed;
+    delete nfSel.race;
+    if (keyed) delete nfSel.butterfly; else delete nfSel.top;
+    document.querySelectorAll("#nfFilters .nf-pill").forEach(function (p) {
+      var on = !!nfSel[p.dataset.t];
+      p.classList.toggle("on", on);
+      p.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  }
+  // All time high: biggest-value eggs of the whole saved history, from the Worker's /top (key holders only).
+  // The rarity pills that are on narrow it down. Reloaded when those change and at most once a minute.
+  var nfTopData = [], nfTopFor = null, nfTopAt = 0, nfTopLoading = false, nfTopErr = "";
+  function nfTopTiers() { return Object.keys(nfSel).filter(function (k) { return k !== "top" && k !== "race" && k !== "butterfly"; }).sort().join(","); }
+  function nfTopLoad() {
+    if (!passMem || !nfSel.top || nfTopLoading) return;
+    var tiers = nfTopTiers();
+    if (tiers === nfTopFor && Date.now() - nfTopAt < 60000) return;
+    nfTopLoading = true;
+    fetch(API + "/top" + (tiers ? "?tiers=" + encodeURIComponent(tiers) : ""), { cache: "no-store", headers: nfAuth() })
+      .then(function (r) {
+        if (r.status === 401) { if (passMem) relock(); throw 0; }
+        if (!r.ok) throw 1;
+        return r.json();
+      })
+      .then(function (d) {
+        nfTopLoading = false;
+        if (d && Array.isArray(d.items)) { nfTopData = d.items; nfTopErr = d.paused ? "Egg servers are paused right now." : ""; nfTopFor = tiers; nfTopAt = Date.now(); }
+        else nfTopErr = "Could not load the leaderboard.";
+        nfRender();
+      })
+      .catch(function () { nfTopLoading = false; nfTopAt = Date.now(); nfTopFor = tiers; nfTopErr = "Could not load the leaderboard."; nfRender(); });
   }
 
   // ---- History: dropdown (5 rows, scroll for older) + egg search ----
@@ -2993,6 +3031,7 @@ var guestStart, guestStop, layoutHook; // filled in below
   }
   
   function nfRender() {
+    nfPillSync();
     nfUpdateRound();
     nfMaps();
     var b = nfBase(), active = nfActive(b.list), searching = nfSearching();
@@ -3024,18 +3063,29 @@ var guestStart, guestStop, layoutHook; // filled in below
     paintCycle();
     if (biggest) fill(nowEl, top, nfPaused ? "Egg servers are paused right now." : "No eggs with a value in the last hour yet.", true, true);
     else fill(nowEl, active, "Nothing is out right now. New eggs show up here the moment they spawn.", true);   // available stock glows
-    var anyPill = Object.keys(nfSel).length > 0, empty;
+    var anyPill = Object.keys(nfSel).filter(function (k) { return k !== "top"; }).length > 0, empty;
     if (searching) empty = nfSLoading ? "Searching..." : "No spawns found for \"" + nfQuery + "\".";
     else if (anyPill) empty = "No alerts match your filters.";
     else if (b.keyed) empty = nfPaused ? "Egg servers are paused right now." : (b.src.length ? "No alerts match your filters." : "Waiting for the first alert...");
     else empty = "No eggs in the last hour. Search an egg above to see when it last spawned.";
     nfExact = searching;                                   // search results also show the exact date + time
     var topS = [];
+    var lb = !searching && b.keyed && !!nfSel.top;   // "All time high" view
+    if (lb) nfTopLoad();
     if (searching && passMem && hist.length) {   // server's biggest-of-everything list first, plus anything already loaded
       var seenTop = {}, pool = nfSTop.filter(passes).concat(nfTopOf(hist));
       topS = nfTopOf(pool.filter(function (a) { var k = nfKey(a); if (seenTop[k]) return false; seenTop[k] = true; return true; }));
     }   // key holders (guest / admin) only
-    if (topS.length) {   // search: the 5 biggest results first (ranked like Biggest Value), then everything else newest first
+    if (lb) {
+      feedEl.textContent = "";
+      if (!nfTopData.length) feedEl.appendChild(line("div", nfTopLoading ? "Loading the leaderboard..." : (nfTopErr || "No saved eggs with a value yet."), "nf-empty"));
+      else {
+        var lbTiers = nfTopTiers().replace(/,/g, ", ");
+        feedEl.appendChild(line("div", "All time high \u00B7 top " + nfTopData.length + " by value" + (lbTiers ? " \u00B7 " + lbTiers : ""), "nf-subhead"));
+        nfExact = true;   // exact date + time on every card
+        nfTopData.forEach(function (a, i) { feedEl.appendChild(nfCard(a, true, false, i === 0, i + 1, false)); });
+      }
+    } else if (topS.length) {   // search: the 5 biggest results first (ranked like Biggest Value), then everything else newest first
       feedEl.textContent = "";
       var cardOf = function (a, glow, rank) { return nfCard(a, b.keyed && a.src === "h", !!newKeys[a.jobId + a.t], glow, rank, false); };
       feedEl.appendChild(line("div", "Biggest value \u00B7 top " + topS.length + " of these results", "nf-subhead"));
@@ -3058,6 +3108,7 @@ var guestStart, guestStop, layoutHook; // filled in below
     if (searching) cnt = nfSLoading && !hist.length ? "Searching..." : "Found " + hist.length + (nfSMore ? "+" : "") + " for \"" + nfQuery + "\"";
     else if (b.keyed) cnt = b.src.length ? "Showing " + hist.length + " of " + b.src.length + " rare eggs" : "";
     else cnt = "All the eggs that spawned within the hour";
+    if (lb) cnt = nfTopData.length ? "All time high \u00B7 " + nfTopData.length + " biggest eggs in the saved history" : "";
     $("count").textContent = cnt;
     newKeys = {};
   }
@@ -3070,6 +3121,7 @@ var guestStart, guestStop, layoutHook; // filled in below
   function nfTick() {
     if ($("nfWrap").hidden) return;
     $("feedClear").hidden = !passMem;
+    if (nfSel.top) nfTopLoad();
     if (nfNowKey(nfBase()) !== nfNowSig) nfRender();
   }
   $("nfFilters").addEventListener("click", function (e) {
@@ -5362,6 +5414,7 @@ document.addEventListener("DOMContentLoaded", function () {
     $("rarWrap").hidden = !!passMem;   // Rarity dropdown: visitors without a key only (keys use Egg Values / Notifying Eggs)
     if (passMem) rarOpen(false);
     document.body.classList.toggle("nfMode", nfOn);
+    nfPillSync();
     layoutHook(notifier, open);
     $("joinCard").hidden = !(live && pg === 4);
     $("valDetail").hidden = !(live && pg === 2);
