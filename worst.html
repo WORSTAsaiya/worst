@@ -1294,6 +1294,7 @@ var guestStart, guestStop, layoutHook; // filled in below
     '<div id="kNotif"><h3>Notifier page</h3><p class="ksub">Pause egg servers for a group. Eggs keep being saved while a group is paused.</p>' +
       '<div class="nrow"><b>Admin</b><button id="nAdmin" class="nsw" type="button">On</button></div>' +
       '<div class="nrow"><b>Vip</b><button id="nVipDelay" class="ndel" type="button">Enable delay</button><button id="nVip" class="nsw" type="button">On</button></div>' +
+      '<div class="nmax"><label for="nVipMax">Vip max send <output id="nVipMaxOut"></output></label><input type="range" id="nVipMax" min="0" max="199" step="1" value="199"><small>Vip webhooks only get eggs up to this money/s. 0 sends nothing, 1Qa sends everything.</small></div>' +
       '<div class="nrow"><b>Guest</b><button id="nGuestDelay" class="ndel" type="button">Enable delay</button><button id="nGuest" class="nsw" type="button">Off</button></div>' +
       '<div id="nGuestBox" hidden>' +
         '<div class="kform"><input class="g-in" id="nHook" type="text" placeholder="Guest webhook (egg server links are sent here)" maxlength="200" autocomplete="off" spellcheck="false"><button id="nHookSave" type="button">Save</button><button id="nHookRm" class="nrm" type="button">Remove</button></div>' +
@@ -1786,6 +1787,8 @@ var guestStart, guestStop, layoutHook; // filled in below
     $("nHook").value = ""; $("nHook").placeholder = d.guest.hasHook ? "Webhook saved (paste a new one to replace it)" : "Guest webhook (egg server links are sent here)";
     $("nHookState").textContent = d.guest.hasHook ? "Webhook saved (ends ..." + d.guest.hookTail + "). New egg servers up to Max send are posted there." : "No webhook yet. Guests still see the newest 100 eggs while Guest is on.";
     $("nMax").value = d.guest.maxPos; $("nMaxOut").textContent = nMaxLabel(d.guest.maxPos);
+    var vp = d.vip.maxPos == null ? 199 : d.vip.maxPos;
+    $("nVipMax").value = vp; $("nVipMaxOut").textContent = nMaxLabel(vp);
   }
   function nSend(body, okText) {
     nStatus.textContent = "Saving...";
@@ -1800,8 +1803,8 @@ var guestStart, guestStop, layoutHook; // filled in below
   }
   $("nAdmin").addEventListener("click", function () { if (nSt) nSend({ group: "admin", on: !nSt.admin.on }, nSt.admin.on ? "Admin paused." : "Admin on."); });
   $("nVip").addEventListener("click", function () { if (nSt) nSend({ group: "vip", on: !nSt.vip.on }, nSt.vip.on ? "Vip paused." : "Vip on."); });
-  $("nVipDelay").addEventListener("click", function () { if (nSt) nSend({ group: "vip", delay: !nSt.vip.delay }, nSt.vip.delay ? "Vip delay off." : "Vip now gets eggs 5 seconds after you."); });
-  $("nGuestDelay").addEventListener("click", function () { if (nSt) nSend({ group: "guest", delay: !nSt.guest.delay }, nSt.guest.delay ? "Guest delay off." : "Guest now gets eggs 5 seconds after you."); });
+  $("nVipDelay").addEventListener("click", function () { if (nSt) nSend({ group: "vip", delay: !nSt.vip.delay }, nSt.vip.delay ? "Vip delay off." : "Vip now gets eggs " + Math.round((nSt.delayMs || 15000) / 1000) + " seconds after you."); });
+  $("nGuestDelay").addEventListener("click", function () { if (nSt) nSend({ group: "guest", delay: !nSt.guest.delay }, nSt.guest.delay ? "Guest delay off." : "Guest now gets eggs " + Math.round((nSt.delayMs || 15000) / 1000) + " seconds after you."); });
   $("nGuest").addEventListener("click", function () {
     if (!nSt) return;
     if (nSt.guest.on && nSt.guest.hasHook && !confirm("Turn Guest off? Their list empties and the guest webhook is removed.")) return;
@@ -1817,6 +1820,11 @@ var guestStart, guestStop, layoutHook; // filled in below
   $("nMax").addEventListener("change", function () {
     var p = +this.value;
     nSend({ group: "guest", max: nValAt(p), maxPos: p }, "Max send set to " + nMaxLabel(p) + ".");
+  });
+  $("nVipMax").addEventListener("input", function () { $("nVipMaxOut").textContent = nMaxLabel(+this.value); });
+  $("nVipMax").addEventListener("change", function () {
+    var p = +this.value;
+    nSend({ group: "vip", max: nValAt(p), maxPos: p }, "Vip max send set to " + nMaxLabel(p) + ".");
   });
   $("kAdminLogs").addEventListener("click", function () { loadAuditLogs("admin"); });
   $("kGuestLogs").addEventListener("click", function () { loadAuditLogs("guest"); });
