@@ -1879,15 +1879,26 @@ var guestStart, guestStop, layoutHook; // filled in below
 </script>
 <script>
   (function () {
-  var f = window.fetch;
+  var f = window.fetch, SID = "";
+  try { SID = sessionStorage.getItem("ownerSid") || ""; } catch (e) {}   // one id per browser tab: the Worker lets only one tab use the admin key at a time
+  if (!SID) {
+    try { var sa = new Uint8Array(12); crypto.getRandomValues(sa); SID = Array.prototype.map.call(sa, function (x) { return ("0" + x.toString(16)).slice(-2); }).join(""); }
+    catch (e) { SID = (String(Date.now()) + Math.random().toString(16).slice(2)).replace(/[^a-z0-9]/gi, "").slice(0, 32); }
+    try { sessionStorage.setItem("ownerSid", SID); } catch (e) {}
+  }
   window.fetch = function (u, o) {
     o = o || {};
     if (String(u).indexOf("eggfeed.asaiyamain.workers.dev") > -1) {
       o.referrerPolicy = "unsafe-url";
-      var hd = new Headers(o.headers || {}); hd.set("x-site", "w6c69a0185a85886f1fc7");   // must match SITE_TOKEN in the Worker: older pages on this domain do not send it, so the Worker refuses them
+      var hd = new Headers(o.headers || {}); hd.set("x-sid", SID); hd.set("x-site", "w6c69a0185a85886f1fc7");   // must match SITE_TOKEN in the Worker: older pages on this domain do not send it, so the Worker refuses them
       o.headers = hd;
     }
-    return f.call(this, u, o);
+    var p = f.call(this, u, o);
+    if (String(u).indexOf("eggfeed.asaiyamain.workers.dev") === -1) return p;
+    return p.then(function (r) {   // 409 = another tab / device took the admin lock
+      if (r.status === 409 && typeof window.__ownerLost === "function") r.clone().text().then(function (t) { window.__ownerLost(t); }).catch(function () {});
+      return r;
+    });
   };
 })();
   var FEED_URL = "https://eggfeed.asaiyamain.workers.dev/feed";
@@ -5452,9 +5463,9 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // the Worker checks the password, so it never appears in this file
-  function relock() {   // a typed key stopped working: back to the plain visitor view with "Input key"
+  function relock(keepSaved) {   // a typed key stopped working: back to the plain visitor view with "Input key"
     var wasIn = !!passMem;
-    try { localStorage.removeItem("keyAuto"); } catch (e) {}   // Logout / rejected key: forget the saved key too
+    if (!keepSaved) { try { localStorage.removeItem("keyAuto"); } catch (e) {} }   // Logout / rejected key: forget the saved key too (not when another tab just took the admin lock: the saved key is shared with that tab)
     window.isAdmin = false;
     passMem = "";
     LAYOUT = ""; guestStop();
@@ -5463,6 +5474,11 @@ document.addEventListener("DOMContentLoaded", function () {
     nfRender();   // "Biggest Value" goes back to "Right now"
     poll(); initSlots();
   }
+  window.__ownerLost = function (t) {   // another tab / device took the admin lock: this tab goes back to the visitor view
+    if (!passMem) return;
+    relock(true);
+    setKeyState("", "", t || "Admin was opened in another tab or device.");
+  };
   function unlock() {   // the page opens straight away, no password screen
     unlocked = true; authChecked = true;
     showView();
@@ -5544,13 +5560,16 @@ document.addEventListener("DOMContentLoaded", function () {
             try { localStorage.setItem("keyAuto", pw); } catch (e) {}   // stay signed in after a refresh / reopen
             LAYOUT = "owner";            // admin AND guest keys both get the full owner layout
             window.isAdmin = admin;           // ...but only the admin gets "Manage passwords"
-            setKeyState(admin ? "admin" : "guest", label, "");
+            var note = d.displaced ? "Already logged in elsewhere. The previous connection was terminated." : "";
+            setKeyState(admin ? "admin" : "guest", label, note);
+            if (note) setTimeout(function () { var ke = $("keyErr"); if (ke && ke.textContent === note) ke.textContent = ""; }, 8000);
             showView();
             nfRender();   // "Right now" becomes "Biggest Value"
             poll(); initSlots();   // reload the webhook slots for this key
           });
         }
         return r.text().then(function (t) {
+          if (r.status === 409) { setKeyState("", "", t || "Please reload the site"); if (fromUser) shake(); return; }   // old page without a tab id (the saved key stays saved)
           if (r.status === 401 || r.status === 403) { try { localStorage.removeItem("keyAuto"); } catch (e) {} }   // the saved key no longer works
           setKeyState("", "", fromUser ? (t === "locked" ? "Enter a key" : (t || "Wrong key")) : (r.status === 401 || r.status === 403 ? "Saved key no longer works" : (t || "")));
           if (fromUser) shake();
