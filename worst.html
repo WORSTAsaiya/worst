@@ -729,6 +729,86 @@ body.tsrMode .pages{background:rgba(0,0,0,.30);-webkit-backdrop-filter:blur(8px)
 body.tsrMode .pages select{background:rgba(0,0,0,.38);border-color:#333;font-weight:700}
 @keyframes tsrPulse{0%,100%{opacity:1}50%{opacity:.45}}
 @media (prefers-reduced-motion:reduce){.tsr-dot.on{animation:none}}
+
+/* ---- Tap simulator: alive ---- */
+/* scripts page */
+.tsr-bar{position:relative;z-index:6}
+.tsr-dd{position:relative;min-width:250px}
+.tsr-ddbtn{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;background:rgba(0,0,0,.38);color:#f5f5f5;border:1px solid #333;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;transition:border-color .2s,box-shadow .2s}
+.tsr-ddbtn:hover,.tsr-dd.open .tsr-ddbtn{border-color:#888;box-shadow:0 0 18px rgba(255,255,255,.08)}
+.tsr-car{width:8px;height:8px;border-right:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(45deg) translateY(-2px);transition:transform .25s}
+.tsr-dd.open .tsr-car{transform:rotate(225deg) translateY(-2px)}
+.tsr-ddlist{position:absolute;top:calc(100% + 8px);left:0;min-width:100%;max-height:320px;overflow-y:auto;padding:8px;background:rgba(10,10,12,.96);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.16);border-radius:12px;box-shadow:0 18px 44px rgba(0,0,0,.6);
+  opacity:0;visibility:hidden;transform:translateY(-10px) scaleY(.92);transform-origin:top center;transition:opacity .22s,transform .26s cubic-bezier(.2,.8,.2,1),visibility 0s .26s}
+.tsr-dd.open .tsr-ddlist{opacity:1;visibility:visible;transform:none;transition-delay:0s}
+.tsr-ddrow{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:13px;color:#ddd;cursor:pointer;transition:background .15s,color .15s}
+.tsr-dd.open .tsr-ddrow{animation:tsrItem .3s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i) * 40ms + 60ms)}
+.tsr-ddrow:hover{background:rgba(255,255,255,.08);color:#fff}
+.tsr-ddrow.all{border-bottom:1px solid #2c2c2c;border-radius:8px 8px 0 0;margin-bottom:4px;font-weight:700;color:#fff}
+.tsr-ddrow span:not(.tsr-dot){flex:1;min-width:0;word-break:break-all}
+.tsr-ddrow em{font-style:normal;font-size:11px;color:#888}
+.tsr-chk{width:16px;height:16px;border:1.5px solid #666;border-radius:5px;flex:none;position:relative;transition:background .15s,border-color .15s}
+.tsr-ddrow.on .tsr-chk{background:#fff;border-color:#fff}
+.tsr-ddrow.on .tsr-chk::after{content:"";position:absolute;left:4px;top:1px;width:4px;height:8px;border:solid #0a0a0a;border-width:0 2px 2px 0;transform:rotate(45deg);animation:tsrTick .2s ease both}
+@keyframes tsrItem{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+@keyframes tsrTick{from{opacity:0;transform:rotate(45deg) scale(.4)}to{opacity:1;transform:rotate(45deg) scale(1)}}
+.tsr-edit{display:flex;flex-direction:column;gap:10px;margin:0 0 20px;padding:16px;background:rgba(0,0,0,.30);border:1px solid #2c2c2c;border-radius:12px;animation:tsrRise .4s ease both}
+.tsr-edit input,.tsr-edit textarea{padding:10px 14px;background:rgba(0,0,0,.38);color:#f5f5f5;border:1px solid #333;border-radius:10px;font-size:13px;font-family:inherit}
+.tsr-edit textarea{min-height:220px;resize:vertical;font-family:ui-monospace,Consolas,monospace;font-size:12.5px;line-height:1.5;white-space:pre;overflow:auto}
+.tsr-edit input:focus,.tsr-edit textarea:focus{outline:2px solid rgba(255,255,255,.65);outline-offset:1px;border-color:#888}
+.tsr-sbtn{cursor:default}
+.tsr.fresh .tsr-sbtn{animation:tsrRise .5s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0) * 70ms)}
+.tsr-sbtn b{display:block;font-size:15px}
+.tsr-sact{display:flex;gap:8px;margin-top:12px}
+.tsr-sact .tsr-btn{padding:6px 14px;font-size:12px}
+.tsr-btn:disabled{opacity:.6;cursor:wait}
+.tsr-btn.busy{animation:tsrPulse 1s ease-in-out infinite}
+.tsr-msg.bad{color:#ffb4a8}
+.tsr-msg.flash{animation:tsrRise .35s ease both}
+
+/* everywhere on the Tap simulator channel */
+.tsr{animation:tsrRise .6s cubic-bezier(.2,.8,.2,1) both}
+.tsr h2{background:linear-gradient(100deg,#fff 30%,#8a8a8a 50%,#fff 70%) 0 0/250% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:tsrSheen 6s linear infinite}
+.tsr.fresh .tsr-card{animation:tsrRise .6s cubic-bezier(.2,.8,.2,1) both}
+.tsr.fresh .tsr-grid > :nth-child(1){animation-delay:.05s}.tsr.fresh .tsr-grid > :nth-child(2){animation-delay:.13s}.tsr.fresh .tsr-grid > :nth-child(3){animation-delay:.21s}.tsr.fresh .tsr-grid > :nth-child(4){animation-delay:.29s}.tsr.fresh .tsr-grid > :nth-child(5){animation-delay:.37s}
+.tsr-card .tsr-name{transition:text-shadow .3s}
+.tsr-card:hover .tsr-name{text-shadow:0 0 18px rgba(255,255,255,.55)}
+.tsr-kv{transition:background .15s,padding .15s;border-radius:6px}
+.tsr-kv:hover{background:rgba(255,255,255,.06);padding-left:8px;padding-right:8px}
+.tsr-dot.on{position:relative}
+.tsr-dot.on::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:1px solid rgba(255,255,255,.7);animation:tsrRipple 2.4s ease-out infinite}
+.tsr-tabs button{transition:transform .15s,border-color .15s,color .15s,background .15s}
+.tsr-tabs button:hover{transform:translateY(-2px)}
+.tsr-tabs button.on{box-shadow:0 0 20px rgba(255,255,255,.22);animation:tsrGlow 2.4s ease-in-out infinite}
+.tsr-btn{transition:transform .15s,background .15s,box-shadow .15s}
+.tsr-btn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(255,255,255,.18)}
+.tsr-sbtn{transition:border-color .2s,background .2s,box-shadow .25s,transform .2s}
+.tsr-sbtn:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(0,0,0,.4),0 0 24px rgba(255,255,255,.06)}
+
+/* the Channels / Pages bar */
+body.tsrMode .pages{position:relative;gap:10px 12px;padding:8px 14px;border-radius:16px;box-shadow:0 10px 34px rgba(0,0,0,.35),0 0 40px rgba(255,255,255,.04);animation:tsrFloat 5s ease-in-out infinite}
+body.tsrMode .pages::before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;pointer-events:none;
+  background:linear-gradient(110deg,rgba(255,255,255,.04) 20%,rgba(255,255,255,.95) 50%,rgba(255,255,255,.04) 80%) 0 0/250% 100%;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);
+  animation:tsrSweep 3.6s linear infinite}
+body.tsrMode .pages label{display:flex;align-items:center;gap:7px;color:#ddd;font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:11px}
+body.tsrMode .pages label::before{content:"";width:7px;height:7px;border-radius:50%;background:#fff;box-shadow:0 0 10px rgba(255,255,255,.8);animation:tsrPulse 2.4s ease-in-out infinite}
+body.tsrMode .pages select{transition:transform .15s,border-color .2s,box-shadow .2s;border-radius:999px;padding:8px 16px}
+body.tsrMode .pages select:hover{transform:translateY(-2px);border-color:#999;box-shadow:0 6px 18px rgba(255,255,255,.12)}
+body.tsrMode .pages select:focus{box-shadow:0 0 22px rgba(255,255,255,.18)}
+body.tsrMode #pgSel:not([hidden]){animation:tsrPop .45s cubic-bezier(.3,1.4,.5,1) both}
+@keyframes tsrRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes tsrSheen{to{background-position:-250% 0}}
+@keyframes tsrSweep{to{background-position:-250% 0}}
+@keyframes tsrFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes tsrPop{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:none}}
+@keyframes tsrRipple{0%{transform:scale(.6);opacity:.9}100%{transform:scale(2.1);opacity:0}}
+@keyframes tsrGlow{0%,100%{box-shadow:0 0 14px rgba(255,255,255,.16)}50%{box-shadow:0 0 26px rgba(255,255,255,.34)}}
+@media (prefers-reduced-motion:reduce){.tsr,.tsr h2,.tsr-card,.tsr-sbtn,.tsr-edit,.tsr-tabs button.on,.tsr-dot.on::after,body.tsrMode .pages,body.tsrMode .pages::before,body.tsrMode .pages label::before,body.tsrMode #pgSel{animation:none !important}.tsr h2{-webkit-text-fill-color:#fff}.tsr-ddlist,.tsr-ddrow{transition:none !important;animation:none !important}.tsr-dd.open .tsr-ddrow{opacity:1;transform:none}}
+#tsrLogout{padding:8px 16px;background:rgba(0,0,0,.38);color:#f5f5f5;border:1px solid #333;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer;transition:transform .15s,border-color .2s,box-shadow .2s,background .2s}
+#tsrLogout:hover{transform:translateY(-2px);border-color:#999;background:rgba(255,255,255,.1);box-shadow:0 6px 18px rgba(255,255,255,.12)}
+#tsrLogout:focus-visible{outline:2px solid #fff;outline-offset:2px}
+body.tsrMode #tsrLogout:not([hidden]){animation:tsrPop .45s cubic-bezier(.3,1.4,.5,1) both}
 </style>
 </head>
 <body>
@@ -751,6 +831,7 @@ body.tsrMode .pages select{background:rgba(0,0,0,.38);border-color:#333;font-wei
     <option value="3">Calculator</option>
     <option value="5">Fusion</option>
   </select>
+  <button type="button" id="tsrLogout" data-tsr="logout" hidden>Log out</button>
 </nav>
 
 <section id="left">
@@ -5466,15 +5547,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ---------- Tap simulator channel (status, inventory, scripts) ----------
   var TSR_WORKER = "https://tsr-hub.asaiyamain.workers.dev";
-  // Scripts page buttons. Add yours here: { id: "name-for-the-worker", label: "Button text", desc: "One line about it" }
-  var TSR_SCRIPTS = [
-    { id: "example-1", label: "Example script 1", desc: "Replace me in TSR_SCRIPTS" },
-    { id: "example-2", label: "Example script 2", desc: "Replace me in TSR_SCRIPTS" }
-  ];
+  // Scripts live in your Worker (add / edit them on the Scripts page). Selected accounts + editor state:
+  var tsrScripts = null, tsrScriptsErr = "", tsrSelAll = true, tsrSelNames = {}, tsrDDOpen = false, tsrEdit = null, tsrMsgTxt = "", tsrMsgBad = false;
   var tsrAuthed = false, tsrInvTab = 0, tsrData = [], tsrTimer = 0, tsrErr = "", tsrAuthBad = false;
   function tsrGate() {   // Tap simulator: the Pages dropdown stays hidden until the admin key has been accepted
     var lock = +$("chSel").value === 3 && !tsrAuthed, lb = document.querySelector('label[for="pgSel"]');
     $("pgSel").hidden = lock; if (lb) lb.hidden = lock;
+    $("tsrLogout").hidden = !(+$("chSel").value === 3 && tsrAuthed);
   }
   function tsrEsc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function tsrKey() { try { return localStorage.getItem("tsrAdminKey") || ""; } catch (e) { return ""; } }
@@ -5521,17 +5600,76 @@ document.addEventListener("DOMContentLoaded", function () {
     }).join("");
     return h + '</div></div>';
   }
+  function tsrSelLabel() {
+    var n = tsrData.length, c = tsrSelCount();
+    if (!n) return "No accounts";
+    if (tsrSelAll || c === n) return "All accounts";
+    if (c === 0) return "No accounts selected";
+    if (c === 1) { for (var k in tsrSelNames) if (tsrSelNames[k]) return k; }
+    return c + " accounts selected";
+  }
+  function tsrSelCount() { if (tsrSelAll) return tsrData.length; var c = 0; tsrData.forEach(function (a) { if (tsrSelNames[a.name]) c++; }); return c; }
+  function tsrIsSel(name) { return tsrSelAll || !!tsrSelNames[name]; }
+  function tsrDDHtml() {
+    var rows = '<div class="tsr-ddrow all' + (tsrSelAll ? " on" : "") + '" style="--i:0" data-tsr="all"><i class="tsr-chk"></i><span>All accounts</span></div>';
+    rows += tsrData.map(function (a, i) {
+      return '<div class="tsr-ddrow' + (tsrIsSel(a.name) ? " on" : "") + '" style="--i:' + (i + 1) + '" data-tsr="pick" data-name="' + tsrEsc(a.name) + '"><i class="tsr-chk"></i><span class="tsr-dot ' + (a.online ? "on" : "") + '"></span><span>' + tsrEsc(a.name) + '</span><em>' + (a.online ? "online" : "offline") + '</em></div>';
+    }).join("");
+    return '<div class="tsr-dd' + (tsrDDOpen ? " open" : "") + '" id="tsrDD"><button type="button" class="tsr-ddbtn" data-tsr="dd" aria-haspopup="listbox"><span class="tsr-ddlab" id="tsrDDLab">' + tsrEsc(tsrSelLabel()) + '</span><i class="tsr-car"></i></button><div class="tsr-ddlist" role="listbox">' + rows + '</div></div>';
+  }
   function tsrScriptsHtml() {
-    var opts = '<option value="*">All accounts</option>' + tsrData.map(function (a) { return '<option value="' + tsrEsc(a.name) + '">' + tsrEsc(a.name) + '</option>'; }).join("");
-    var h = '<h2>Scripts</h2><p class="tsr-sub">Pick an account, then press a script.</p><div class="tsr-bar"><select id="tsrTarget" aria-label="Account">' + opts + '</select></div><div class="tsr-sgrid">';
-    h += TSR_SCRIPTS.map(function (s) { return '<button class="tsr-sbtn" type="button" data-tsr="run" data-id="' + tsrEsc(s.id) + '" data-label="' + tsrEsc(s.label) + '">' + tsrEsc(s.label) + '<small>' + tsrEsc(s.desc) + '</small></button>'; }).join("");
-    return h + '</div><div class="tsr-msg" id="tsrMsg"></div>';
+    var h = '<div class="tsr-head"><h2>Scripts</h2><p class="tsr-sub">Pick the accounts, then press Run on a script.</p></div>';
+    h += '<div class="tsr-bar">' + tsrDDHtml() + '<button class="tsr-btn" type="button" data-tsr="new">+ New script</button></div>';
+    if (tsrEdit) {
+      h += '<div class="tsr-edit"><input id="tsrEdName" type="text" maxlength="60" placeholder="Script name" value="' + tsrEsc(tsrEdit.label) + '" autocomplete="off">'
+        + '<input id="tsrEdDesc" type="text" maxlength="120" placeholder="Short description (optional)" value="' + tsrEsc(tsrEdit.desc) + '" autocomplete="off">'
+        + '<textarea id="tsrEdCode" spellcheck="false" placeholder="-- paste your Lua here. It runs inside Roblox on the selected accounts.">' + tsrEsc(tsrEdit.code) + '</textarea>'
+        + '<div class="tsr-bar" style="margin:10px 0 0"><button class="tsr-btn" type="button" data-tsr="savescript">Save script</button><button class="tsr-btn ghost" type="button" data-tsr="cancel">Cancel</button></div></div>';
+    }
+    if (tsrScriptsErr) h += '<div class="tsr-warn">' + tsrEsc(tsrScriptsErr) + '</div>';
+    else if (tsrScripts && !tsrScripts.length && !tsrEdit) h += '<div class="tsr-empty">No scripts yet. Press \u201c+ New script\u201d and paste one in.</div>';
+    h += '<div class="tsr-sgrid">' + (tsrScripts || []).map(function (sc, i) {
+      return '<div class="tsr-sbtn" style="--i:' + i + '"><b>' + tsrEsc(sc.label) + '</b><small>' + tsrEsc(sc.desc || "No description") + '</small>'
+        + '<div class="tsr-sact"><button type="button" class="tsr-btn" data-tsr="run" data-id="' + tsrEsc(sc.id) + '">Run</button>'
+        + '<button type="button" class="tsr-btn ghost" data-tsr="edit" data-id="' + tsrEsc(sc.id) + '">Edit</button>'
+        + '<button type="button" class="tsr-btn ghost" data-tsr="del" data-id="' + tsrEsc(sc.id) + '">Delete</button></div></div>';
+    }).join("") + '</div>';
+    return h + '<div class="tsr-msg' + (tsrMsgBad ? " bad" : "") + '" id="tsrMsg">' + tsrEsc(tsrMsgTxt) + '</div>';
+  }
+  function tsrApi(path, body) {
+    return fetch(TSR_WORKER + path, {
+      method: body ? "POST" : "GET",
+      headers: body ? { "x-admin-key": tsrKey(), "Content-Type": "application/json" } : { "x-admin-key": tsrKey() },
+      body: body ? JSON.stringify(body) : undefined, cache: "no-store"
+    }).then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d._status = r.status; return d; }); });
+  }
+  function tsrLoadScripts() {
+    return tsrApi("/admin/scripts").then(function (d) {
+      if (d._status === 200) { tsrScripts = d.scripts || []; tsrScriptsErr = ""; }
+      else if (d._status === 404) { tsrScriptsErr = "Your Worker doesn\u2019t support scripts yet. Paste the new Tapsim.js into it and deploy."; }
+      else if (d._status !== 401) { tsrScriptsErr = d.error || "Couldn\u2019t load scripts."; }
+    }).catch(function () { tsrScriptsErr = "Couldn\u2019t reach the Tap simulator Worker."; });
+  }
+  function tsrSay(t, bad) { tsrMsgTxt = t; tsrMsgBad = !!bad; var m = $("tsrMsg"); if (m) { m.textContent = t; m.classList.toggle("bad", !!bad); m.classList.remove("flash"); void m.offsetWidth; m.classList.add("flash"); } }
+  function tsrSelPaint() {
+    var dd = $("tsrDD"); if (!dd) return;
+    $("tsrDDLab").textContent = tsrSelLabel();
+    dd.querySelectorAll(".tsr-ddrow").forEach(function (r) {
+      r.classList.toggle("on", r.dataset.tsr === "all" ? (tsrSelAll || (tsrData.length > 0 && tsrSelCount() === tsrData.length)) : tsrIsSel(r.dataset.name));
+    });
+  }
+  var tsrFreshT = 0;
+  function tsrFresh(pg) {   // play the entrance animation once per page / tab change, not on every 10 s refresh
+    var el = $(["tsrStatus", "tsrInv", "tsrScripts"][pg - 1]); if (!el) return;
+    el.classList.remove("fresh"); void el.offsetWidth; el.classList.add("fresh");
+    clearTimeout(tsrFreshT); tsrFreshT = setTimeout(function () { el.classList.remove("fresh"); }, 1200);
   }
   function tsrShow(ch, pg) {
     var on = ch === 3, ids = ["tsrStatus", "tsrInv", "tsrScripts"];
     ids.forEach(function (id, i) { $(id).hidden = !(on && pg === i + 1); });
     clearInterval(tsrTimer);
     if (!on) return;
+    tsrFresh(pg);
     tsrRender(pg);
     tsrLoad();
     tsrTimer = setInterval(tsrLoad, 10000);
@@ -5542,7 +5680,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (tsrErr && !tsrAuthed) { box.innerHTML = '<div class="tsr-empty">' + tsrEsc(tsrErr) + '</div>'; return; }
     if (!tsrAuthed) { box.innerHTML = '<div class="tsr-empty">Checking key\u2026</div>'; return; }
     if (tsrErr) { box.innerHTML = '<div class="tsr-empty">' + tsrEsc(tsrErr) + '</div>'; return; }
-    if (pg === 3) { var cur = $("tsrTarget") ? $("tsrTarget").value : ""; box.innerHTML = tsrScriptsHtml(); if (cur && $("tsrTarget")) $("tsrTarget").value = cur; return; }
+    if (pg === 3) { box.innerHTML = tsrScriptsHtml(); return; }
     if (!tsrData.length) { box.innerHTML = '<div class="tsr-empty">No accounts yet. Run the agent script in game.</div>'; return; }
     box.innerHTML = pg === 1 ? tsrStatusHtml() : tsrInvHtml();
   }
@@ -5556,15 +5694,62 @@ document.addEventListener("DOMContentLoaded", function () {
       })
       .then(function (d) { if (d) { tsrData = d.accounts || []; tsrErr = ""; tsrAuthBad = false; tsrAuthed = true; } })
       .catch(function () { tsrErr = "Couldn\u2019t reach the Tap simulator Worker. Check your connection."; })
-      .then(function () { tsrGate(); if (+$("chSel").value === 3 && !(pg === 3 && document.activeElement && document.activeElement.id === "tsrTarget")) tsrRender(+$("pgSel").value); });
+      .then(function () { return (tsrAuthed && pg === 3) ? tsrLoadScripts() : null; })
+      .then(function () { tsrGate(); if (+$("chSel").value === 3 && !(+$("pgSel").value === 3 && (tsrDDOpen || tsrEdit))) tsrRender(+$("pgSel").value); });
   }
+  function tsrDDSet(open) { tsrDDOpen = open; var dd = $("tsrDD"); if (dd) dd.classList.toggle("open", open); }
   document.addEventListener("click", function (e) {
+    if (tsrDDOpen && !(e.target.closest && e.target.closest("#tsrDD"))) tsrDDSet(false);
     var b = e.target.closest ? e.target.closest("[data-tsr]") : null;
     if (!b) return;
-    if (b.dataset.tsr === "save") { var v = ($("tsrKeyIn").value || "").trim(); if (v) { tsrSetKey(v); tsrAuthBad = false; tsrAuthed = false; tsrErr = ""; tsrGate(); tsrRender(+$("pgSel").value); tsrLoad(); } }
-    if (b.dataset.tsr === "tab") { tsrInvTab = +b.dataset.i || 0; tsrRender(+$("pgSel").value); }
-    if (b.dataset.tsr === "run") {
-      var m = $("tsrMsg"); if (m) m.textContent = "\u201c" + (b.dataset.label || "") + "\u201d is set up, but sending scripts to accounts isn\u2019t connected yet.";
+    var act = b.dataset.tsr, pgNow = +$("pgSel").value;
+    if (act === "save") { var v = ($("tsrKeyIn").value || "").trim(); if (v) { tsrSetKey(v); tsrAuthBad = false; tsrAuthed = false; tsrErr = ""; tsrGate(); tsrRender(pgNow); tsrLoad(); } }
+    else if (act === "logout") {
+      tsrSetKey(""); tsrAuthed = false; tsrAuthBad = false; tsrErr = ""; tsrData = []; tsrScripts = null; tsrScriptsErr = ""; tsrEdit = null; tsrDDOpen = false; tsrMsgTxt = "";
+      tsrGate(); tsrRender(pgNow);
+    }
+    else if (act === "tab") { tsrInvTab = +b.dataset.i || 0; tsrFresh(pgNow); tsrRender(pgNow); }
+    else if (act === "dd") { tsrDDSet(!tsrDDOpen); }
+    else if (act === "all") { tsrSelAll = !(tsrSelAll || (tsrData.length && tsrSelCount() === tsrData.length)); tsrSelNames = {}; tsrSelPaint(); }
+    else if (act === "pick") {
+      var nm = b.dataset.name;
+      if (tsrSelAll) { tsrSelAll = false; tsrSelNames = {}; tsrData.forEach(function (a) { tsrSelNames[a.name] = a.name !== nm; }); }
+      else { tsrSelNames[nm] = !tsrSelNames[nm]; }
+      if (tsrData.length && tsrSelCount() === tsrData.length) { tsrSelAll = true; tsrSelNames = {}; }
+      tsrSelPaint();
+    }
+    else if (act === "new") { tsrEdit = { id: "", label: "", desc: "", code: "" }; tsrDDOpen = false; tsrRender(pgNow); var n1 = $("tsrEdName"); if (n1) n1.focus(); }
+    else if (act === "edit") {
+      var sc = (tsrScripts || []).filter(function (x) { return x.id === b.dataset.id; })[0];
+      if (sc) { tsrEdit = { id: sc.id, label: sc.label, desc: sc.desc || "", code: sc.code }; tsrDDOpen = false; tsrRender(pgNow); var ed = $("tsrEdName"); if (ed) { ed.scrollIntoView({ block: "center", behavior: "smooth" }); } }
+    }
+    else if (act === "cancel") { tsrEdit = null; tsrRender(pgNow); }
+    else if (act === "savescript") {
+      var body = { id: tsrEdit ? tsrEdit.id : "", label: $("tsrEdName").value, desc: $("tsrEdDesc").value, code: $("tsrEdCode").value };
+      b.disabled = true;
+      tsrApi("/admin/scripts", body).then(function (d) {
+        b.disabled = false;
+        if (d._status === 200) { tsrEdit = null; tsrMsgTxt = "Saved \u201c" + d.script.label + "\u201d."; tsrMsgBad = false; return tsrLoadScripts().then(function () { tsrRender(3); }); }
+        tsrSay(d.error || "Couldn\u2019t save the script.", true);
+      }).catch(function () { b.disabled = false; tsrSay("Couldn\u2019t reach the Worker.", true); });
+    }
+    else if (act === "del") {
+      var sc2 = (tsrScripts || []).filter(function (x) { return x.id === b.dataset.id; })[0];
+      if (!sc2 || !confirm("Delete \u201c" + sc2.label + "\u201d?")) return;
+      tsrApi("/admin/scripts/delete", { id: sc2.id }).then(function () { tsrMsgTxt = "Deleted \u201c" + sc2.label + "\u201d."; tsrMsgBad = false; return tsrLoadScripts(); }).then(function () { tsrRender(3); });
+    }
+    else if (act === "run") {
+      var sc3 = (tsrScripts || []).filter(function (x) { return x.id === b.dataset.id; })[0];
+      if (!sc3) return;
+      if (!tsrData.length || tsrSelCount() === 0) { tsrSay("Pick at least one account first.", true); return; }
+      var targets = tsrSelAll ? ["*"] : tsrData.filter(function (a) { return tsrSelNames[a.name]; }).map(function (a) { return a.name; });
+      b.disabled = true; b.classList.add("busy");
+      tsrApi("/admin/run", { scriptId: sc3.id, targets: targets }).then(function (d) {
+        b.disabled = false; b.classList.remove("busy");
+        if (d._status !== 200) { tsrSay(d.error || "Couldn\u2019t send the script.", true); return; }
+        var off = (d.offline || []).length;
+        tsrSay("Sent \u201c" + sc3.label + "\u201d to " + d.queued.length + " account" + (d.queued.length === 1 ? "" : "s") + ": " + d.queued.join(", ") + "." + (off ? " " + off + " offline \u2014 it runs if they reconnect within 5 minutes." : " Each runs it on its next check-in."));
+      }).catch(function () { b.disabled = false; b.classList.remove("busy"); tsrSay("Couldn\u2019t reach the Worker.", true); });
     }
   });
   document.addEventListener("keydown", function (e) { if (e.key === "Enter" && e.target && e.target.id === "tsrKeyIn") { var b = document.querySelector('[data-tsr="save"]'); if (b) b.click(); } });
