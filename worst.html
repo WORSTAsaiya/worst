@@ -720,8 +720,8 @@ body.wkSearching .vdet *{ animation:none !important; }
 .tsr-btn.ghost{background:rgba(0,0,0,.30);color:#cfcfcf;border-color:#333}
 .tsr-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
 .tsr-msg{margin-top:14px;font-size:13px;color:#ccc;min-height:18px}
-.tsr-sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
-.tsr-sbtn{text-align:left;padding:14px 16px;background:rgba(12,12,12,.68);color:#fff;border:1px solid #303030;border-radius:10px;cursor:pointer;font-size:14px;font-weight:700;transition:border-color .16s,background .16s}
+.tsr-sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr));gap:12px;align-items:stretch}
+.tsr-sbtn{text-align:left;padding:14px 16px;background:rgba(12,12,12,.68);color:#fff;border:1px solid #303030;border-radius:10px;cursor:default;font-size:14px;font-weight:700;transition:border-color .16s,background .16s;box-sizing:border-box;min-width:0;width:100%;overflow-wrap:anywhere}
 .tsr-sbtn:hover{border-color:#777;background:rgba(255,255,255,.07)}
 .tsr-sbtn small{display:block;margin-top:4px;font-size:12px;font-weight:400;color:#bbb}
 .tsr button:focus-visible,.tsr input:focus-visible,.tsr select:focus-visible{outline:2px solid #fff;outline-offset:2px}
@@ -760,7 +760,21 @@ body.wkSearching .vdet *{ animation:none !important; }
 .tsr-sbtn{cursor:default}
 .tsr.fresh .tsr-sbtn{animation:tsrRise .5s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0) * 70ms)}
 .tsr-sbtn b{display:block;font-size:15px}
-.tsr-sact{display:flex;gap:8px;margin-top:12px}
+.tsr-sact{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px;min-width:0}
+.tsr-sact .tsr-btn{flex:0 1 auto;min-width:0;white-space:nowrap}
+.tsr-autotag.off{background:rgba(255,255,255,.04);color:#b5bac1;border:1px solid #4e5058;box-shadow:none}
+.tsr-autotag:not(.off){background:#43b581;color:#071a10;border:1px solid #43b581;box-shadow:0 0 10px rgba(67,181,129,.18)}
+.tsr-sbtn .tsr-autobtn.on{background:#43b581;color:#071a10;border-color:#43b581;box-shadow:0 0 12px rgba(67,181,129,.2)}
+.tsr-sbtn .tsr-autobtn.on:hover{background:#55ca91}
+@media(max-width:520px){.tsr{padding:16px}.tsr-sgrid{grid-template-columns:minmax(0,1fr)}.tsr-sact{gap:6px}.tsr-sact .tsr-btn{padding:7px 11px}}
+.tsr-ttlrow{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px}
+.tsr-ttl{padding:0;margin:0;background:none;border:0;font:inherit;font-size:30px;font-weight:800;letter-spacing:-.02em;color:#fff;cursor:pointer;line-height:1.2;transition:opacity .2s,text-shadow .25s,transform .15s}
+.tsr-ttl:hover{text-shadow:0 0 18px rgba(255,255,255,.5);transform:translateY(-1px)}
+.tsr-ttl.dim{opacity:.55}
+.tsr-autobtn.on{box-shadow:0 0 20px rgba(255,255,255,.22)}
+.tsr-scslide{overflow-x:clip}
+.tsr-autotag.off{background:transparent;color:#b5bac1;box-shadow:inset 0 0 0 1px #4e5058}
+.tsr-autotag{display:inline-block;margin-left:8px;padding:1px 8px;font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#0a0a0a;background:#fff;border-radius:999px;vertical-align:middle}
 .tsr-sact .tsr-btn{padding:6px 14px;font-size:12px}
 .tsr-btn:disabled{opacity:.6;cursor:wait}
 .tsr-btn.busy{animation:tsrPulse 1s ease-in-out infinite}
@@ -5605,7 +5619,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // ---------- Tap simulator channel (status, inventory, scripts) ----------
   var TSR_WORKER = "https://tsr-hub.asaiyamain.workers.dev";
   // Scripts live in your Worker (add / edit them on the Scripts page). Selected accounts + editor state:
-  var tsrScripts = null, tsrScriptsErr = "", tsrSelAll = true, tsrSelNames = {}, tsrDDOpen = false, tsrEdit = null, tsrMsgTxt = "", tsrMsgBad = false;
+  var tsrScTab = "manual", tsrScBusy = false, tsrScripts = null, tsrScriptsErr = "", tsrSelAll = true, tsrSelNames = {}, tsrDDOpen = false, tsrEdit = null, tsrMsgTxt = "", tsrMsgBad = false;
   var tsrRole = "", tsrWho = "", tsrExp = 0, tsrPerms = {}, tsrAuthMsg = "", tsrKeys = null, tsrLogs = null, tsrLogFilter = "all", tsrReveal = null, tsrNewDays = 7, tsrAdErr = "";
   var tsrAuthed = false, tsrInvTab = 0, tsrData = [], tsrTimer = 0, tsrErr = "", tsrAuthBad = false;
   function tsrGate() {   // Tap simulator: the Pages dropdown stays hidden until the admin key has been accepted
@@ -5650,6 +5664,40 @@ document.addEventListener("DOMContentLoaded", function () {
     return h + '</div>';
   }
   var TSR_SECRETS = { "dragon tamer": 1, "infernal lord": 1, "reanimation": 1, "cinder eye": 1, "first light": 1, "shinigami": 1 };   // secret pets get their own section
+  var tsrSecretSet = null;
+  function tsrIsSecret(x) {   // the fixed list above, plus every pet the calculator data marks as Secret (e.g. Cerberus)
+    var n = String(x.name).trim().toLowerCase();
+    if (TSR_SECRETS[n]) return true;
+    if (!tsrSecretSet) {
+      tsrSecretSet = {};
+      try { if (typeof CALC_EGGS !== "undefined") CALC_EGGS.forEach(function (e) { if (e[1] === "Secret") tsrSecretSet[String(e[0]).trim().toLowerCase()] = 1; }); } catch (e) {}
+    }
+    return !!tsrSecretSet[n];
+  }
+  function tsrEqCounts(a) {   // "name|tier" -> how many copies are equipped
+    var m = {}; ((a.pets && a.pets.equipped) || []).forEach(function (x) { var k = x.name + "|" + x.tier; m[k] = (m[k] || 0) + 1; });
+    return m;
+  }
+  function tsrUnequipped(a) {   // grouped pets minus the equipped copies (equipped pets never show here)
+    var m = tsrEqCounts(a), out = [];
+    ((a.pets && a.pets.grouped) || []).forEach(function (x) {
+      var c = (+x.count || 0) - (m[x.name + "|" + x.tier] || 0);
+      if (c > 0) out.push({ name: x.name, tier: x.tier, count: c, locked: Math.min(c, +x.locked || 0) });
+    });
+    return out;
+  }
+  function tsrSecretsOf(a) {   // every secret pet the account owns, equipped or not
+    var tot = {}, order = [];
+    ((a.pets && a.pets.grouped) || []).forEach(function (x) { if (tsrIsSecret(x)) { var k = x.name + "|" + x.tier; tot[k] = { name: x.name, tier: x.tier, count: +x.count || 0 }; order.push(k); } });
+    var m = tsrEqCounts(a);
+    ((a.pets && a.pets.equipped) || []).forEach(function (x) {
+      if (!tsrIsSecret(x)) return;
+      var k = x.name + "|" + x.tier;
+      if (!tot[k]) { tot[k] = { name: x.name, tier: x.tier, count: 0 }; order.push(k); }
+      if (tot[k].count < m[k]) tot[k].count = m[k];
+    });
+    return order.map(function (k) { return tot[k]; });
+  }
   var tsrInvQ = "";   // Inventory search text
   var tsrInvSel = "";   // pet clicked on the Inventory page ("Name|Tier"): lit up on every account, total shown above the middle one
   function tsrPetKey(x, sec) { return sec + ":" + x.name + "|" + x.tier; }   // sec: "E" = Equipped list, "A" = All pets list (kept separate)
@@ -5659,11 +5707,11 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   function tsrInvTotalHtml() {
     if (!tsrInvSel) return "";
-    var sec = tsrInvSel.charAt(0), n = 0, who = { E: "Equipped", S: "Secret", A: "Inventory" }[sec] || "";
+    var sec = tsrInvSel.charAt(0), n = 0, who = { E: "Equipped", S: "Secret", A: "Unequipped" }[sec] || "";
     tsrData.forEach(function (a) {
       var p = a.pets || {};
       if (sec === "E") (p.equipped || []).forEach(function (x) { if (tsrPetKey(x, "E") === tsrInvSel) n++; });
-      else (p.grouped || []).forEach(function (x) { if (tsrPetKey(x, sec) === tsrInvSel) n += +x.count || 0; });
+      else (sec === "S" ? tsrSecretsOf(a) : tsrUnequipped(a)).forEach(function (x) { if (tsrPetKey(x, sec) === tsrInvSel) n += +x.count || 0; });
     });
     var body = tsrInvSel.slice(2), i = body.lastIndexOf("|"), label = body.slice(0, i) + " (" + body.slice(i + 1) + ")";
     return "<small>" + who + " \u00b7 " + tsrEsc(label) + "</small><b>Total: " + n.toLocaleString() + "</b>";
@@ -5709,9 +5757,9 @@ document.addEventListener("DOMContentLoaded", function () {
       c += tsrKv("Pets owned", (p.owned != null ? p.owned : "?") + " / " + (p.capacity != null ? p.capacity : "?"));
       if (p.owned != null && p.scanned != null && p.scanned < p.owned) c += '<div class="tsr-warn">Showing ' + p.scanned + ' of ' + p.owned + ' pets' + (p.stale ? " (older scan)" : "") + '.</div>';
       c += '<div class="tsr-grp"><div class="tsr-sec">Equipped</div>' + (eq.length ? eq.map(function (x) { return tsrPetKv(x, x.multi || "", "E"); }).join("") : '<div class="tsr-sub">None scanned yet</div>') + '</div>';
-      var isSec = function (x) { return !!TSR_SECRETS[String(x.name).trim().toLowerCase()]; }, secs = g.filter(isSec), rest = g.filter(function (x) { return !isSec(x); });
+      var secs = tsrSecretsOf(a), rest = tsrUnequipped(a).filter(function (x) { return !tsrIsSecret(x); });
       c += '<div class="tsr-grp"><div class="tsr-sec">Secrets</div>' + (secs.length ? secs.map(function (x) { return tsrPetKv(x, "x" + x.count, "S"); }).join("") : '<div class="tsr-sub">None</div>') + '</div>';
-      c += '<div class="tsr-grp"><div class="tsr-sec">All pets</div>' + (rest.length ? rest.map(function (x) { return tsrPetKv(x, "x" + x.count, "A"); }).join("") : '<div class="tsr-sub">' + (g.length ? "None" : "None scanned yet") + '</div>') + '</div>';
+      c += '<div class="tsr-grp"><div class="tsr-sec">Unequipped pets</div>' + (rest.length ? rest.map(function (x) { return tsrPetKv(x, "x" + x.count, "A"); }).join("") : '<div class="tsr-sub">' + (g.length ? "None" : "None scanned yet") + '</div>') + '</div>';
       return c + '</div>';
     }).join("");
     return h + '</div></div>';
@@ -5734,7 +5782,11 @@ document.addEventListener("DOMContentLoaded", function () {
     return '<div class="tsr-dd' + (tsrDDOpen ? " open" : "") + '" id="tsrDD"><button type="button" class="tsr-ddbtn" data-tsr="dd" aria-haspopup="listbox"><span class="tsr-ddlab" id="tsrDDLab">' + tsrEsc(tsrSelLabel()) + '</span><i class="tsr-car"></i></button><div class="tsr-ddlist" role="listbox">' + rows + '</div></div>';
   }
   function tsrScriptsHtml() {
-    var h = '<div class="tsr-head"><h2>Scripts</h2><p class="tsr-sub">Pick the accounts, then press Run on a script.</p></div>';
+    var auto = tsrScTab === "auto";
+    var h = '<div class="tsr-head"><div class="tsr-ttlrow"><button type="button" class="tsr-ttl' + (auto ? " dim" : "") + '" data-tsr="sctab" data-t="manual">Scripts</button>'
+      + '<button type="button" class="tsr-btn tsr-autobtn' + (auto ? " on" : " ghost") + '" data-tsr="sctab" data-t="auto">Auto execute</button></div>'
+      + '<p class="tsr-sub">' + (auto ? "Press Enable to turn a script on. An enabled script runs once on each account, the next time that account\u2019s agent starts in Roblox." : "Pick the accounts, then press Run on a script.") + '</p></div>';
+    h += '<div class="tsr-scslide">';
     h += '<div class="tsr-bar">' + tsrDDHtml() + (tsrPerms.editScripts === false ? "" : '<button class="tsr-btn" type="button" data-tsr="new">+ New script</button>') + '</div>';
     if (tsrEdit) {
       h += '<div class="tsr-edit"><input id="tsrEdName" type="text" maxlength="60" placeholder="Script name" value="' + tsrEsc(tsrEdit.label) + '" autocomplete="off">'
@@ -5743,14 +5795,17 @@ document.addEventListener("DOMContentLoaded", function () {
         + '<div class="tsr-bar" style="margin:10px 0 0"><button class="tsr-btn" type="button" data-tsr="savescript">Save script</button><button class="tsr-btn ghost" type="button" data-tsr="cancel">Cancel</button></div></div>';
     }
     if (tsrScriptsErr) h += '<div class="tsr-warn">' + tsrEsc(tsrScriptsErr) + '</div>';
-    else if (tsrScripts && !tsrScripts.length && !tsrEdit) h += '<div class="tsr-empty">No scripts yet. Press \u201c+ New script\u201d and paste one in.</div>';
-    h += '<div class="tsr-sgrid">' + (tsrScripts || []).map(function (sc, i) {
-      return '<div class="tsr-sbtn" style="--i:' + i + '"><b>' + tsrEsc(sc.label) + '</b><small>' + tsrEsc(sc.desc || "No description") + '</small>'
+    var list = (tsrScripts || []).filter(function (sc) { return !!sc.auto === auto; });
+    if (tsrScriptsErr) {}
+    else if (tsrScripts && !list.length && !tsrEdit) h += '<div class="tsr-empty">' + (auto ? "No auto execute scripts yet. Press \u201c+ New script\u201d. Anything you save here stays off until you press Enable." : "No scripts yet. Press \u201c+ New script\u201d and paste one in.") + '</div>';
+    h += '<div class="tsr-sgrid">' + list.map(function (sc, i) {
+      return '<div class="tsr-sbtn" style="--i:' + i + '"><b>' + tsrEsc(sc.label) + (auto ? '<span class="tsr-autotag' + (sc.autoOn ? "" : " off") + '">' + (sc.autoOn ? "Enabled" : "Disabled") + '</span>' : "") + '</b><small>' + tsrEsc(sc.desc || "No description") + '</small>'
         + '<div class="tsr-sact">' + (tsrPerms.run === false ? "" : '<button type="button" class="tsr-btn" data-tsr="run" data-id="' + tsrEsc(sc.id) + '">Run</button>')
         + (tsrPerms.editScripts === false ? "" : '<button type="button" class="tsr-btn ghost" data-tsr="edit" data-id="' + tsrEsc(sc.id) + '">Edit</button>'
-        + '<button type="button" class="tsr-btn ghost" data-tsr="del" data-id="' + tsrEsc(sc.id) + '">Delete</button>') + '</div></div>';
+        + '<button type="button" class="tsr-btn ghost" data-tsr="del" data-id="' + tsrEsc(sc.id) + '">Delete</button>'
+        + (auto ? '<button type="button" class="tsr-btn tsr-autobtn' + (sc.autoOn ? " on" : " ghost") + '" data-tsr="autotoggle" data-id="' + tsrEsc(sc.id) + '">' + (sc.autoOn ? "Disable" : "Enable") + '</button>' : "")) + '</div></div>';
     }).join("") + '</div>';
-    return h + '<div class="tsr-msg' + (tsrMsgBad ? " bad" : "") + '" id="tsrMsg">' + tsrEsc(tsrMsgTxt) + '</div>';
+    return h + '<div class="tsr-msg' + (tsrMsgBad ? " bad" : "") + '" id="tsrMsg">' + tsrEsc(tsrMsgTxt) + '</div></div>';
   }
   function tsrT(ms) { if (!ms) return "never"; return new Date(ms).toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }); }
   function tsrLeft(ms) {
@@ -5831,6 +5886,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }).catch(function () { tsrScriptsErr = "Couldn\u2019t reach the Tap simulator Worker."; });
   }
   function tsrSay(t, bad) { tsrMsgTxt = t; tsrMsgBad = !!bad; var m = $("tsrMsg"); if (m) { m.textContent = t; m.classList.toggle("bad", !!bad); m.classList.remove("flash"); void m.offsetWidth; m.classList.add("flash"); } }
+  function tsrMotionOk() { return !(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches); }
   function tsrSelPaint() {
     var dd = $("tsrDD"); if (!dd) return;
     $("tsrDDLab").textContent = tsrSelLabel();
@@ -5902,14 +5958,17 @@ document.addEventListener("DOMContentLoaded", function () {
   // ---------- Tap simulator: Trade page (admin only) ----------
   var tsrTr = { sender: "", partner: "", delay: 15, picks: [], pet: "", qty: 1, msg: "", bad: false, sending: false }, tsrTrSig = "";
   function tsrTrAcc(n) { n = n || tsrTr.sender; return tsrData.filter(function (a) { return a.name === n; })[0] || null; }
-  function tsrTrPets() { var a = tsrTrAcc(); return (a && a.pets && a.pets.grouped) || []; }
+  function tsrTrPets() {   // equipped and locked pets can't be traded, so they never appear here
+    var a = tsrTrAcc(); if (!a) return [];
+    return tsrUnequipped(a).map(function (x) { return { name: x.name, tier: x.tier, count: x.count - x.locked }; }).filter(function (x) { return x.count > 0; });
+  }
   function tsrTrKey(p) { return p.name + "|" + p.tier; }
   function tsrTrPicked(key) { var n = 0; tsrTr.picks.forEach(function (p) { if (tsrTrKey(p) === key) n += p.count; }); return n; }
   function tsrTrTotal() { var n = 0; tsrTr.picks.forEach(function (p) { n += p.count; }); return n; }
   function tsrTrLeft(p) { return Math.max(0, p.count - tsrTrPicked(tsrTrKey(p))); }
   function tsrTrSigNow() {
     var a = tsrTrAcc(), b = tsrTrAcc(tsrTr.partner.trim());
-    return JSON.stringify([tsrData.map(function (x) { return [x.name, x.online, (x.pets && x.pets.grouped || []).length, x.lastTrade && x.lastTrade.at]; }), a && a.pets && a.pets.grouped, tsrTr.sender, b && b.lastTrade && b.lastTrade.at]);
+    return JSON.stringify([tsrData.map(function (x) { return [x.name, x.online, JSON.stringify([x.pets && x.pets.grouped, x.pets && x.pets.equipped]).length, x.lastTrade && x.lastTrade.at]; }), a && [a.pets && a.pets.grouped, a.pets && a.pets.equipped], tsrTr.sender, b && b.lastTrade && b.lastTrade.at]);
   }
   function tsrTrStatus(a, label) {
     var t = a && a.lastTrade; if (!t) return "";
@@ -6058,18 +6117,34 @@ document.addEventListener("DOMContentLoaded", function () {
       if (tsrData.length && tsrSelCount() === tsrData.length) { tsrSelAll = true; tsrSelNames = {}; }
       tsrSelPaint();
     }
-    else if (act === "new") { tsrEdit = { id: "", label: "", desc: "", code: "" }; tsrDDOpen = false; tsrRender(pgNow); var n1 = $("tsrEdName"); if (n1) n1.focus(); }
+    else if (act === "new") { tsrEdit = { id: "", label: "", desc: "", code: "", auto: tsrScTab === "auto" }; tsrDDOpen = false; tsrRender(pgNow); var n1 = $("tsrEdName"); if (n1) n1.focus(); }
     else if (act === "edit") {
       var sc = (tsrScripts || []).filter(function (x) { return x.id === b.dataset.id; })[0];
-      if (sc) { tsrEdit = { id: sc.id, label: sc.label, desc: sc.desc || "", code: sc.code }; tsrDDOpen = false; tsrRender(pgNow); var ed = $("tsrEdName"); if (ed) { ed.scrollIntoView({ block: "center", behavior: "smooth" }); } }
+      if (sc) { tsrEdit = { id: sc.id, label: sc.label, desc: sc.desc || "", code: sc.code, auto: !!sc.auto }; tsrDDOpen = false; tsrRender(pgNow); var ed = $("tsrEdName"); if (ed) { ed.scrollIntoView({ block: "center", behavior: "smooth" }); } }
+    }
+    else if (act === "sctab") {   // Scripts <-> Auto execute: only the content under the title slides
+      var nt = b.dataset.t; if (nt === tsrScTab || tsrScBusy) return;
+      var sdir = nt === "auto" ? 1 : -1, sel = document.querySelector("#tsrScripts .tsr-scslide");
+      tsrEdit = null; tsrDDOpen = false;
+      var swap = function () {
+        tsrScTab = nt; tsrRender(3);
+        var nel = document.querySelector("#tsrScripts .tsr-scslide");
+        if (nel && nel.animate && tsrMotionOk()) nel.animate([{ transform: "translateX(" + (sdir * 140) + "px)", opacity: 0 }, { transform: "none", opacity: 1 }], { duration: 380, easing: "cubic-bezier(.2,.8,.2,1)" }).onfinish = function () { tsrScBusy = false; };
+        else tsrScBusy = false;
+      };
+      tsrScBusy = true;
+      if (sel && sel.animate && tsrMotionOk()) sel.animate([{ transform: "none", opacity: 1 }, { transform: "translateX(" + (-sdir * 140) + "px)", opacity: 0 }], { duration: 240, easing: "cubic-bezier(.5,0,.9,.5)", fill: "forwards" }).onfinish = swap;
+      else swap();
     }
     else if (act === "cancel") { tsrEdit = null; tsrRender(pgNow); }
     else if (act === "savescript") {
-      var body = { id: tsrEdit ? tsrEdit.id : "", label: $("tsrEdName").value, desc: $("tsrEdDesc").value, code: $("tsrEdCode").value };
+      var body = { id: tsrEdit ? tsrEdit.id : "", label: $("tsrEdName").value, desc: $("tsrEdDesc").value, code: $("tsrEdCode").value, auto: tsrEdit ? !!tsrEdit.auto : tsrScTab === "auto" };
+      /* New auto-execute scripts must always start disabled; enabling is a separate explicit action. */
+      if (body.auto && !body.id) body.autoOn = false;
       b.disabled = true;
       tsrApi("/admin/scripts", body).then(function (d) {
         b.disabled = false;
-        if (d._status === 200) { tsrEdit = null; tsrMsgTxt = "Saved \u201c" + d.script.label + "\u201d."; tsrMsgBad = false; return tsrLoadScripts().then(function () { tsrRender(3); }); }
+        if (d._status === 200) { tsrEdit = null; tsrMsgTxt = "Saved \u201c" + d.script.label + "\u201d." + (body.auto && !body.id ? " It is off until you press Enable." : ""); tsrMsgBad = false; return tsrLoadScripts().then(function () { tsrRender(3); }); }
         tsrSay(d.error || "Couldn\u2019t save the script.", true);
       }).catch(function () { b.disabled = false; tsrSay("Couldn\u2019t reach the Worker.", true); });
     }
@@ -6077,6 +6152,19 @@ document.addEventListener("DOMContentLoaded", function () {
       var sc2 = (tsrScripts || []).filter(function (x) { return x.id === b.dataset.id; })[0];
       if (!sc2 || !confirm("Delete \u201c" + sc2.label + "\u201d?")) return;
       tsrApi("/admin/scripts/delete", { id: sc2.id }).then(function () { tsrMsgTxt = "Deleted \u201c" + sc2.label + "\u201d."; tsrMsgBad = false; return tsrLoadScripts(); }).then(function () { tsrRender(3); });
+    }
+    else if (act === "autotoggle") {
+      var sc4 = (tsrScripts || []).filter(function (x) { return x.id === b.dataset.id; })[0];
+      if (!sc4) return;
+      var turnOn = !sc4.autoOn;
+      if (turnOn && !confirm("Enable \u201c" + sc4.label + "\u201d?\n\nIt will run once on each account the next time that account\u2019s agent starts.")) return;
+      b.disabled = true;
+      tsrApi("/admin/scripts/auto", { id: sc4.id, enabled: turnOn }).then(function (d) {
+        b.disabled = false;
+        if (d._status !== 200) { tsrSay(d.error || "Couldn\u2019t change the script.", true); return; }
+        tsrMsgTxt = (turnOn ? "Enabled \u201c" : "Disabled \u201c") + sc4.label + "\u201d." + (turnOn ? " It runs once on each account at its next start." : ""); tsrMsgBad = false;
+        return tsrLoadScripts().then(function () { tsrRender(3); });
+      }).catch(function () { b.disabled = false; tsrSay("Couldn\u2019t reach the Worker.", true); });
     }
     else if (act === "run") {
       var sc3 = (tsrScripts || []).filter(function (x) { return x.id === b.dataset.id; })[0];
