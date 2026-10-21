@@ -2962,7 +2962,9 @@ var guestStart, guestStop, layoutHook; // filled in below
     } catch (e) {}
   }
   var alarmNames = [];   // names of the eggs that just triggered the alarm
+  function eggChannelOn() { var c = $("chSel"); return !c || +c.value === 1; }   // alerts only ever sound while you are on the Steal an egg channel
   function alarmSpeak(text) {   // says the text out loud; returns false if this browser has no speech
+    if (!eggChannelOn()) return true;   // other channel: stay silent (true = no beep fallback either)
     try {
       var ss = window.speechSynthesis;
       if (!ss || !text) return false;
@@ -3008,6 +3010,7 @@ var guestStart, guestStop, layoutHook; // filled in below
     if (!alarmSpeak(say)) alarmBeep();
   }
   function alarmBeep() {   // old sound: 6 beeps x 0.5 s = 3 seconds
+    if (!eggChannelOn()) return;
     alarmUnlock();
     if (!alarmCtx) return;
     var t0 = alarmCtx.currentTime + 0.05;
@@ -5468,7 +5471,11 @@ document.addEventListener("DOMContentLoaded", function () {
     { id: "example-1", label: "Example script 1", desc: "Replace me in TSR_SCRIPTS" },
     { id: "example-2", label: "Example script 2", desc: "Replace me in TSR_SCRIPTS" }
   ];
-  var tsrInvTab = 0, tsrData = [], tsrTimer = 0, tsrErr = "", tsrAuthBad = false;
+  var tsrAuthed = false, tsrInvTab = 0, tsrData = [], tsrTimer = 0, tsrErr = "", tsrAuthBad = false;
+  function tsrGate() {   // Tap simulator: the Pages dropdown stays hidden until the admin key has been accepted
+    var lock = +$("chSel").value === 3 && !tsrAuthed, lb = document.querySelector('label[for="pgSel"]');
+    $("pgSel").hidden = lock; if (lb) lb.hidden = lock;
+  }
   function tsrEsc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function tsrKey() { try { return localStorage.getItem("tsrAdminKey") || ""; } catch (e) { return ""; } }
   function tsrSetKey(v) { try { v ? localStorage.setItem("tsrAdminKey", v) : localStorage.removeItem("tsrAdminKey"); } catch (e) {} }
@@ -5517,7 +5524,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function tsrScriptsHtml() {
     var opts = '<option value="*">All accounts</option>' + tsrData.map(function (a) { return '<option value="' + tsrEsc(a.name) + '">' + tsrEsc(a.name) + '</option>'; }).join("");
     var h = '<h2>Scripts</h2><p class="tsr-sub">Pick an account, then press a script.</p><div class="tsr-bar"><select id="tsrTarget" aria-label="Account">' + opts + '</select></div><div class="tsr-sgrid">';
-    h += TSR_SCRIPTS.map(function (s) { return '<button class="tsr-sbtn" type="button" data-tsr="run" data-id="' + tsrEsc(s.id) + '">' + tsrEsc(s.label) + '<small>' + tsrEsc(s.desc) + '</small></button>'; }).join("");
+    h += TSR_SCRIPTS.map(function (s) { return '<button class="tsr-sbtn" type="button" data-tsr="run" data-id="' + tsrEsc(s.id) + '" data-label="' + tsrEsc(s.label) + '">' + tsrEsc(s.label) + '<small>' + tsrEsc(s.desc) + '</small></button>'; }).join("");
     return h + '</div><div class="tsr-msg" id="tsrMsg"></div>';
   }
   function tsrShow(ch, pg) {
@@ -5532,6 +5539,8 @@ document.addEventListener("DOMContentLoaded", function () {
   function tsrRender(pg) {
     var ids = ["tsrStatus", "tsrInv", "tsrScripts"], box = $(ids[pg - 1]).querySelector(".tsr-body");
     if (!tsrKey()) { box.innerHTML = tsrKeyBox(); return; }
+    if (tsrErr && !tsrAuthed) { box.innerHTML = '<div class="tsr-empty">' + tsrEsc(tsrErr) + '</div>'; return; }
+    if (!tsrAuthed) { box.innerHTML = '<div class="tsr-empty">Checking key\u2026</div>'; return; }
     if (tsrErr) { box.innerHTML = '<div class="tsr-empty">' + tsrEsc(tsrErr) + '</div>'; return; }
     if (pg === 3) { var cur = $("tsrTarget") ? $("tsrTarget").value : ""; box.innerHTML = tsrScriptsHtml(); if (cur && $("tsrTarget")) $("tsrTarget").value = cur; return; }
     if (!tsrData.length) { box.innerHTML = '<div class="tsr-empty">No accounts yet. Run the agent script in game.</div>'; return; }
@@ -5542,20 +5551,20 @@ document.addEventListener("DOMContentLoaded", function () {
     if (ch !== 3 || !tsrKey()) return;
     fetch(TSR_WORKER + "/admin/accounts", { headers: { "x-admin-key": tsrKey() }, cache: "no-store" })
       .then(function (r) {
-        if (r.status === 401) { tsrSetKey(""); tsrAuthBad = true; tsrErr = ""; return null; }
+        if (r.status === 401) { tsrSetKey(""); tsrAuthBad = true; tsrAuthed = false; tsrData = []; tsrErr = ""; return null; }
         return r.json();
       })
-      .then(function (d) { if (d) { tsrData = d.accounts || []; tsrErr = ""; tsrAuthBad = false; } })
+      .then(function (d) { if (d) { tsrData = d.accounts || []; tsrErr = ""; tsrAuthBad = false; tsrAuthed = true; } })
       .catch(function () { tsrErr = "Couldn\u2019t reach the Tap simulator Worker. Check your connection."; })
-      .then(function () { if (+$("chSel").value === 3 && !(pg === 3 && document.activeElement && document.activeElement.id === "tsrTarget")) tsrRender(+$("pgSel").value); });
+      .then(function () { tsrGate(); if (+$("chSel").value === 3 && !(pg === 3 && document.activeElement && document.activeElement.id === "tsrTarget")) tsrRender(+$("pgSel").value); });
   }
   document.addEventListener("click", function (e) {
     var b = e.target.closest ? e.target.closest("[data-tsr]") : null;
     if (!b) return;
-    if (b.dataset.tsr === "save") { var v = ($("tsrKeyIn").value || "").trim(); if (v) { tsrSetKey(v); tsrAuthBad = false; tsrLoad(); tsrRender(+$("pgSel").value); } }
+    if (b.dataset.tsr === "save") { var v = ($("tsrKeyIn").value || "").trim(); if (v) { tsrSetKey(v); tsrAuthBad = false; tsrAuthed = false; tsrErr = ""; tsrGate(); tsrRender(+$("pgSel").value); tsrLoad(); } }
     if (b.dataset.tsr === "tab") { tsrInvTab = +b.dataset.i || 0; tsrRender(+$("pgSel").value); }
     if (b.dataset.tsr === "run") {
-      var m = $("tsrMsg"); if (m) m.textContent = "\u201c" + b.textContent.replace(/\s+/g, " ").trim() + "\u201d is set up, but sending scripts to accounts isn\u2019t connected yet.";
+      var m = $("tsrMsg"); if (m) m.textContent = "\u201c" + (b.dataset.label || "") + "\u201d is set up, but sending scripts to accounts isn\u2019t connected yet.";
     }
   });
   document.addEventListener("keydown", function (e) { if (e.key === "Enter" && e.target && e.target.id === "tsrKeyIn") { var b = document.querySelector('[data-tsr="save"]'); if (b) b.click(); } });
@@ -5611,7 +5620,9 @@ document.addEventListener("DOMContentLoaded", function () {
     calcBgShow(ch === 2 || ch === 3 || (live && (pg >= 2 || unlocked)));   // Wiki, Calculator, Join and the whole Discord channel share ONE video that keeps playing when you switch between them; not on Egg Notifiers
     $("blank").hidden = live || ch === 2 || ch === 3;
     document.body.classList.toggle("tsrMode", ch === 3);
+    if (ch !== 1) { try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {} }   // leaving Steal an egg cuts off any voice still talking
     tsrShow(ch, pg);
+    tsrGate();
     $("verifyPage").hidden = !(ch === 2 && pg === 1);
     $("soonPage").hidden = !(ch === 2 && pg >= 2);
     $("soonTitle").textContent = pg === 3 ? "Server Stuff" : "Roles";
