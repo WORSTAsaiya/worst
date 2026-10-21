@@ -143,7 +143,7 @@
   .pages { grid-column:1 / -1; justify-self:center; order:-1; display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:8px 10px; background:rgba(30,31,34,.88); padding:6px 10px; border-radius:12px; }
   .pages label { font-size:12px; color:#b5bac1; margin:0 0 0 6px; }
   .pages select { padding:8px 12px; background:#2b2d31; color:#f2f3f5; border:1px solid #4e5058; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; }
-  .pages select:focus { outline:2px solid #3498db; border-color:transparent; }
+  .pages select:focus { outline:2px solid #fff; border-color:transparent; }
   .pages select:disabled { opacity:.5; cursor:not-allowed; }
   #blank, #joinCard, #gate { grid-column:2; }
   #left { grid-column:1; }
@@ -419,6 +419,7 @@
 #keyErr:empty { display:none; }
 #keyBox.offpage #keyIn, #keyBox.offpage #keyGo, #keyBox.offpage #keyErr { display:none; }
 #keyBox.shake { animation:shake .4s; }
+body.notEgg #keyBox, body.notEgg #keysBtn { display:none !important; }
 #verifyPage, #soonPage { grid-column:2; }
 @media (max-width:1200px) { #verifyPage, #soonPage { grid-column:1; } }
 .btn.off { opacity:.5; pointer-events:none; }
@@ -725,8 +726,8 @@ body.wkSearching .vdet *{ animation:none !important; }
 .tsr-sbtn small{display:block;margin-top:4px;font-size:12px;font-weight:400;color:#bbb}
 .tsr button:focus-visible,.tsr input:focus-visible,.tsr select:focus-visible{outline:2px solid #fff;outline-offset:2px}
 /* the top bar matches too */
-body.tsrMode .pages{background:rgba(0,0,0,.30);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.12)}
-body.tsrMode .pages select{background:rgba(0,0,0,.38);border-color:#333;font-weight:700}
+.pages{background:rgba(0,0,0,.30);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.12)}
+.pages select{background:rgba(0,0,0,.38);border-color:#333;font-weight:700}
 @keyframes tsrPulse{0%,100%{opacity:1}50%{opacity:.45}}
 @media (prefers-reduced-motion:reduce){.tsr-dot.on{animation:none}}
 
@@ -786,16 +787,16 @@ body.tsrMode .pages select{background:rgba(0,0,0,.38);border-color:#333;font-wei
 .tsr-sbtn:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(0,0,0,.4),0 0 24px rgba(255,255,255,.06)}
 
 /* the Channels / Pages bar */
-body.tsrMode .pages{position:relative;gap:10px 12px;padding:8px 14px;border-radius:16px;box-shadow:0 10px 34px rgba(0,0,0,.35),0 0 40px rgba(255,255,255,.04);animation:tsrFloat 5s ease-in-out infinite}
-body.tsrMode .pages::before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;pointer-events:none;
+.pages{position:relative;gap:10px 12px;padding:8px 14px;border-radius:16px;box-shadow:0 10px 34px rgba(0,0,0,.35),0 0 40px rgba(255,255,255,.04)}
+.pages::before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;pointer-events:none;
   background:linear-gradient(110deg,rgba(255,255,255,.04) 20%,rgba(255,255,255,.95) 50%,rgba(255,255,255,.04) 80%) 0 0/250% 100%;
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);
   animation:tsrSweep 3.6s linear infinite}
-body.tsrMode .pages label{display:flex;align-items:center;gap:7px;color:#ddd;font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:11px}
-body.tsrMode .pages label::before{content:"";width:7px;height:7px;border-radius:50%;background:#fff;box-shadow:0 0 10px rgba(255,255,255,.8);animation:tsrPulse 2.4s ease-in-out infinite}
-body.tsrMode .pages select{transition:transform .15s,border-color .2s,box-shadow .2s;border-radius:999px;padding:8px 16px}
-body.tsrMode .pages select:hover{transform:translateY(-2px);border-color:#999;box-shadow:0 6px 18px rgba(255,255,255,.12)}
-body.tsrMode .pages select:focus{box-shadow:0 0 22px rgba(255,255,255,.18)}
+.pages label{display:flex;align-items:center;gap:7px;color:#ddd;font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:11px}
+.pages label::before{content:"";width:7px;height:7px;border-radius:50%;background:#fff;box-shadow:0 0 10px rgba(255,255,255,.8);animation:tsrPulse 2.4s ease-in-out infinite}
+.pages select{transition:transform .15s,border-color .2s,box-shadow .2s;border-radius:999px;padding:8px 16px}
+.pages select:hover{transform:translateY(-2px);border-color:#999;box-shadow:0 6px 18px rgba(255,255,255,.12)}
+.pages select:focus{box-shadow:0 0 22px rgba(255,255,255,.18)}
 body.tsrMode #pgSel:not([hidden]){animation:tsrPop .45s cubic-bezier(.3,1.4,.5,1) both}
 @keyframes tsrRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 @keyframes tsrSheen{to{background-position:-250% 0}}
@@ -804,11 +805,65 @@ body.tsrMode #pgSel:not([hidden]){animation:tsrPop .45s cubic-bezier(.3,1.4,.5,1
 @keyframes tsrPop{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:none}}
 @keyframes tsrRipple{0%{transform:scale(.6);opacity:.9}100%{transform:scale(2.1);opacity:0}}
 @keyframes tsrGlow{0%,100%{box-shadow:0 0 14px rgba(255,255,255,.16)}50%{box-shadow:0 0 26px rgba(255,255,255,.34)}}
-@media (prefers-reduced-motion:reduce){.tsr,.tsr h2,.tsr-card,.tsr-sbtn,.tsr-edit,.tsr-tabs button.on,.tsr-dot.on::after,body.tsrMode .pages,body.tsrMode .pages::before,body.tsrMode .pages label::before,body.tsrMode #pgSel{animation:none !important}.tsr h2{-webkit-text-fill-color:#fff}.tsr-ddlist,.tsr-ddrow{transition:none !important;animation:none !important}.tsr-dd.open .tsr-ddrow{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.tsr,.tsr h2,.tsr-card,.tsr-sbtn,.tsr-edit,.tsr-tabs button.on,.tsr-dot.on::after,.pages,.pages::before,.pages label::before,body.tsrMode #pgSel{animation:none !important}.tsr h2{-webkit-text-fill-color:#fff}.tsr-ddlist,.tsr-ddrow{transition:none !important;animation:none !important}.tsr-dd.open .tsr-ddrow{opacity:1;transform:none}}
 #tsrLogout{padding:8px 16px;background:rgba(0,0,0,.38);color:#f5f5f5;border:1px solid #333;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer;transition:transform .15s,border-color .2s,box-shadow .2s,background .2s}
 #tsrLogout:hover{transform:translateY(-2px);border-color:#999;background:rgba(255,255,255,.1);box-shadow:0 6px 18px rgba(255,255,255,.12)}
 #tsrLogout:focus-visible{outline:2px solid #fff;outline-offset:2px}
 body.tsrMode #tsrLogout:not([hidden]){animation:tsrPop .45s cubic-bezier(.3,1.4,.5,1) both}
+
+/* admin panel + who chip */
+#tsrWho{padding:7px 14px;border:1px solid #444;border-radius:999px;font-size:12px;font-weight:700;color:#ddd;background:rgba(0,0,0,.38)}
+#tsrWho.adm{background:#fff;color:#0a0a0a;border-color:#fff}
+.tsr-adform{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 14px}
+.tsr-adform input{padding:10px 14px;background:rgba(0,0,0,.38);color:#f5f5f5;border:1px solid #333;border-radius:10px;font-size:13px;min-width:200px;flex:1 1 200px}
+.tsr-adform input:focus{outline:2px solid rgba(255,255,255,.65);outline-offset:1px;border-color:#888}
+.tsr-warn.bad{color:#ffb4a8}
+.tsr-reveal{margin:0 0 16px;padding:14px 16px;background:rgba(255,255,255,.06);border:1px solid #fff;border-radius:12px;font-size:13px;animation:tsrRise .4s ease both;box-shadow:0 0 28px rgba(255,255,255,.1)}
+.tsr-reveal code{display:block;margin-top:8px;padding:10px 12px;background:rgba(0,0,0,.5);border-radius:8px;font-size:15px;letter-spacing:.06em;word-break:break-all;color:#fff;user-select:all}
+.tsr-klist{display:grid;gap:10px}
+.tsr-krow{display:grid;grid-template-columns:1fr auto;gap:4px 14px;align-items:center;padding:12px 14px;background:rgba(0,0,0,.30);border:1px solid #2c2c2c;border-radius:12px;transition:border-color .2s,background .2s}
+.tsr-krow:hover{border-color:#666;background:rgba(255,255,255,.04)}
+.tsr-kmain{display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:15px}
+.tsr-kmeta{grid-column:1;font-size:12px;color:#bbb}
+.tsr-kact{grid-column:2;grid-row:1 / span 2;display:flex;gap:8px;align-items:center}
+.tsr-kact select{padding:7px 10px;background:rgba(0,0,0,.38);color:#f5f5f5;border:1px solid #333;border-radius:999px;font-size:12px;cursor:pointer}
+.tsr-kact .tsr-btn{padding:6px 14px;font-size:12px}
+.tsr-badge{padding:2px 10px;border:1px solid #888;border-radius:999px;font-size:11px;font-weight:800;color:#fff}
+.tsr-st{font-size:12px;font-weight:700;color:#d4d4d4}
+.tsr-st.bad{color:#ffb4a8}
+.tsr-loglist{max-height:420px;overflow-y:auto;border:1px solid #2c2c2c;border-radius:12px;background:rgba(0,0,0,.22)}
+.tsr-lrow{display:grid;grid-template-columns:130px 150px 1fr;gap:12px;padding:9px 14px;font-size:13px;border-top:1px solid #222;position:relative;transition:background .15s}
+.tsr-lrow:first-child{border-top:0}
+.tsr-lrow:hover{background:rgba(255,255,255,.05)}
+.tsr-lrow::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:3px;background:#555}
+.tsr-lrow.login::before{background:#fff}.tsr-lrow.script::before{background:#aaa}.tsr-lrow.key::before{background:#666}
+.tsr-lt{color:#aaa;font-size:12px}.tsr-lw{font-weight:700;color:#fff;word-break:break-word}.tsr-lx{color:#ddd;word-break:break-word}
+@media(max-width:700px){.tsr-lrow{grid-template-columns:1fr}.tsr-krow{grid-template-columns:1fr}.tsr-kact{grid-column:1;grid-row:auto}}
+
+#tsrAdminBtn{padding:8px 16px;background:rgba(0,0,0,.38);color:#fff;border:1px solid #fff;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer;transition:transform .15s,background .2s,color .2s,box-shadow .2s;box-shadow:0 0 16px rgba(255,255,255,.15)}
+#tsrAdminBtn:hover{transform:translateY(-2px);background:rgba(255,255,255,.14);box-shadow:0 6px 20px rgba(255,255,255,.2)}
+#tsrAdminBtn.on{background:#fff;color:#0a0a0a}
+#tsrAdminBtn:focus-visible{outline:2px solid #fff;outline-offset:2px}
+#tsrAdminDlg{padding:0;border:1px solid rgba(255,255,255,.25);border-radius:18px;background:#0e0e0e;color:#f5f5f5;width:min(900px,94vw);max-height:88vh;overflow:auto;box-shadow:0 20px 70px rgba(0,0,0,.6),0 0 40px rgba(255,255,255,.08)}
+#tsrAdminDlg::backdrop{background:rgba(0,0,0,.6);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+#tsrAdminDlg .tsr{margin:0;max-width:none;border:0;border-radius:0;background:transparent;box-shadow:none;animation:none;-webkit-backdrop-filter:none;backdrop-filter:none}
+#tsrAdminX{position:sticky;top:10px;float:right;z-index:2;margin:10px 12px 0 0;width:34px;height:34px;border-radius:50%;border:1px solid #fff;background:rgba(0,0,0,.6);color:#fff;font-size:20px;line-height:1;cursor:pointer}
+#tsrAdminX:hover{background:#fff;color:#0a0a0a}
+.tsr-invbar{position:relative;display:flex;align-items:center;min-height:46px;margin:0 0 6px}
+.tsr-invbar .tsr-tabs{margin:0}
+.tsr-total{position:absolute;left:50%;top:50%;translate:-50% calc(-50% - 12px);display:flex;flex-direction:column;align-items:center;padding:5px 22px;border:1px solid #fff;border-radius:14px;background:rgba(0,0,0,.55);box-shadow:0 0 22px rgba(255,255,255,.25);text-align:center;animation:tsrPop .3s cubic-bezier(.3,1.4,.5,1) both}
+.tsr-total:empty{display:none}
+.tsr-total b{font-size:17px;color:#fff;letter-spacing:.02em}
+.tsr-total small{font-size:11px;color:#cfcfcf}
+@media(max-width:900px){.tsr-total{position:static;translate:none;margin-left:12px}}
+.tsr-search{margin-left:auto;width:220px;max-width:100%;box-sizing:border-box;padding:8px 14px;background:rgba(0,0,0,.38);color:#f5f5f5;border:1px solid #333;border-radius:999px;font-size:13px;transition:border-color .2s,box-shadow .2s}
+.tsr-search:focus{border-color:#fff;box-shadow:0 0 16px rgba(255,255,255,.2)}
+.tsr-kv[hidden],.tsr-grp[hidden]{display:none !important}
+.tsr-kv.pet{cursor:pointer;user-select:none}
+.tsr-kv.pet:focus-visible{outline:2px solid #fff;outline-offset:1px}
+.tsr-kv.sel,.tsr-kv.sel:hover{background:rgba(255,255,255,.17);box-shadow:inset 0 0 0 1px #fff,0 0 14px rgba(255,255,255,.3);padding-left:8px;padding-right:8px}
+body.tsrMode #tsrAdminBtn:not([hidden]){animation:tsrPop .45s cubic-bezier(.3,1.4,.5,1) both}
+.tsr-krow.off{opacity:.6}
 </style>
 </head>
 <body>
@@ -831,7 +886,7 @@ body.tsrMode #tsrLogout:not([hidden]){animation:tsrPop .45s cubic-bezier(.3,1.4,
     <option value="3">Calculator</option>
     <option value="5">Fusion</option>
   </select>
-  <button type="button" id="tsrLogout" data-tsr="logout" hidden>Log out</button>
+  <span id="tsrWho" hidden></span><button type="button" id="tsrAdminBtn" data-tsr="adminpanel" hidden>Admin Panel</button><button type="button" id="tsrLogout" data-tsr="logout" hidden>Log out</button>
 </nav>
 
 <section id="left">
@@ -1148,6 +1203,8 @@ body.tsrMode #tsrLogout:not([hidden]){animation:tsrPop .45s cubic-bezier(.3,1.4,
 <section class="panel tsr" id="tsrStatus" hidden><div class="tsr-body"></div></section>
 <section class="panel tsr" id="tsrInv" hidden><div class="tsr-body"></div></section>
 <section class="panel tsr" id="tsrScripts" hidden><div class="tsr-body"></div></section>
+<dialog id="tsrAdminDlg"><button type="button" id="tsrAdminX" aria-label="Close">&times;</button><section class="panel tsr" id="tsrAdmin"><div class="tsr-body"></div></section></dialog>
+<section class="panel tsr" id="tsrTrade" hidden><div class="tsr-body"></div></section>
 
 <div id="wallLabel"></div>
 
@@ -5549,11 +5606,26 @@ document.addEventListener("DOMContentLoaded", function () {
   var TSR_WORKER = "https://tsr-hub.asaiyamain.workers.dev";
   // Scripts live in your Worker (add / edit them on the Scripts page). Selected accounts + editor state:
   var tsrScripts = null, tsrScriptsErr = "", tsrSelAll = true, tsrSelNames = {}, tsrDDOpen = false, tsrEdit = null, tsrMsgTxt = "", tsrMsgBad = false;
+  var tsrRole = "", tsrWho = "", tsrExp = 0, tsrPerms = {}, tsrAuthMsg = "", tsrKeys = null, tsrLogs = null, tsrLogFilter = "all", tsrReveal = null, tsrNewDays = 7, tsrAdErr = "";
   var tsrAuthed = false, tsrInvTab = 0, tsrData = [], tsrTimer = 0, tsrErr = "", tsrAuthBad = false;
   function tsrGate() {   // Tap simulator: the Pages dropdown stays hidden until the admin key has been accepted
     var lock = +$("chSel").value === 3 && !tsrAuthed, lb = document.querySelector('label[for="pgSel"]');
     $("pgSel").hidden = lock; if (lb) lb.hidden = lock;
-    $("tsrLogout").hidden = !(+$("chSel").value === 3 && tsrAuthed);
+    var on3 = +$("chSel").value === 3;
+    $("tsrLogout").hidden = !(on3 && tsrAuthed);
+    var ab = $("tsrAdminBtn");
+    ab.hidden = !(on3 && tsrAuthed && tsrRole === "admin");
+    ab.classList.toggle("on", $("tsrAdminDlg").open);
+    var adDlg = $("tsrAdminDlg"); if (adDlg.open && !(on3 && tsrAuthed && tsrRole === "admin")) adDlg.close();
+    var wc = $("tsrWho");
+    wc.hidden = !(on3 && tsrAuthed);
+    if (!wc.hidden) { wc.textContent = tsrRole === "admin" ? "Admin" : "VIP \u00b7 " + tsrWho + (tsrExp ? " \u00b7 " + tsrLeft(tsrExp) : ""); wc.className = tsrRole === "admin" ? "adm" : "vip"; }
+    if (on3) {   // the Admin Panel page exists only for the admin key
+      var sel = $("pgSel");
+      var topt = sel.querySelector('option[value="5"]'), twant = tsrAuthed && !!tsrPerms.trade;
+      if (twant && !topt) { var o2 = document.createElement("option"); o2.value = "5"; o2.textContent = "Trade"; sel.appendChild(o2); }
+      if (!twant && topt) { var tw = sel.value === "5"; topt.remove(); if (tw) { sel.value = "1"; curPg = 1; showView(); } }
+    }
   }
   function tsrEsc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function tsrKey() { try { return localStorage.getItem("tsrAdminKey") || ""; } catch (e) { return ""; } }
@@ -5561,8 +5633,9 @@ document.addEventListener("DOMContentLoaded", function () {
   function tsrAgo(s) { return s < 60 ? s + "s ago" : s < 3600 ? Math.round(s / 60) + " min ago" : Math.round(s / 3600) + " h ago"; }
   function tsrKv(a, b) { return '<div class="tsr-kv"><span>' + tsrEsc(a) + '</span><span>' + tsrEsc(b) + '</span></div>'; }
   function tsrPets(a) { return a.pets || {}; }
+  function tsrAuthText(e) { return e === "expired" ? "That key has expired. Ask for a new one." : e === "disabled" ? "That key is disabled. Ask the admin." : "That key was rejected. Check it and try again."; }
   function tsrKeyBox() {
-    return '<div class="tsr-empty">Enter your Tap simulator admin key to load your accounts.<div class="tsr-key" style="justify-content:center"><input type="password" id="tsrKeyIn" placeholder="Admin key" autocomplete="off"><button class="tsr-btn" type="button" data-tsr="save">Connect</button></div>' + (tsrAuthBad ? '<div class="tsr-warn">That key was rejected. Check it and try again.</div>' : '') + '</div>';
+    return '<div class="tsr-empty">Enter your Tap simulator key to continue.<div class="tsr-key" style="justify-content:center"><input type="password" id="tsrKeyIn" placeholder="Key" autocomplete="off"><button class="tsr-btn" type="button" data-tsr="save">Connect</button></div>' + (tsrAuthBad ? '<div class="tsr-warn">' + tsrEsc(tsrAuthMsg || "That key was rejected. Check it and try again.") + '</div>' : '') + '</div>';
   }
   function tsrStatusHtml() {
     var on = tsrData.filter(function (a) { return a.online; }).length;
@@ -5576,10 +5649,49 @@ document.addEventListener("DOMContentLoaded", function () {
     }).join("");
     return h + '</div>';
   }
+  var TSR_SECRETS = { "dragon tamer": 1, "infernal lord": 1, "reanimation": 1, "cinder eye": 1, "first light": 1, "shinigami": 1 };   // secret pets get their own section
+  var tsrInvQ = "";   // Inventory search text
+  var tsrInvSel = "";   // pet clicked on the Inventory page ("Name|Tier"): lit up on every account, total shown above the middle one
+  function tsrPetKey(x, sec) { return sec + ":" + x.name + "|" + x.tier; }   // sec: "E" = Equipped list, "A" = All pets list (kept separate)
+  function tsrPetKv(x, val, sec) {
+    var k = tsrPetKey(x, sec);
+    return '<div class="tsr-kv pet' + (k === tsrInvSel ? " sel" : "") + '" data-tsr="petsel" data-k="' + tsrEsc(k) + '" tabindex="0" role="button"><span>' + tsrEsc(x.name + " (" + x.tier + ")") + '</span><span>' + tsrEsc(val) + '</span></div>';
+  }
+  function tsrInvTotalHtml() {
+    if (!tsrInvSel) return "";
+    var sec = tsrInvSel.charAt(0), n = 0, who = { E: "Equipped", S: "Secret", A: "Inventory" }[sec] || "";
+    tsrData.forEach(function (a) {
+      var p = a.pets || {};
+      if (sec === "E") (p.equipped || []).forEach(function (x) { if (tsrPetKey(x, "E") === tsrInvSel) n++; });
+      else (p.grouped || []).forEach(function (x) { if (tsrPetKey(x, sec) === tsrInvSel) n += +x.count || 0; });
+    });
+    var body = tsrInvSel.slice(2), i = body.lastIndexOf("|"), label = body.slice(0, i) + " (" + body.slice(i + 1) + ")";
+    return "<small>" + who + " \u00b7 " + tsrEsc(label) + "</small><b>Total: " + n.toLocaleString() + "</b>";
+  }
+  document.addEventListener("keydown", function (e) { if ((e.key === "Enter" || e.key === " ") && e.target && e.target.classList && e.target.classList.contains("pet")) { e.preventDefault(); e.target.click(); } });
+  function tsrInvFilter() {   // hide pets that do not match the search, and any section left empty
+    var root = $("tsrInv"); if (!root) return;
+    var q = tsrInvQ.trim().toLowerCase();
+    root.querySelectorAll(".tsr-grp").forEach(function (g) {
+      var any = false;
+      g.querySelectorAll(".pet").forEach(function (r) {
+        var m = !q || r.firstElementChild.textContent.toLowerCase().indexOf(q) > -1;
+        r.hidden = !m; if (m) any = true;
+      });
+      g.hidden = !!q && !any;
+    });
+  }
+  document.addEventListener("input", function (e) { if (e.target && e.target.id === "tsrInvSearch") { tsrInvQ = e.target.value; tsrInvFilter(); } });
+  function tsrInvPaint() {   // light up / clear matching rows without re-rendering the page
+    var root = $("tsrInv"); if (!root) return;
+    root.querySelectorAll("[data-k]").forEach(function (r) { r.classList.toggle("sel", !!tsrInvSel && r.dataset.k === tsrInvSel); });
+    var t = $("tsrInvTotal"); if (t) t.innerHTML = tsrInvTotalHtml();
+  }
   function tsrInvHtml() {
     var PER = 5, pages = Math.max(1, Math.ceil(tsrData.length / PER));
     if (tsrInvTab >= pages) tsrInvTab = pages - 1;
     var h = '<div class="tsr-head"><h2>Inventory</h2><p class="tsr-sub">Pets on each account</p></div>';
+    h += '<div class="tsr-invbar">';
     if (pages > 1) {
       h += '<div class="tsr-tabs">';
       for (var i = 0; i < pages; i++) {
@@ -5588,14 +5700,18 @@ document.addEventListener("DOMContentLoaded", function () {
       }
       h += '</div>';
     }
+    h += '<input type="search" id="tsrInvSearch" class="tsr-search" placeholder="Search pets..." autocomplete="off" spellcheck="false" value="' + tsrEsc(tsrInvQ) + '">';
+    h += '<div class="tsr-total" id="tsrInvTotal">' + tsrInvTotalHtml() + '</div></div>';   // sits above the middle account
     h += '<div class="tsr-scroll"><div class="tsr-grid five">';
     h += tsrData.slice(tsrInvTab * PER, tsrInvTab * PER + PER).map(function (a) {
       var p = tsrPets(a), eq = p.equipped || [], g = p.grouped || [];
       var c = '<div class="tsr-card"><div class="tsr-name"><span class="tsr-dot ' + (a.online ? "on" : "") + '"></span>' + tsrEsc(a.name) + '</div>';
       c += tsrKv("Pets owned", (p.owned != null ? p.owned : "?") + " / " + (p.capacity != null ? p.capacity : "?"));
       if (p.owned != null && p.scanned != null && p.scanned < p.owned) c += '<div class="tsr-warn">Showing ' + p.scanned + ' of ' + p.owned + ' pets' + (p.stale ? " (older scan)" : "") + '.</div>';
-      c += '<div class="tsr-sec">Equipped</div>' + (eq.length ? eq.map(function (x) { return tsrKv(x.name + " (" + x.tier + ")", x.multi || ""); }).join("") : '<div class="tsr-sub">None scanned yet</div>');
-      c += '<div class="tsr-sec">All pets</div>' + (g.length ? g.map(function (x) { return tsrKv(x.name + " (" + x.tier + ")", "x" + x.count); }).join("") : '<div class="tsr-sub">None scanned yet</div>');
+      c += '<div class="tsr-grp"><div class="tsr-sec">Equipped</div>' + (eq.length ? eq.map(function (x) { return tsrPetKv(x, x.multi || "", "E"); }).join("") : '<div class="tsr-sub">None scanned yet</div>') + '</div>';
+      var isSec = function (x) { return !!TSR_SECRETS[String(x.name).trim().toLowerCase()]; }, secs = g.filter(isSec), rest = g.filter(function (x) { return !isSec(x); });
+      c += '<div class="tsr-grp"><div class="tsr-sec">Secrets</div>' + (secs.length ? secs.map(function (x) { return tsrPetKv(x, "x" + x.count, "S"); }).join("") : '<div class="tsr-sub">None</div>') + '</div>';
+      c += '<div class="tsr-grp"><div class="tsr-sec">All pets</div>' + (rest.length ? rest.map(function (x) { return tsrPetKv(x, "x" + x.count, "A"); }).join("") : '<div class="tsr-sub">' + (g.length ? "None" : "None scanned yet") + '</div>') + '</div>';
       return c + '</div>';
     }).join("");
     return h + '</div></div>';
@@ -5619,7 +5735,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   function tsrScriptsHtml() {
     var h = '<div class="tsr-head"><h2>Scripts</h2><p class="tsr-sub">Pick the accounts, then press Run on a script.</p></div>';
-    h += '<div class="tsr-bar">' + tsrDDHtml() + '<button class="tsr-btn" type="button" data-tsr="new">+ New script</button></div>';
+    h += '<div class="tsr-bar">' + tsrDDHtml() + (tsrPerms.editScripts === false ? "" : '<button class="tsr-btn" type="button" data-tsr="new">+ New script</button>') + '</div>';
     if (tsrEdit) {
       h += '<div class="tsr-edit"><input id="tsrEdName" type="text" maxlength="60" placeholder="Script name" value="' + tsrEsc(tsrEdit.label) + '" autocomplete="off">'
         + '<input id="tsrEdDesc" type="text" maxlength="120" placeholder="Short description (optional)" value="' + tsrEsc(tsrEdit.desc) + '" autocomplete="off">'
@@ -5630,11 +5746,75 @@ document.addEventListener("DOMContentLoaded", function () {
     else if (tsrScripts && !tsrScripts.length && !tsrEdit) h += '<div class="tsr-empty">No scripts yet. Press \u201c+ New script\u201d and paste one in.</div>';
     h += '<div class="tsr-sgrid">' + (tsrScripts || []).map(function (sc, i) {
       return '<div class="tsr-sbtn" style="--i:' + i + '"><b>' + tsrEsc(sc.label) + '</b><small>' + tsrEsc(sc.desc || "No description") + '</small>'
-        + '<div class="tsr-sact"><button type="button" class="tsr-btn" data-tsr="run" data-id="' + tsrEsc(sc.id) + '">Run</button>'
-        + '<button type="button" class="tsr-btn ghost" data-tsr="edit" data-id="' + tsrEsc(sc.id) + '">Edit</button>'
-        + '<button type="button" class="tsr-btn ghost" data-tsr="del" data-id="' + tsrEsc(sc.id) + '">Delete</button></div></div>';
+        + '<div class="tsr-sact">' + (tsrPerms.run === false ? "" : '<button type="button" class="tsr-btn" data-tsr="run" data-id="' + tsrEsc(sc.id) + '">Run</button>')
+        + (tsrPerms.editScripts === false ? "" : '<button type="button" class="tsr-btn ghost" data-tsr="edit" data-id="' + tsrEsc(sc.id) + '">Edit</button>'
+        + '<button type="button" class="tsr-btn ghost" data-tsr="del" data-id="' + tsrEsc(sc.id) + '">Delete</button>') + '</div></div>';
     }).join("") + '</div>';
     return h + '<div class="tsr-msg' + (tsrMsgBad ? " bad" : "") + '" id="tsrMsg">' + tsrEsc(tsrMsgTxt) + '</div>';
+  }
+  function tsrT(ms) { if (!ms) return "never"; return new Date(ms).toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }); }
+  function tsrLeft(ms) {
+    var sec = Math.round((ms - Date.now()) / 1000);
+    if (sec <= 0) return "expired";
+    var d = Math.floor(sec / 86400), h = Math.floor(sec % 86400 / 3600), m = Math.floor(sec % 3600 / 60);
+    return (d ? d + "d " + h + "h" : h ? h + "h " + m + "m" : m + "m") + " left";
+  }
+  function tsrAdKeysHtml() {
+    if (tsrKeys === null) return '<div class="tsr-sub">Loading\u2026</div>';
+    if (!tsrKeys.length) return '<div class="tsr-sub">No VIP keys yet. Create one above.</div>';
+    return tsrKeys.map(function (k, i) {
+      var dead = k.expires && k.expires <= Date.now();
+      return '<div class="tsr-krow' + (k.disabled ? " off" : "") + '" style="--i:' + i + '"><div class="tsr-kmain"><b>' + tsrEsc(k.label) + '</b><span class="tsr-badge">VIP</span><span class="tsr-st ' + (dead || k.disabled ? "bad" : "ok") + '">' + (k.disabled ? "Disabled" : k.expires ? (dead ? "Expired" : "Active \u00b7 " + tsrLeft(k.expires)) : "Active \u00b7 never expires") + '</span></div>'
+        + '<div class="tsr-kmeta">Created ' + tsrT(k.created) + ' \u00b7 Last used ' + (k.lastUsed ? tsrT(k.lastUsed) : "never") + '</div>'
+        + '<div class="tsr-kact"><select data-kexp="' + tsrEsc(k.id) + '" aria-label="Set expiry"><option value="">Set expiry\u2026</option><option value="1">1 day</option><option value="7">7 days</option><option value="30">30 days</option><option value="0">Never</option></select>'
+        + '<button type="button" class="tsr-btn ghost" data-tsr="ktoggle" data-id="' + tsrEsc(k.id) + '">' + (k.disabled ? "Enable" : "Disable") + '</button>'
+        + '<button type="button" class="tsr-btn ghost" data-tsr="krevoke" data-id="' + tsrEsc(k.id) + '">Delete</button></div></div>';
+    }).join("");
+  }
+  function tsrAdLogsHtml() {
+    if (tsrLogs === null) return '<div class="tsr-sub">Loading\u2026</div>';
+    var rows = tsrLogs.filter(function (l) { return tsrLogFilter === "all" || l.type === tsrLogFilter; });
+    if (!rows.length) return '<div class="tsr-sub">Nothing here yet.</div>';
+    return rows.map(function (l) {
+      return '<div class="tsr-lrow ' + tsrEsc(l.type) + '"><span class="tsr-lt">' + tsrT(l.t) + '</span><span class="tsr-lw">' + tsrEsc(l.who) + '</span><span class="tsr-lx">' + tsrEsc(l.text) + '</span></div>';
+    }).join("");
+  }
+  function tsrAdListsHtml() {
+    var f = [["all", "All"], ["login", "Logins"], ["script", "Scripts"], ["key", "Keys"]];
+    return '<div class="tsr-sec">VIP keys</div><div class="tsr-klist">' + tsrAdKeysHtml() + '</div>'
+      + '<div class="tsr-sec">Activity log</div><div class="tsr-tabs" style="margin-bottom:12px">' + f.map(function (x) { return '<button type="button" data-tsr="logf" data-f="' + x[0] + '"' + (tsrLogFilter === x[0] ? ' class="on"' : '') + '>' + x[1] + '</button>'; }).join("") + '<button type="button" data-tsr="logrefresh">Refresh</button></div>'
+      + '<div class="tsr-loglist">' + tsrAdLogsHtml() + '</div>';
+  }
+  function tsrAdminHtml() {
+    var d = [[1, "1 day"], [7, "7 days"], [30, "30 days"], [0, "Never"]];
+    var h = '<div class="tsr-head"><h2>Admin Panel</h2><p class="tsr-sub">One key per person. Keys expire on their own. Everything done here and on the other pages is logged.</p></div>';
+    h += '<div class="tsr-adform"><input id="tsrKLabel" type="text" maxlength="40" placeholder="Label, for example Voysae" autocomplete="off"><input id="tsrKPass" type="text" maxlength="64" placeholder="Key (empty = generate one)" autocomplete="off" spellcheck="false">'
+      + '<div class="tsr-tabs tsr-days" id="tsrKDays" style="margin:0">' + d.map(function (x) { return '<button type="button" data-tsr="days" data-d="' + x[0] + '"' + (tsrNewDays === x[0] ? ' class="on"' : '') + '>' + x[1] + '</button>'; }).join("") + '</div>'
+      + '<button class="tsr-btn" type="button" data-tsr="kcreate">Create key</button></div>';
+    if (tsrAdErr) h += '<div class="tsr-warn bad">' + tsrEsc(tsrAdErr) + '</div>';
+    if (tsrReveal) h += '<div class="tsr-reveal"><div>Key for <b>' + tsrEsc(tsrReveal.label) + '</b> \u2014 copy it now, it is never shown again:</div><code>' + tsrEsc(tsrReveal.key) + '</code><div class="tsr-bar" style="margin:10px 0 0"><button class="tsr-btn" type="button" data-tsr="kcopy">Copy</button><button class="tsr-btn ghost" type="button" data-tsr="kdone">Done</button></div></div>';
+    return h + '<div id="tsrAdLists">' + tsrAdListsHtml() + '</div>';
+  }
+  function tsrOpenAdmin() {
+    var dlg = $("tsrAdminDlg"); if (!tsrAuthed || tsrRole !== "admin") return;
+    tsrRender(4);
+    if (!dlg.open) dlg.showModal();
+    tsrGate();
+    tsrLoadAdmin().then(function () { if (dlg.open) { if ($("tsrAdLists")) tsrAdPaint(); else tsrRender(4); } });
+  }
+  (function () {
+    var dlg = $("tsrAdminDlg");
+    $("tsrAdminX").addEventListener("click", function () { dlg.close(); });
+    dlg.addEventListener("click", function (e) { if (e.target === dlg) dlg.close(); });   // click outside the box
+    dlg.addEventListener("close", function () { tsrGate(); });
+  })();
+  function tsrAdPaint() { var el = $("tsrAdLists"); if (el) el.innerHTML = tsrAdListsHtml(); }
+  function tsrLoadAdmin() {
+    return Promise.all([tsrApi("/admin/keys"), tsrApi("/admin/logs")]).then(function (r) {
+      if (r[0]._status === 200) { tsrKeys = r[0].keys || []; tsrAdErr = ""; }
+      else if (r[0]._status === 404) tsrAdErr = "Your Worker doesn\u2019t support keys yet. Paste the new Tapsim.js into it and deploy.";
+      if (r[1]._status === 200) tsrLogs = r[1].logs || [];
+    }).catch(function () {});
   }
   function tsrApi(path, body) {
     return fetch(TSR_WORKER + path, {
@@ -5660,13 +5840,13 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   var tsrFreshT = 0;
   function tsrFresh(pg) {   // play the entrance animation once per page / tab change, not on every 10 s refresh
-    var el = $(["tsrStatus", "tsrInv", "tsrScripts"][pg - 1]); if (!el) return;
+    var el = $(["tsrStatus", "tsrInv", "tsrScripts", "tsrAdmin", "tsrTrade"][pg - 1]); if (!el) return;
     el.classList.remove("fresh"); void el.offsetWidth; el.classList.add("fresh");
     clearTimeout(tsrFreshT); tsrFreshT = setTimeout(function () { el.classList.remove("fresh"); }, 1200);
   }
   function tsrShow(ch, pg) {
-    var on = ch === 3, ids = ["tsrStatus", "tsrInv", "tsrScripts"];
-    ids.forEach(function (id, i) { $(id).hidden = !(on && pg === i + 1); });
+    var on = ch === 3, ids = ["tsrStatus", "tsrInv", "tsrScripts", "tsrAdmin", "tsrTrade"];
+    ids.forEach(function (id, i) { if (id === "tsrAdmin") return; $(id).hidden = !(on && pg === i + 1); });   // Admin Panel is a popup now, not a page
     clearInterval(tsrTimer);
     if (!on) return;
     tsrFresh(pg);
@@ -5675,37 +5855,197 @@ document.addEventListener("DOMContentLoaded", function () {
     tsrTimer = setInterval(tsrLoad, 10000);
   }
   function tsrRender(pg) {
-    var ids = ["tsrStatus", "tsrInv", "tsrScripts"], box = $(ids[pg - 1]).querySelector(".tsr-body");
+    var ids = ["tsrStatus", "tsrInv", "tsrScripts", "tsrAdmin", "tsrTrade"], box = $(ids[pg - 1]).querySelector(".tsr-body");
     if (!tsrKey()) { box.innerHTML = tsrKeyBox(); return; }
     if (tsrErr && !tsrAuthed) { box.innerHTML = '<div class="tsr-empty">' + tsrEsc(tsrErr) + '</div>'; return; }
     if (!tsrAuthed) { box.innerHTML = '<div class="tsr-empty">Checking key\u2026</div>'; return; }
     if (tsrErr) { box.innerHTML = '<div class="tsr-empty">' + tsrEsc(tsrErr) + '</div>'; return; }
     if (pg === 3) { box.innerHTML = tsrScriptsHtml(); return; }
+    if (pg === 5) { box.innerHTML = tsrPerms.trade ? tsrTradeHtml() : '<div class="tsr-empty">No access.</div>'; return; }
+    if (pg === 4) { box.innerHTML = tsrRole === "admin" ? tsrAdminHtml() : '<div class="tsr-empty">No access.</div>'; return; }
     if (!tsrData.length) { box.innerHTML = '<div class="tsr-empty">No accounts yet. Run the agent script in game.</div>'; return; }
     box.innerHTML = pg === 1 ? tsrStatusHtml() : tsrInvHtml();
+    if (pg === 2) tsrInvFilter();
   }
   function tsrLoad() {
     var ch = +$("chSel").value, pg = +$("pgSel").value;
     if (ch !== 3 || !tsrKey()) return;
     fetch(TSR_WORKER + "/admin/accounts", { headers: { "x-admin-key": tsrKey() }, cache: "no-store" })
       .then(function (r) {
-        if (r.status === 401) { tsrSetKey(""); tsrAuthBad = true; tsrAuthed = false; tsrData = []; tsrErr = ""; return null; }
+        if (r.status === 401) {
+          return r.json().catch(function () { return {}; }).then(function (d) {
+            tsrSetKey(""); tsrAuthBad = true; tsrAuthed = false; tsrData = []; tsrErr = ""; tsrRole = "";
+            tsrAuthMsg = tsrAuthText(d && d.error);
+            return null;
+          });
+        }
+        if (!r.ok) throw new Error("http");
         return r.json();
       })
-      .then(function (d) { if (d) { tsrData = d.accounts || []; tsrErr = ""; tsrAuthBad = false; tsrAuthed = true; } })
+      .then(function (d) { if (d) { tsrData = d.accounts || []; tsrErr = ""; tsrAuthBad = false; tsrAuthed = true; tsrRole = d.role || "admin"; tsrWho = d.who || ""; tsrExp = d.expires || 0; tsrPerms = d.perms || {}; } })
       .catch(function () { tsrErr = "Couldn\u2019t reach the Tap simulator Worker. Check your connection."; })
-      .then(function () { return (tsrAuthed && pg === 3) ? tsrLoadScripts() : null; })
-      .then(function () { tsrGate(); if (+$("chSel").value === 3 && !(+$("pgSel").value === 3 && (tsrDDOpen || tsrEdit))) tsrRender(+$("pgSel").value); });
+      .then(function () { var adOn = tsrAuthed && $("tsrAdminDlg").open && tsrRole === "admin"; return Promise.all([(tsrAuthed && pg === 3) ? tsrLoadScripts() : null, adOn ? tsrLoadAdmin() : null]); })
+      .then(function () {
+        tsrGate();
+        if (+$("chSel").value !== 3) return;
+        var pgc = +$("pgSel").value;
+        if (pgc === 5) { tsrTrRefresh(); }
+        else if (!(pgc === 3 && (tsrDDOpen || tsrEdit)) && !(pgc === 2 && document.activeElement && document.activeElement.id === "tsrInvSearch")) tsrRender(pgc);   // do not rebuild the page while you are typing in the search
+        if ($("tsrAdminDlg").open) { if ($("tsrAdLists")) tsrAdPaint(); else tsrRender(4); }   // popup open: the form keeps what you typed, only the lists refresh
+      });
   }
+  document.addEventListener("change", function (e) {
+    var sel = e.target && e.target.dataset && e.target.dataset.kexp;
+    if (!sel || e.target.value === "") return;
+    tsrApi("/admin/keys/update", { id: sel, days: +e.target.value }).then(function () { return tsrLoadAdmin(); }).then(tsrAdPaint);
+  });
+  // ---------- Tap simulator: Trade page (admin only) ----------
+  var tsrTr = { sender: "", partner: "", delay: 15, picks: [], pet: "", qty: 1, msg: "", bad: false, sending: false }, tsrTrSig = "";
+  function tsrTrAcc(n) { n = n || tsrTr.sender; return tsrData.filter(function (a) { return a.name === n; })[0] || null; }
+  function tsrTrPets() { var a = tsrTrAcc(); return (a && a.pets && a.pets.grouped) || []; }
+  function tsrTrKey(p) { return p.name + "|" + p.tier; }
+  function tsrTrPicked(key) { var n = 0; tsrTr.picks.forEach(function (p) { if (tsrTrKey(p) === key) n += p.count; }); return n; }
+  function tsrTrTotal() { var n = 0; tsrTr.picks.forEach(function (p) { n += p.count; }); return n; }
+  function tsrTrLeft(p) { return Math.max(0, p.count - tsrTrPicked(tsrTrKey(p))); }
+  function tsrTrSigNow() {
+    var a = tsrTrAcc(), b = tsrTrAcc(tsrTr.partner.trim());
+    return JSON.stringify([tsrData.map(function (x) { return [x.name, x.online, (x.pets && x.pets.grouped || []).length, x.lastTrade && x.lastTrade.at]; }), a && a.pets && a.pets.grouped, tsrTr.sender, b && b.lastTrade && b.lastTrade.at]);
+  }
+  function tsrTrStatus(a, label) {
+    var t = a && a.lastTrade; if (!t) return "";
+    var ago = Math.max(0, Math.round(Date.now() / 1000 - t.at));
+    return '<div class="tsr-kv"><span>' + tsrEsc(label) + ' (' + tsrEsc(a.name) + ')</span><span style="white-space:normal">' + tsrEsc(t.stage) + ' \u00b7 ' + tsrEsc(t.msg) + ' \u00b7 ' + (ago < 60 ? ago + "s" : Math.round(ago / 60) + "m") + ' ago</span></div>';
+  }
+  function tsrTradeHtml() {
+    if (!tsrData.length) return '<div class="tsr-head"><h2>Trade</h2></div><div class="tsr-empty">No accounts yet. Run the agent script in game.</div>';
+    if (!tsrTrAcc()) { var on = tsrData.filter(function (a) { return a.online; })[0] || tsrData[0]; tsrTr.sender = on.name; tsrTr.picks = []; }
+    var sender = tsrTrAcc(), pets = tsrTrPets(), total = tsrTrTotal(), others = tsrData.filter(function (a) { return a.name !== tsrTr.sender; });
+    var avail = pets.filter(function (p) { return tsrTrLeft(p) > 0; });
+    if (!avail.some(function (p) { return tsrTrKey(p) === tsrTr.pet; })) tsrTr.pet = avail.length ? tsrTrKey(avail[0]) : "";
+    var h = '<div class="tsr-head"><h2>Trade</h2><p class="tsr-sub">Pick the account that gives, who receives, and which pets. The giver starts at its next check-in (up to 30 s).</p></div>';
+    h += '<div class="tr-grid"><div class="tr-box"><div class="tr-lbl">From (giver)</div><select id="trSender" data-tr="sender">'
+      + tsrData.map(function (a) { return '<option value="' + tsrEsc(a.name) + '"' + (a.name === tsrTr.sender ? " selected" : "") + '>' + tsrEsc(a.name) + (a.online ? "" : " (offline)") + '</option>'; }).join("") + '</select>'
+      + '<div class="tr-lbl">To (Roblox username)</div><input id="trPartner" data-tr="partner" list="trPartners" type="text" maxlength="20" placeholder="Username, or pick one of your accounts" autocomplete="off" spellcheck="false" value="' + tsrEsc(tsrTr.partner) + '">'
+      + '<datalist id="trPartners">' + others.map(function (a) { return '<option value="' + tsrEsc(a.name) + '"></option>'; }).join("") + '</datalist>'
+      + '<div class="tr-lbl">Press Ready after (seconds)</div><input id="trDelay" data-tr="delay" type="number" min="1" max="60" value="' + tsrEsc(tsrTr.delay) + '"></div>';
+    h += '<div class="tr-box"><div class="tr-lbl">Pets ' + tsrEsc(tsrTr.sender) + ' has' + (sender && sender.pets && sender.pets.scanned != null ? " (" + sender.pets.scanned + " scanned)" : "") + '</div>';
+    if (!pets.length) h += '<div class="tsr-warn">No pets scanned for this account yet. The agent rescans every 2 minutes.</div>';
+    else {
+      h += '<select id="trPet" data-tr="pet"' + (avail.length ? "" : " disabled") + '>' + (avail.length ? avail.map(function (p) {
+        return '<option value="' + tsrEsc(tsrTrKey(p)) + '"' + (tsrTrKey(p) === tsrTr.pet ? " selected" : "") + '>' + tsrEsc(p.name) + ' (' + tsrEsc(p.tier) + ') \u2014 ' + tsrTrLeft(p) + ' left</option>';
+      }).join("") : '<option>Everything is already added</option>') + '</select>'
+      + '<div class="tr-add"><input id="trQty" type="number" min="1" value="' + tsrEsc(tsrTr.qty) + '" data-tr="qty"><button type="button" class="tsr-btn" data-tr="add"' + (avail.length ? "" : " disabled") + '>Add to trade</button><button type="button" class="tsr-btn ghost" data-tr="addall"' + (avail.length ? "" : " disabled") + '>Add all of this pet</button></div>';
+    }
+    h += '</div></div><div class="tsr-sec">To give (' + total + ' / 20)</div>';
+    h += tsrTr.picks.length ? tsrTr.picks.map(function (p, i) {
+      return '<div class="tsr-kv"><span>' + tsrEsc(p.name) + ' (' + tsrEsc(p.tier) + ') x' + p.count + '</span><span><button type="button" class="tsr-btn ghost" data-tr="rm" data-i="' + i + '">Remove</button></span></div>';
+    }).join("") : '<div class="tsr-sub">Nothing added yet.</div>';
+    h += '<div class="tsr-bar" style="margin:16px 0 0"><button type="button" class="tsr-btn' + (tsrTr.sending ? " busy" : "") + '" data-tr="send"' + (tsrTr.sending ? " disabled" : "") + '>Send trade</button>' + (tsrTr.picks.length ? '<button type="button" class="tsr-btn ghost" data-tr="clear">Clear all</button>' : "") + '</div>';
+    h += '<div class="tsr-msg' + (tsrTr.bad ? " bad" : "") + '" id="trMsg">' + tsrEsc(tsrTr.msg) + '</div>';
+    var st = tsrTrStatus(sender, "Giver") + tsrTrStatus(tsrTrAcc(tsrTr.partner.trim()), "Receiver");
+    if (st) h += '<div class="tsr-sec">Last reported status</div>' + st;
+    tsrTrSig = tsrTrSigNow();
+    return h;
+  }
+  function tsrTrSay(t, bad) { tsrTr.msg = t; tsrTr.bad = !!bad; var m = $("trMsg"); if (m) { m.textContent = t; m.classList.toggle("bad", !!bad); } }
+  function tsrTrRefresh() {
+    var f = document.activeElement;
+    if (tsrTrSigNow() !== tsrTrSig && !(f && f.closest && f.closest("#tsrTrade") && (f.tagName === "INPUT" || f.tagName === "SELECT"))) tsrRender(5);
+  }
+  document.addEventListener("input", function (e) {
+    var t = e.target; if (!t || !t.dataset || !t.closest || !t.closest("#tsrTrade")) return;
+    if (t.dataset.tr === "partner") tsrTr.partner = t.value;
+    else if (t.dataset.tr === "delay") tsrTr.delay = t.value;
+    else if (t.dataset.tr === "qty") tsrTr.qty = t.value;
+  });
+  document.addEventListener("change", function (e) {
+    var t = e.target; if (!t || !t.dataset || !t.closest || !t.closest("#tsrTrade")) return;
+    if (t.dataset.tr === "sender") { tsrTr.sender = t.value; tsrTr.picks = []; tsrTr.pet = ""; tsrTr.msg = ""; tsrRender(5); }
+    else if (t.dataset.tr === "pet") tsrTr.pet = t.value;
+  });
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest ? e.target.closest("#tsrTrade [data-tr]") : null;
+    if (!b || b.tagName === "INPUT" || b.tagName === "SELECT") return;
+    var act = b.dataset.tr;
+    if (act === "add" || act === "addall") {
+      var p = tsrTrPets().filter(function (x) { return tsrTrKey(x) === tsrTr.pet; })[0]; if (!p) return;
+      var want = act === "addall" ? p.count : Math.floor(Number(tsrTr.qty) || 1);
+      var n = Math.min(want, tsrTrLeft(p), 20 - tsrTrTotal());
+      if (n < 1) { tsrTrSay(tsrTrTotal() >= 20 ? "A trade holds at most 20 pets." : "Pick a number of at least 1.", true); return; }
+      var ex = tsrTr.picks.filter(function (x) { return tsrTrKey(x) === tsrTrKey(p); })[0];
+      if (ex) ex.count += n; else tsrTr.picks.push({ name: p.name, tier: p.tier, count: n });
+      tsrTr.msg = ""; tsrRender(5);
+    }
+    else if (act === "rm") { tsrTr.picks.splice(+b.dataset.i, 1); tsrRender(5); }
+    else if (act === "clear") { tsrTr.picks = []; tsrTr.msg = ""; tsrRender(5); }
+    else if (act === "send") {
+      var partner = tsrTr.partner.trim();
+      if (!/^[A-Za-z0-9_]{3,20}$/.test(partner)) { tsrTrSay("Type the partner\u2019s Roblox username (3-20 letters, numbers or _).", true); return; }
+      if (partner.toLowerCase() === tsrTr.sender.toLowerCase()) { tsrTrSay("Giver and receiver are the same account.", true); return; }
+      if (!tsrTr.picks.length) { tsrTrSay("Add at least one pet first.", true); return; }
+      var summary = tsrTr.picks.map(function (x) { return x.count + "x " + x.tier + " " + x.name; }).join(", ");
+      if (!confirm("Send " + summary + " from " + tsrTr.sender + " to " + partner + "?")) return;
+      tsrTr.sending = true; tsrTrSay("Sending\u2026"); tsrRender(5);
+      tsrApi("/admin/trade", { sender: tsrTr.sender, partner: partner, pets: tsrTr.picks, readyDelay: Math.min(60, Math.max(1, Math.floor(Number(tsrTr.delay)) || 6)) }).then(function (d) {
+        tsrTr.sending = false;
+        if (d._status === 200) {
+          var m = "Queued " + d.total + " pet" + (d.total === 1 ? "" : "s") + " for " + d.queued.join(" + ") + ".";
+          if (!d.partnerIsOurs) m += " " + partner + " is not one of your accounts, so they must accept the request and press Ready themselves.";
+          if ((d.offline || []).length) m += " Offline right now: " + d.offline.join(", ") + " (it still runs if they reconnect within 5 minutes).";
+          tsrTr.picks = []; tsrTrSay(m, false);
+        } else tsrTrSay(d._status === 404 && !d.error ? "Your Worker doesn\u2019t support trades yet. Deploy the latest Tapsim.js." : (d.error || "Couldn\u2019t queue the trade."), true);
+        tsrRender(5);
+      }).catch(function () { tsrTr.sending = false; tsrTrSay("Couldn\u2019t reach the Worker.", true); tsrRender(5); });
+    }
+  });
+
   function tsrDDSet(open) { tsrDDOpen = open; var dd = $("tsrDD"); if (dd) dd.classList.toggle("open", open); }
   document.addEventListener("click", function (e) {
     if (tsrDDOpen && !(e.target.closest && e.target.closest("#tsrDD"))) tsrDDSet(false);
     var b = e.target.closest ? e.target.closest("[data-tsr]") : null;
     if (!b) return;
     var act = b.dataset.tsr, pgNow = +$("pgSel").value;
-    if (act === "save") { var v = ($("tsrKeyIn").value || "").trim(); if (v) { tsrSetKey(v); tsrAuthBad = false; tsrAuthed = false; tsrErr = ""; tsrGate(); tsrRender(pgNow); tsrLoad(); } }
-    else if (act === "logout") {
-      tsrSetKey(""); tsrAuthed = false; tsrAuthBad = false; tsrErr = ""; tsrData = []; tsrScripts = null; tsrScriptsErr = ""; tsrEdit = null; tsrDDOpen = false; tsrMsgTxt = "";
+    if (act === "save") {
+      var v = ($("tsrKeyIn").value || "").trim();
+      if (v) {
+        b.disabled = true;
+        fetch(TSR_WORKER + "/admin/login", { method: "POST", headers: { "x-admin-key": v }, cache: "no-store" })
+          .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { s: r.status, d: d }; }); })
+          .then(function (x) {
+            if (x.s === 200) { tsrSetKey(v); tsrAuthBad = false; tsrAuthed = false; tsrErr = ""; tsrGate(); tsrRender(+$("pgSel").value); tsrLoad(); return; }
+            tsrAuthBad = true; tsrAuthMsg = tsrAuthText(x.d && x.d.error); tsrRender(+$("pgSel").value);
+          })
+          .catch(function () { tsrErr = "Couldn\u2019t reach the Tap simulator Worker. Check your connection."; tsrRender(+$("pgSel").value); });
+      }
+    }
+    else if (act === "days") { tsrNewDays = +b.dataset.d; document.querySelectorAll("#tsrKDays button").forEach(function (x) { x.classList.toggle("on", +x.dataset.d === tsrNewDays); }); }
+    else if (act === "kcreate") {
+      tsrAdErr = "";
+      b.disabled = true;
+      tsrApi("/admin/keys", { label: $("tsrKLabel").value, password: $("tsrKPass").value, days: tsrNewDays }).then(function (d) {
+        b.disabled = false;
+        if (d._status === 200) { tsrReveal = { label: d.label, key: d.key }; return tsrLoadAdmin().then(function () { tsrRender(4); }); }
+        tsrAdErr = d.error || "Couldn\u2019t create the key."; tsrRender(4);
+      }).catch(function () { b.disabled = false; tsrAdErr = "Couldn\u2019t reach the Worker."; tsrRender(4); });
+    }
+    else if (act === "kcopy") { try { navigator.clipboard.writeText(tsrReveal.key); b.textContent = "Copied"; } catch (e) { b.textContent = "Select it and copy"; } }
+    else if (act === "kdone") { tsrReveal = null; tsrRender(4); }
+    else if (act === "krevoke") {
+      var kk = (tsrKeys || []).filter(function (x) { return x.id === b.dataset.id; })[0];
+      if (!kk || !confirm("Delete the key for \u201c" + kk.label + "\u201d? This cannot be undone. Use Disable to pause it instead.")) return;
+      tsrApi("/admin/keys/delete", { id: kk.id }).then(function () { return tsrLoadAdmin(); }).then(tsrAdPaint);
+    }
+    else if (act === "ktoggle") {
+      var tk = (tsrKeys || []).filter(function (x) { return x.id === b.dataset.id; })[0];
+      if (!tk) return;
+      tsrApi("/admin/keys/update", { id: tk.id, disabled: !tk.disabled }).then(function () { return tsrLoadAdmin(); }).then(tsrAdPaint);
+    }
+    else if (act === "petsel") { tsrInvSel = (tsrInvSel === b.dataset.k) ? "" : b.dataset.k; tsrInvPaint(); }
+    else if (act === "adminpanel") { tsrOpenAdmin(); }
+    else if (act === "logf") { tsrLogFilter = b.dataset.f; tsrAdPaint(); }
+    else if (act === "logrefresh") { tsrLoadAdmin().then(tsrAdPaint); }
+    else if (act === "logout") { tsrInvSel = ""; tsrInvQ = "";
+      tsrSetKey(""); tsrAuthed = false; tsrAuthBad = false; tsrAuthMsg = ""; tsrErr = ""; tsrData = []; tsrScripts = null; tsrScriptsErr = ""; tsrEdit = null; tsrDDOpen = false; tsrMsgTxt = ""; tsrRole = ""; tsrWho = ""; tsrExp = 0; tsrPerms = {}; tsrKeys = null; tsrLogs = null; tsrReveal = null; tsrAdErr = "";
       tsrGate(); tsrRender(pgNow);
     }
     else if (act === "tab") { tsrInvTab = +b.dataset.i || 0; tsrFresh(pgNow); tsrRender(pgNow); }
@@ -5805,6 +6145,7 @@ document.addEventListener("DOMContentLoaded", function () {
     calcBgShow(ch === 2 || ch === 3 || (live && (pg >= 2 || unlocked)));   // Wiki, Calculator, Join and the whole Discord channel share ONE video that keeps playing when you switch between them; not on Egg Notifiers
     $("blank").hidden = live || ch === 2 || ch === 3;
     document.body.classList.toggle("tsrMode", ch === 3);
+    document.body.classList.toggle("notEgg", ch !== 1);   // Welcome / Logout / Manage belong to Steal an egg only
     if (ch !== 1) { try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {} }   // leaving Steal an egg cuts off any voice still talking
     tsrShow(ch, pg);
     tsrGate();
@@ -6019,7 +6360,7 @@ document.addEventListener("DOMContentLoaded", function () {
   })();
 
   // ---------- tab / channel switch animations ----------
-  var VIEW_IDS = ["left", "right", "nfWrap", "guestWrap", "joinCard", "valDetail", "valuesPage", "calcPage", "fusionPage", "verifyPage", "soonPage", "tsrStatus", "tsrInv", "tsrScripts", "blank"];
+  var VIEW_IDS = ["left", "right", "nfWrap", "guestWrap", "joinCard", "valDetail", "valuesPage", "calcPage", "fusionPage", "verifyPage", "soonPage", "tsrStatus", "tsrInv", "tsrScripts", "tsrTrade", "blank"];
   var curCh, curPg, running = [], inflight = false;
   function reduced() { return window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches; }
   function canAnim() { return !reduced() && !!document.body.animate; }
@@ -6547,6 +6888,14 @@ a.nf-card:hover{transform:translateY(-2px);border-color:#777;background:rgba(255
 .nf-card.glow .nf-val{animation-direction:reverse}
 
 @media(prefers-reduced-motion:reduce){.nf-dot,.nf-card.new,.nf-card,.nf-card.glow .nf-name,.nf-card.glow .nf-val,.nf-card.glow .nf-meta{animation:none!important;transition:none!important}}
+</style>
+<style>
+.tr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-bottom:8px}
+.tr-box{display:flex;flex-direction:column;gap:6px;padding:14px;background:rgba(0,0,0,.30);border:1px solid #2c2c2c;border-radius:12px}
+.tr-lbl{margin-top:8px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#bbb}.tr-lbl:first-child{margin-top:0}
+.tr-box select,.tr-box input{padding:10px 14px;background:rgba(0,0,0,.38);color:#f5f5f5;border:1px solid #333;border-radius:10px;font-size:13px;font-family:inherit;width:100%;box-sizing:border-box}
+.tr-box select:focus,.tr-box input:focus{outline:2px solid rgba(255,255,255,.65);outline-offset:1px;border-color:#888}
+.tr-add{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.tr-add input{width:90px;flex:none}
 </style>
 </body>
 </html>
