@@ -680,6 +680,55 @@ body.wkSearching .vdet *{ animation:none !important; }
   #valDetail *,#valuesPage *,#valDetail .vimg{animation:none !important;transition:none !important}
 }
 
+
+/* ---- Tap simulator: same look as Calculator / Wiki / Fusion ---- */
+.tsr{grid-column:1 / -1;justify-self:center;width:100%;max-width:1500px;align-self:start;margin-top:8px;box-sizing:border-box;padding:22px;
+  background:rgba(0,0,0,.30);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.12);border-radius:16px;color:#f5f5f5;box-shadow:0 12px 36px rgba(0,0,0,.16)}
+@media(max-width:1200px){.tsr{grid-column:1}}
+.tsr h2{display:block;margin:0 0 4px;padding:0;font-size:30px;font-weight:800;letter-spacing:-.02em;color:#fff;text-shadow:none}
+.tsr .tsr-sub{margin:4px 0 16px;color:#e0e0e0;font-size:13px;letter-spacing:0;text-shadow:0 1px 3px rgba(0,0,0,.9)}
+.tsr-head{margin:0 0 16px;padding:0 0 14px;border-bottom:1px solid rgba(255,255,255,.12)}
+.tsr-head h2{margin:0}.tsr-head .tsr-sub{margin:4px 0 0}
+.tsr-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 22px}
+.tsr-tabs button{padding:8px 14px;border:1px solid #333;background:rgba(0,0,0,.30);color:#cfcfcf;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;transition:border-color .15s,color .15s,background .15s}
+.tsr-tabs button:hover{border-color:#888;color:#fff}
+.tsr-tabs button.on{background:#fff;color:#0a0a0a;border-color:#fff}
+.tsr-scroll{overflow-x:auto}
+.tsr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:26px}
+.tsr-grid.five{grid-template-columns:repeat(5,minmax(200px,1fr));min-width:1060px}
+.tsr-card{background:none;border:0;border-radius:0;padding:0;min-width:0}
+.tsr-name{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.12);color:#fff;text-shadow:none;word-break:break-all}
+.tsr-dot{width:9px;height:9px;border-radius:50%;background:#555;flex:none}
+.tsr-dot.on{background:#fff;box-shadow:0 0 10px rgba(255,255,255,.6);animation:tsrPulse 2.8s ease-in-out infinite}
+.tsr-dot.on.hatch{background:#fff;box-shadow:0 0 14px rgba(255,255,255,.9)}
+.tsr-tag{margin-left:auto;padding:3px 10px;border:1px solid #666;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:0;text-transform:none;color:#ddd}
+.tsr-tag.hatch{background:#fff;color:#0a0a0a;border-color:#fff;text-shadow:none}
+.tsr-kv{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:6px 0;border-top:1px solid #2c2c2c;font-variant-numeric:tabular-nums;text-shadow:0 1px 3px rgba(0,0,0,.9)}
+.tsr-kv:first-of-type{border-top:0}
+.tsr-kv span:first-child{color:#d4d4d4;min-width:0;word-break:break-word}
+.tsr-kv span:last-child{color:#f5f5f5;font-weight:700;text-align:right;white-space:nowrap}
+.tsr-sec{font-size:12px;font-weight:700;letter-spacing:0;text-transform:none;color:#fff;margin:18px 0 6px;padding:6px 10px;background:rgba(255,255,255,.055);border:1px solid #292929;border-radius:8px}
+.tsr-warn{color:#aaa;font-size:12px;margin:8px 0}
+.tsr-empty{padding:34px 10px;text-align:center;color:#ccc;font-size:13px}
+.tsr-key{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.tsr-key input,.tsr-bar select{padding:10px 14px;background:rgba(0,0,0,.38);color:#f5f5f5;border:1px solid #333;border-radius:10px;font-size:13px}
+.tsr-key input:focus,.tsr-bar select:focus{outline:2px solid rgba(255,255,255,.65);outline-offset:1px;border-color:#888}
+.tsr-btn{padding:8px 16px;background:#fff;color:#0a0a0a;border:1px solid #fff;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer;transition:background .15s}
+.tsr-btn:hover{background:#eee}
+.tsr-btn.ghost{background:rgba(0,0,0,.30);color:#cfcfcf;border-color:#333}
+.tsr-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.tsr-msg{margin-top:14px;font-size:13px;color:#ccc;min-height:18px}
+.tsr-sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.tsr-sbtn{text-align:left;padding:14px 16px;background:rgba(12,12,12,.68);color:#fff;border:1px solid #303030;border-radius:10px;cursor:pointer;font-size:14px;font-weight:700;transition:border-color .16s,background .16s}
+.tsr-sbtn:hover{border-color:#777;background:rgba(255,255,255,.07)}
+.tsr-sbtn small{display:block;margin-top:4px;font-size:12px;font-weight:400;color:#bbb}
+.tsr button:focus-visible,.tsr input:focus-visible,.tsr select:focus-visible{outline:2px solid #fff;outline-offset:2px}
+/* the top bar matches too */
+body.tsrMode .pages{background:rgba(0,0,0,.30);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.12)}
+body.tsrMode .pages select{background:rgba(0,0,0,.38);border-color:#333;font-weight:700}
+@keyframes tsrPulse{0%,100%{opacity:1}50%{opacity:.45}}
+@media (prefers-reduced-motion:reduce){.tsr-dot.on{animation:none}}
 </style>
 </head>
 <body>
@@ -693,7 +742,7 @@ body.wkSearching .vdet *{ animation:none !important; }
   <select id="chSel">
     <option value="1">Steal an egg</option>
     <option value="2">Discord</option>
-    <option value="3">Genshin Impact</option>
+    <option value="3">Tap simulator</option>
   </select>
   <label for="pgSel">Pages</label>
   <select id="pgSel">
@@ -1013,6 +1062,11 @@ body.wkSearching .vdet *{ animation:none !important; }
   <h1 id="soonTitle">Coming soon</h1>
   <p>This page is empty for now.</p>
 </div>
+
+
+<section class="panel tsr" id="tsrStatus" hidden><div class="tsr-body"></div></section>
+<section class="panel tsr" id="tsrInv" hidden><div class="tsr-body"></div></section>
+<section class="panel tsr" id="tsrScripts" hidden><div class="tsr-body"></div></section>
 
 <div id="wallLabel"></div>
 
@@ -5406,11 +5460,111 @@ document.addEventListener("DOMContentLoaded", function () {
   $("fusionPage").addEventListener("change", fuRender);
   fuRender();
 
+
+  // ---------- Tap simulator channel (status, inventory, scripts) ----------
+  var TSR_WORKER = "https://tsr-hub.asaiyamain.workers.dev";
+  // Scripts page buttons. Add yours here: { id: "name-for-the-worker", label: "Button text", desc: "One line about it" }
+  var TSR_SCRIPTS = [
+    { id: "example-1", label: "Example script 1", desc: "Replace me in TSR_SCRIPTS" },
+    { id: "example-2", label: "Example script 2", desc: "Replace me in TSR_SCRIPTS" }
+  ];
+  var tsrInvTab = 0, tsrData = [], tsrTimer = 0, tsrErr = "", tsrAuthBad = false;
+  function tsrEsc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function tsrKey() { try { return localStorage.getItem("tsrAdminKey") || ""; } catch (e) { return ""; } }
+  function tsrSetKey(v) { try { v ? localStorage.setItem("tsrAdminKey", v) : localStorage.removeItem("tsrAdminKey"); } catch (e) {} }
+  function tsrAgo(s) { return s < 60 ? s + "s ago" : s < 3600 ? Math.round(s / 60) + " min ago" : Math.round(s / 3600) + " h ago"; }
+  function tsrKv(a, b) { return '<div class="tsr-kv"><span>' + tsrEsc(a) + '</span><span>' + tsrEsc(b) + '</span></div>'; }
+  function tsrPets(a) { return a.pets || {}; }
+  function tsrKeyBox() {
+    return '<div class="tsr-empty">Enter your Tap simulator admin key to load your accounts.<div class="tsr-key" style="justify-content:center"><input type="password" id="tsrKeyIn" placeholder="Admin key" autocomplete="off"><button class="tsr-btn" type="button" data-tsr="save">Connect</button></div>' + (tsrAuthBad ? '<div class="tsr-warn">That key was rejected. Check it and try again.</div>' : '') + '</div>';
+  }
+  function tsrStatusHtml() {
+    var on = tsrData.filter(function (a) { return a.online; }).length;
+    var h = '<h2>Status</h2><p class="tsr-sub">' + on + ' of ' + tsrData.length + ' accounts online</p><div class="tsr-grid">';
+    h += tsrData.map(function (a) {
+      var p = tsrPets(a);
+      return '<div class="tsr-card"><div class="tsr-name"><span class="tsr-dot ' + (a.online ? "on" : "") + (a.online && a.hatching ? " hatch" : "") + '"></span>' + tsrEsc(a.name) + '<span class="tsr-tag' + (a.online && a.hatching ? " hatch" : "") + '">' + tsrEsc(a.status || (a.online ? "Online" : "Offline")) + '</span></div>'
+        + tsrKv("Activity", a.status || (a.online ? (a.state || "online") : "offline")) + tsrKv("Last heartbeat", tsrAgo(a.ageSeconds))
+        + tsrKv("Pets", (p.owned != null ? p.owned : "?") + " / " + (p.capacity != null ? p.capacity : "?"))
+        + tsrKv("Equipped", (p.equippedCount != null ? p.equippedCount : "?") + " / " + (p.equippedMax != null ? p.equippedMax : "?")) + '</div>';
+    }).join("");
+    return h + '</div>';
+  }
+  function tsrInvHtml() {
+    var PER = 5, pages = Math.max(1, Math.ceil(tsrData.length / PER));
+    if (tsrInvTab >= pages) tsrInvTab = pages - 1;
+    var h = '<div class="tsr-head"><h2>Inventory</h2><p class="tsr-sub">Pets on each account</p></div>';
+    if (pages > 1) {
+      h += '<div class="tsr-tabs">';
+      for (var i = 0; i < pages; i++) {
+        var lo = i * PER + 1, hi = Math.min(tsrData.length, (i + 1) * PER);
+        h += '<button type="button" data-tsr="tab" data-i="' + i + '"' + (i === tsrInvTab ? ' class="on"' : '') + '>' + (lo === hi ? lo : lo + '\u2013' + hi) + '</button>';
+      }
+      h += '</div>';
+    }
+    h += '<div class="tsr-scroll"><div class="tsr-grid five">';
+    h += tsrData.slice(tsrInvTab * PER, tsrInvTab * PER + PER).map(function (a) {
+      var p = tsrPets(a), eq = p.equipped || [], g = p.grouped || [];
+      var c = '<div class="tsr-card"><div class="tsr-name"><span class="tsr-dot ' + (a.online ? "on" : "") + '"></span>' + tsrEsc(a.name) + '</div>';
+      c += tsrKv("Pets owned", (p.owned != null ? p.owned : "?") + " / " + (p.capacity != null ? p.capacity : "?"));
+      if (p.owned != null && p.scanned != null && p.scanned < p.owned) c += '<div class="tsr-warn">Showing ' + p.scanned + ' of ' + p.owned + ' pets' + (p.stale ? " (older scan)" : "") + '.</div>';
+      c += '<div class="tsr-sec">Equipped</div>' + (eq.length ? eq.map(function (x) { return tsrKv(x.name + " (" + x.tier + ")", x.multi || ""); }).join("") : '<div class="tsr-sub">None scanned yet</div>');
+      c += '<div class="tsr-sec">All pets</div>' + (g.length ? g.map(function (x) { return tsrKv(x.name + " (" + x.tier + ")", "x" + x.count); }).join("") : '<div class="tsr-sub">None scanned yet</div>');
+      return c + '</div>';
+    }).join("");
+    return h + '</div></div>';
+  }
+  function tsrScriptsHtml() {
+    var opts = '<option value="*">All accounts</option>' + tsrData.map(function (a) { return '<option value="' + tsrEsc(a.name) + '">' + tsrEsc(a.name) + '</option>'; }).join("");
+    var h = '<h2>Scripts</h2><p class="tsr-sub">Pick an account, then press a script.</p><div class="tsr-bar"><select id="tsrTarget" aria-label="Account">' + opts + '</select></div><div class="tsr-sgrid">';
+    h += TSR_SCRIPTS.map(function (s) { return '<button class="tsr-sbtn" type="button" data-tsr="run" data-id="' + tsrEsc(s.id) + '">' + tsrEsc(s.label) + '<small>' + tsrEsc(s.desc) + '</small></button>'; }).join("");
+    return h + '</div><div class="tsr-msg" id="tsrMsg"></div>';
+  }
+  function tsrShow(ch, pg) {
+    var on = ch === 3, ids = ["tsrStatus", "tsrInv", "tsrScripts"];
+    ids.forEach(function (id, i) { $(id).hidden = !(on && pg === i + 1); });
+    clearInterval(tsrTimer);
+    if (!on) return;
+    tsrRender(pg);
+    tsrLoad();
+    tsrTimer = setInterval(tsrLoad, 10000);
+  }
+  function tsrRender(pg) {
+    var ids = ["tsrStatus", "tsrInv", "tsrScripts"], box = $(ids[pg - 1]).querySelector(".tsr-body");
+    if (!tsrKey()) { box.innerHTML = tsrKeyBox(); return; }
+    if (tsrErr) { box.innerHTML = '<div class="tsr-empty">' + tsrEsc(tsrErr) + '</div>'; return; }
+    if (pg === 3) { var cur = $("tsrTarget") ? $("tsrTarget").value : ""; box.innerHTML = tsrScriptsHtml(); if (cur && $("tsrTarget")) $("tsrTarget").value = cur; return; }
+    if (!tsrData.length) { box.innerHTML = '<div class="tsr-empty">No accounts yet. Run the agent script in game.</div>'; return; }
+    box.innerHTML = pg === 1 ? tsrStatusHtml() : tsrInvHtml();
+  }
+  function tsrLoad() {
+    var ch = +$("chSel").value, pg = +$("pgSel").value;
+    if (ch !== 3 || !tsrKey()) return;
+    fetch(TSR_WORKER + "/admin/accounts", { headers: { "x-admin-key": tsrKey() }, cache: "no-store" })
+      .then(function (r) {
+        if (r.status === 401) { tsrSetKey(""); tsrAuthBad = true; tsrErr = ""; return null; }
+        return r.json();
+      })
+      .then(function (d) { if (d) { tsrData = d.accounts || []; tsrErr = ""; tsrAuthBad = false; } })
+      .catch(function () { tsrErr = "Couldn\u2019t reach the Tap simulator Worker. Check your connection."; })
+      .then(function () { if (+$("chSel").value === 3 && !(pg === 3 && document.activeElement && document.activeElement.id === "tsrTarget")) tsrRender(+$("pgSel").value); });
+  }
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest ? e.target.closest("[data-tsr]") : null;
+    if (!b) return;
+    if (b.dataset.tsr === "save") { var v = ($("tsrKeyIn").value || "").trim(); if (v) { tsrSetKey(v); tsrAuthBad = false; tsrLoad(); tsrRender(+$("pgSel").value); } }
+    if (b.dataset.tsr === "tab") { tsrInvTab = +b.dataset.i || 0; tsrRender(+$("pgSel").value); }
+    if (b.dataset.tsr === "run") {
+      var m = $("tsrMsg"); if (m) m.textContent = "\u201c" + b.textContent.replace(/\s+/g, " ").trim() + "\u201d is set up, but sending scripts to accounts isn\u2019t connected yet.";
+    }
+  });
+  document.addEventListener("keydown", function (e) { if (e.key === "Enter" && e.target && e.target.id === "tsrKeyIn") { var b = document.querySelector('[data-tsr="save"]'); if (b) b.click(); } });
+
     // ---------- channels and pages ----------
   var PAGES = {
     1: [[1, "Egg Notifiers"], [2, "Egg Wiki"], [3, "Egg Calculator"], [5, "Egg Fusion"]],   // "Join" (page 4) is hidden: fillPages adds it only when the site was opened from a join link
     2: [[1, "Verification", "verification"], [2, "Roles", "roles"], [3, "Server Stuff", "server-stuff"]],
-    3: []
+    3: [[1, "Status"], [2, "Inventory"], [3, "Scripts"]]
   };
   function fillPages(ch, pg) {
     var sel = $("pgSel"), list = PAGES[ch] || [];
@@ -5435,7 +5589,7 @@ document.addEventListener("DOMContentLoaded", function () {
     $("keyBox").classList.toggle("offpage", !notifier);   // "Input key" only on Steal an egg > Notifiers
     $("discordTop").hidden = !(live || ch === 2);   // FOR EVERY NEW PAGE, ADD THE DISCORD BUTTON ON THE TOP RIGHT (shows on every page of channel 1 automatically)
     $("donateTop").hidden = !live;                  // FOR EVERY NEW PAGE, ADD THE DONATE BUTTON ON THE TOP LEFT (Steal an egg channel only)
-    $("pgSel").disabled = !(live || ch === 2);
+    $("pgSel").disabled = !(live || ch === 2 || ch === 3);
     $("left").hidden = !(notifier && open && LAYOUT !== "guest");
     $("right").hidden = !(notifier && open && LAYOUT !== "guest");
     var nfOn = notifier && open && LAYOUT !== "guest";
@@ -5454,8 +5608,10 @@ document.addEventListener("DOMContentLoaded", function () {
     $("valuesPage").hidden = !(live && pg === 2);
     $("calcPage").hidden = !(live && pg === 3);
     $("fusionPage").hidden = !(live && pg === 5);
-    calcBgShow(ch === 2 || (live && (pg >= 2 || unlocked)));   // Wiki, Calculator, Join and the whole Discord channel share ONE video that keeps playing when you switch between them; not on Egg Notifiers
-    $("blank").hidden = live || ch === 2;
+    calcBgShow(ch === 2 || ch === 3 || (live && (pg >= 2 || unlocked)));   // Wiki, Calculator, Join and the whole Discord channel share ONE video that keeps playing when you switch between them; not on Egg Notifiers
+    $("blank").hidden = live || ch === 2 || ch === 3;
+    document.body.classList.toggle("tsrMode", ch === 3);
+    tsrShow(ch, pg);
     $("verifyPage").hidden = !(ch === 2 && pg === 1);
     $("soonPage").hidden = !(ch === 2 && pg >= 2);
     $("soonTitle").textContent = pg === 3 ? "Server Stuff" : "Roles";
@@ -5667,7 +5823,7 @@ document.addEventListener("DOMContentLoaded", function () {
   })();
 
   // ---------- tab / channel switch animations ----------
-  var VIEW_IDS = ["left", "right", "nfWrap", "guestWrap", "joinCard", "valDetail", "valuesPage", "calcPage", "fusionPage", "verifyPage", "soonPage", "blank"];
+  var VIEW_IDS = ["left", "right", "nfWrap", "guestWrap", "joinCard", "valDetail", "valuesPage", "calcPage", "fusionPage", "verifyPage", "soonPage", "tsrStatus", "tsrInv", "tsrScripts", "blank"];
   var curCh, curPg, running = [], inflight = false;
   function reduced() { return window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches; }
   function canAnim() { return !reduced() && !!document.body.animate; }
