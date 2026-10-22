@@ -881,11 +881,22 @@ body.tsrMode #tsrAdminBtn:not([hidden]){animation:tsrPop .45s cubic-bezier(.3,1.
 </style>
 </head>
 <body>
+<!-- ============================================================
+ SITE MAP (search for the banners below with "=====")
+ * STEAL AN EGG CHANNEL: Egg Notifiers, Egg Wiki, Egg Calculator, Egg Fusion, Join (hidden)
+ * DISCORD CHANNEL: Verification (working), Roles + Server Stuff (empty)
+ * TAP SIMULATOR CHANNEL: Status, Inventory, Scripts, Trade (admin), Admin Panel (popup)
+ * SHARED: Channels/Pages bar, channel + page switching, Inexistent card
+ ============================================================ -->
 <!-- FOR EVERY NEW PAGE, ADD THE DISCORD BUTTON ON THE TOP RIGHT -->
 <a id="discordTop" class="discord" href="https://discord.gg/W0RST" target="_blank" rel="noopener noreferrer">Press to Press to join our discord server.</a>
 <!-- FOR EVERY NEW PAGE, ADD THE DONATE BUTTON ON THE TOP LEFT (showView shows it on every page of channel 1 automatically) -->
 <button id="donateTop" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>Donate</button>
 
+<!-- ============================================================
+ SHARED: Channels + Pages bar (top of every channel)
+ * The two dropdowns that switch channel and page. The page list is filled by PAGES in the script below.
+ ============================================================ -->
 <nav class="pages" id="pages">
   <label for="chSel">Channels</label>
   <select id="chSel">
@@ -903,6 +914,11 @@ body.tsrMode #tsrAdminBtn:not([hidden]){animation:tsrPop .45s cubic-bezier(.3,1.
   <span id="tsrWho" hidden></span><button type="button" id="tsrAdminBtn" data-tsr="adminpanel" hidden>Admin Panel</button><button type="button" id="tsrLogout" data-tsr="logout" hidden>Log out</button>
 </nav>
 
+<!-- ============================================================
+ STEAL AN EGG CHANNEL > PAGE: Egg Notifiers
+ * Live rare egg feed. Visitors (no key) see the how-to + webhook panel.
+ * Admin / guest keys see Egg Values, Notifying Eggs, Accounts, Admin Dropdown and the live feed.
+ ============================================================ -->
 <section id="left">
   <div class="filters">
     <details class="panel" id="vals">
@@ -992,6 +1008,10 @@ body.tsrMode #tsrAdminBtn:not([hidden]){animation:tsrPop .45s cubic-bezier(.3,1.
 
 </section>
 
+<!-- ============================================================
+ STEAL AN EGG CHANNEL > PAGE: Join (hidden)
+ * Only appears when the site is opened from a server join link. Opens Roblox.
+ ============================================================ -->
 <div class="card" id="joinCard">
   <div id="eggbox" hidden></div>
   <h1 id="title">Joining server...</h1>
@@ -1000,11 +1020,19 @@ body.tsrMode #tsrAdminBtn:not([hidden]){animation:tsrPop .45s cubic-bezier(.3,1.
   <code id="raw"></code>
 </div>
 
+<!-- ============================================================
+ SHARED: "Inexistent" fallback card
+ * Shown for any channel/page that has no content.
+ ============================================================ -->
 <div class="card" id="blank" hidden>
   <h1>Inexistent</h1>
   <p>This page doesn't exist yet.</p>
 </div>
 
+<!-- ============================================================
+ STEAL AN EGG CHANNEL > Egg Notifiers (continued): Webhook panel
+ * 3 webhook slots, ping (role / user / everyone) and rarity picker.
+ ============================================================ -->
 <aside class="panel" id="right">
   <h2>Webhook</h2>
   <div class="slots" id="slots">
@@ -1040,6 +1068,10 @@ body.tsrMode #tsrAdminBtn:not([hidden]){animation:tsrPop .45s cubic-bezier(.3,1.
 
 </aside>
 
+<!-- ============================================================
+ STEAL AN EGG CHANNEL > Egg Notifiers (continued): Feed
+ * "Right now" cards, History list, filters and search.
+ ============================================================ -->
 <!-- Egg Notifiers feed: "Right now" + "History" -->
 <section id="nfWrap" hidden>
   <div id="nfNow">
@@ -1069,6 +1101,10 @@ body.tsrMode #tsrAdminBtn:not([hidden]){animation:tsrPop .45s cubic-bezier(.3,1.
 </section>
 
 <div id="calcBg" hidden><video muted loop autoplay playsinline preload="auto"></video></div>
+<!-- ============================================================
+ STEAL AN EGG CHANNEL > PAGE: Egg Calculator
+ * Value / income calculator: egg or pet, weight, hatch time, variants, mutations, boosts.
+ ============================================================ -->
 <!-- Page: Egg Calculator -->
 <section class="panel" id="calcPage" hidden>
   <h2 class="cc-title">Value Calculator</h2>
@@ -1178,6 +1214,10 @@ body.tsrMode #tsrAdminBtn:not([hidden]){animation:tsrPop .45s cubic-bezier(.3,1.
 }
 @media(prefers-reduced-motion:reduce){.fu-big b.pop{animation:none}.fu-card,.fu-chip{transition:none}}
 </style>
+<!-- ============================================================
+ STEAL AN EGG CHANNEL > PAGE: Egg Fusion
+ * Fusion result calculator (Equinox, Aetheron, Enchanted Forest) with a 2x Money toggle.
+ ============================================================ -->
 <!-- Page: Egg Fusion -->
 <section class="panel" id="fusionPage" hidden>
   <div class="fu-top">
@@ -1188,6 +1228,10 @@ body.tsrMode #tsrAdminBtn:not([hidden]){animation:tsrPop .45s cubic-bezier(.3,1.
   <div id="fuBody"></div>
 </section>
 
+<!-- ============================================================
+ STEAL AN EGG CHANNEL > PAGE: Egg Wiki
+ * Searchable Egg/Pet list by island, with a details panel.
+ ============================================================ -->
 <!-- Page: Egg Values. Details on the left, island toggles on the right (details above the list on phones) -->
 <section class="panel" id="valDetail" hidden>
   
@@ -1200,6 +1244,11 @@ body.tsrMode #tsrAdminBtn:not([hidden]){animation:tsrPop .45s cubic-bezier(.3,1.
   <div class="wk-none" id="wkNone" hidden>No egg or pet found.</div>
 </section>
 
+<!-- ============================================================
+ DISCORD CHANNEL > PAGE: Verification
+ * Login with Discord to verify and get the server role. Shows Verified / Verification failed.
+ * Roles and Server Stuff (next card) are empty "Coming soon" pages.
+ ============================================================ -->
 <div class="card" id="verifyPage" hidden>
   <div id="vpIcon" style="font-size:44px;line-height:1" hidden></div>
   <h1 id="vpTitle">Verification</h1>
@@ -1214,6 +1263,12 @@ body.tsrMode #tsrAdminBtn:not([hidden]){animation:tsrPop .45s cubic-bezier(.3,1.
 </div>
 
 
+<!-- ============================================================
+ TAP SIMULATOR CHANNEL > PAGES: Status, Inventory, Scripts, Trade, Admin Panel
+ * Needs an admin or VIP key. Trade and the Admin Panel popup are admin only.
+ * Status = accounts online. Inventory = pets (Equipped / Secrets / Unequipped).
+ * Scripts = run Lua on accounts. Trade = send pets between accounts.
+ ============================================================ -->
 <section class="panel tsr" id="tsrStatus" hidden><div class="tsr-body"></div></section>
 <section class="panel tsr" id="tsrInv" hidden><div class="tsr-body"></div></section>
 <section class="panel tsr" id="tsrScripts" hidden><div class="tsr-body"></div></section>
@@ -1265,6 +1320,9 @@ var guestStart, guestStop, layoutHook; // filled in below
     return e;
   }
 
+  // ============================================================
+  // STEAL AN EGG CHANNEL > Egg Notifiers: alert look, egg list, page skeleton, notifier toggles
+  // ============================================================
   // ---------------- look of each alert (same as the Discord embeds) ----------------
   var META = {
     Secret:  { color: "#E74C3C", icon: "\uD83D\uDD2E", title: "SECRET EGG SPAWNED",  tag: "A Hidden Egg has appeared!" },
@@ -2141,6 +2199,10 @@ var guestStart, guestStop, layoutHook; // filled in below
   }
   function $(id) { return document.getElementById(id); }
 
+  // ============================================================
+  // STEAL AN EGG CHANNEL: main script (images, filters, feed, alarm, join, webhooks)
+  // * Everything from here to the Tap simulator section belongs to the Steal an egg channel.
+  // ============================================================
   // ---------- EGG IMAGES ----------
   // One egg per line:   "Egg Name": "https://image-link",
   // Put the link between the second pair of quotes ("" = no image yet). Keep the comma at the end.
@@ -3590,6 +3652,9 @@ var guestStart, guestStop, layoutHook; // filled in below
     });
   }
 
+  // ============================================================
+  // STEAL AN EGG CHANNEL > PAGE: Egg Calculator (data + logic)
+  // ============================================================
   // ---------- egg calculator ----------
   // Same math as the Roblox script. [name, rarity, base income per second, base weight in Kg (null = unknown), estimated?]
   var CALC_TIERS = ["Divine", "Eternal", "Secret", "Cosmic", "Mythic", "Legendary", "Epic", "Rare", "Uncommon", "Common"];
@@ -4244,6 +4309,9 @@ document.addEventListener("DOMContentLoaded", function () {
   renderHistory();
 });
 
+  // ============================================================
+  // STEAL AN EGG CHANNEL > PAGE: Egg Wiki (islands, stats, spawn chances)
+  // ============================================================
   // ---------- egg values page (islands) ----------
   var ISLANDS = [
     ["Forest", "Chicken|Dog|Bird|Burrowing Owl|Raccoon|Fox|Bear|Brr Brr Patapim"],
@@ -5424,6 +5492,9 @@ document.addEventListener("DOMContentLoaded", function () {
     $("wallLabel").textContent = (ok || locked) ? "" : v;
   }
 
+  // ============================================================
+  // STEAL AN EGG CHANNEL > PAGE: Egg Fusion (logic)
+  // ============================================================
   // ---------- Egg Fusion (logic only, no styling yet) ----------
   // Every result follows  I = B x M(W) x T
   //   B = base income of the created pet, M(W) = weight multiplier, T = traits bonus (1 + sum of (mult - 1))
@@ -5616,6 +5687,10 @@ document.addEventListener("DOMContentLoaded", function () {
   fuRender();
 
 
+  // ============================================================
+  // TAP SIMULATOR CHANNEL (Status, Inventory, Scripts, Trade, Admin Panel)
+  // * Secret pets are ONLY the names in TSR_SECRETS. Add new secrets there.
+  // ============================================================
   // ---------- Tap simulator channel (status, inventory, scripts) ----------
   var TSR_WORKER = "https://tsr-hub.asaiyamain.workers.dev";
   // Scripts live in your Worker (add / edit them on the Scripts page). Selected accounts + editor state:
@@ -5651,28 +5726,28 @@ document.addEventListener("DOMContentLoaded", function () {
   function tsrKeyBox() {
     return '<div class="tsr-empty">Enter your Tap simulator key to continue.<div class="tsr-key" style="justify-content:center"><input type="password" id="tsrKeyIn" placeholder="Key" autocomplete="off"><button class="tsr-btn" type="button" data-tsr="save">Connect</button></div>' + (tsrAuthBad ? '<div class="tsr-warn">' + tsrEsc(tsrAuthMsg || "That key was rejected. Check it and try again.") + '</div>' : '') + '</div>';
   }
+  var tsrBlur = false; try { tsrBlur = localStorage.getItem("tsrBlur") === "1"; } catch (e) {}   // Status page "Blur Username" toggle (remembered in this browser)
+  function tsrDN(name, pick) {   // name as shown on screen. pick = true in dropdowns, adds the account number so you can still tell accounts apart
+    if (!tsrBlur) return name;
+    var i = -1; for (var k = 0; k < tsrData.length; k++) if (tsrData[k].name === name) { i = k; break; }
+    return "#*#*#*#*" + (pick && i >= 0 ? " (" + (i + 1) + ")" : "");
+  }
   function tsrStatusHtml() {
-    var on = tsrData.filter(function (a) { return a.online; }).length;
-    var h = '<h2>Status</h2><p class="tsr-sub">' + on + ' of ' + tsrData.length + ' accounts online</p><div class="tsr-grid">';
-    h += tsrData.map(function (a) {
+    var list = tsrData.filter(function (a) { return !(a.ageSeconds > 86400); });   // offline for more than 24 hours: not shown on Status (still listed on the other pages until the Worker forgets it after 7 days)
+    var on = list.filter(function (a) { return a.online; }).length;
+    var h = '<div class="tsr-ttlrow"><h2>Status</h2><button type="button" class="tsr-btn' + (tsrBlur ? " on" : " ghost") + '" data-tsr="blur" aria-pressed="' + tsrBlur + '">Blur Username: ' + (tsrBlur ? "On" : "Off") + '</button></div><p class="tsr-sub">' + on + ' of ' + list.length + ' accounts online</p><div class="tsr-grid">';
+    h += list.map(function (a) {
       var p = tsrPets(a);
-      return '<div class="tsr-card"><div class="tsr-name"><span class="tsr-dot ' + (a.online ? "on" : "") + (a.online && a.hatching ? " hatch" : "") + '"></span>' + tsrEsc(a.name) + '<span class="tsr-tag' + (a.online && a.hatching ? " hatch" : "") + '">' + tsrEsc(a.status || (a.online ? "Online" : "Offline")) + '</span></div>'
+      return '<div class="tsr-card"><div class="tsr-name"><span class="tsr-dot ' + (a.online ? "on" : "") + (a.online && a.hatching ? " hatch" : "") + '"></span>' + tsrEsc(tsrDN(a.name)) + '<span class="tsr-tag' + (a.online && a.hatching ? " hatch" : "") + '">' + tsrEsc(a.status || (a.online ? "Online" : "Offline")) + '</span></div>'
         + tsrKv("Activity", a.status || (a.online ? (a.state || "online") : "offline")) + tsrKv("Last heartbeat", tsrAgo(a.ageSeconds))
         + tsrKv("Pets", (p.owned != null ? p.owned : "?") + " / " + (p.capacity != null ? p.capacity : "?"))
         + tsrKv("Equipped", (p.equippedCount != null ? p.equippedCount : "?") + " / " + (p.equippedMax != null ? p.equippedMax : "?")) + '</div>';
     }).join("");
     return h + '</div>';
   }
-  var TSR_SECRETS = { "dragon tamer": 1, "infernal lord": 1, "reanimation": 1, "cinder eye": 1, "first light": 1, "shinigami": 1 };   // secret pets get their own section
-  var tsrSecretSet = null;
-  function tsrIsSecret(x) {   // the fixed list above, plus every pet the calculator data marks as Secret (e.g. Cerberus)
-    var n = String(x.name).trim().toLowerCase();
-    if (TSR_SECRETS[n]) return true;
-    if (!tsrSecretSet) {
-      tsrSecretSet = {};
-      try { if (typeof CALC_EGGS !== "undefined") CALC_EGGS.forEach(function (e) { if (e[1] === "Secret") tsrSecretSet[String(e[0]).trim().toLowerCase()] = 1; }); } catch (e) {}
-    }
-    return !!tsrSecretSet[n];
+  var TSR_SECRETS = { "dragon tamer": 1, "infernal lord": 1, "reanimation": 1, "cinder eye": 1, "first light": 1, "shinigami": 1 };   // the ONLY secret pets in Tap simulator; add new ones here
+  function tsrIsSecret(x) {   // only the pets in TSR_SECRETS above count as secret; add new secrets to that list
+    return !!TSR_SECRETS[String(x.name).trim().toLowerCase()];
   }
   function tsrEqCounts(a) {   // "name|tier" -> how many copies are equipped
     var m = {}; ((a.pets && a.pets.equipped) || []).forEach(function (x) { var k = x.name + "|" + x.tier; m[k] = (m[k] || 0) + 1; });
@@ -5753,7 +5828,7 @@ document.addEventListener("DOMContentLoaded", function () {
     h += '<div class="tsr-scroll"><div class="tsr-grid five">';
     h += tsrData.slice(tsrInvTab * PER, tsrInvTab * PER + PER).map(function (a) {
       var p = tsrPets(a), eq = p.equipped || [], g = p.grouped || [];
-      var c = '<div class="tsr-card"><div class="tsr-name"><span class="tsr-dot ' + (a.online ? "on" : "") + '"></span>' + tsrEsc(a.name) + '</div>';
+      var c = '<div class="tsr-card"><div class="tsr-name"><span class="tsr-dot ' + (a.online ? "on" : "") + '"></span>' + tsrEsc(tsrDN(a.name)) + '</div>';
       c += tsrKv("Pets owned", (p.owned != null ? p.owned : "?") + " / " + (p.capacity != null ? p.capacity : "?"));
       if (p.owned != null && p.scanned != null && p.scanned < p.owned) c += '<div class="tsr-warn">Showing ' + p.scanned + ' of ' + p.owned + ' pets' + (p.stale ? " (older scan)" : "") + '.</div>';
       c += '<div class="tsr-grp"><div class="tsr-sec">Equipped</div>' + (eq.length ? eq.map(function (x) { return tsrPetKv(x, x.multi || "", "E"); }).join("") : '<div class="tsr-sub">None scanned yet</div>') + '</div>';
@@ -5769,7 +5844,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!n) return "No accounts";
     if (tsrSelAll || c === n) return "All accounts";
     if (c === 0) return "No accounts selected";
-    if (c === 1) { for (var k in tsrSelNames) if (tsrSelNames[k]) return k; }
+    if (c === 1) { for (var k in tsrSelNames) if (tsrSelNames[k]) return tsrDN(k, true); }
     return c + " accounts selected";
   }
   function tsrSelCount() { if (tsrSelAll) return tsrData.length; var c = 0; tsrData.forEach(function (a) { if (tsrSelNames[a.name]) c++; }); return c; }
@@ -5777,7 +5852,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function tsrDDHtml() {
     var rows = '<div class="tsr-ddrow all' + (tsrSelAll ? " on" : "") + '" style="--i:0" data-tsr="all"><i class="tsr-chk"></i><span>All accounts</span></div>';
     rows += tsrData.map(function (a, i) {
-      return '<div class="tsr-ddrow' + (tsrIsSel(a.name) ? " on" : "") + '" style="--i:' + (i + 1) + '" data-tsr="pick" data-name="' + tsrEsc(a.name) + '"><i class="tsr-chk"></i><span class="tsr-dot ' + (a.online ? "on" : "") + '"></span><span>' + tsrEsc(a.name) + '</span><em>' + (a.online ? "online" : "offline") + '</em></div>';
+      return '<div class="tsr-ddrow' + (tsrIsSel(a.name) ? " on" : "") + '" style="--i:' + (i + 1) + '" data-tsr="pick" data-name="' + tsrEsc(a.name) + '"><i class="tsr-chk"></i><span class="tsr-dot ' + (a.online ? "on" : "") + '"></span><span>' + tsrEsc(tsrDN(a.name, true)) + '</span><em>' + (a.online ? "online" : "offline") + '</em></div>';
     }).join("");
     return '<div class="tsr-dd' + (tsrDDOpen ? " open" : "") + '" id="tsrDD"><button type="button" class="tsr-ddbtn" data-tsr="dd" aria-haspopup="listbox"><span class="tsr-ddlab" id="tsrDDLab">' + tsrEsc(tsrSelLabel()) + '</span><i class="tsr-car"></i></button><div class="tsr-ddlist" role="listbox">' + rows + '</div></div>';
   }
@@ -5956,7 +6031,7 @@ document.addEventListener("DOMContentLoaded", function () {
     tsrApi("/admin/keys/update", { id: sel, days: +e.target.value }).then(function () { return tsrLoadAdmin(); }).then(tsrAdPaint);
   });
   // ---------- Tap simulator: Trade page (admin only) ----------
-  var tsrTr = { sender: "", partner: "", delay: 15, picks: [], pet: "", qty: 1, msg: "", bad: false, sending: false }, tsrTrSig = "";
+  var tsrTr = { sender: "", partner: "TheGreat_Worst", dflt: true, delay: 15, picks: [], pet: "", qty: 1, msg: "", bad: false, sending: false }, tsrTrSig = "";
   function tsrTrAcc(n) { n = n || tsrTr.sender; return tsrData.filter(function (a) { return a.name === n; })[0] || null; }
   function tsrTrPets() {   // equipped and locked pets can't be traded, so they never appear here
     var a = tsrTrAcc(); if (!a) return [];
@@ -5973,8 +6048,172 @@ document.addEventListener("DOMContentLoaded", function () {
   function tsrTrStatus(a, label) {
     var t = a && a.lastTrade; if (!t) return "";
     var ago = Math.max(0, Math.round(Date.now() / 1000 - t.at));
-    return '<div class="tsr-kv"><span>' + tsrEsc(label) + ' (' + tsrEsc(a.name) + ')</span><span style="white-space:normal">' + tsrEsc(t.stage) + ' \u00b7 ' + tsrEsc(t.msg) + ' \u00b7 ' + (ago < 60 ? ago + "s" : Math.round(ago / 60) + "m") + ' ago</span></div>';
+    return '<div class="tsr-kv"><span>' + tsrEsc(label) + ' (' + tsrEsc(tsrDN(a.name, true)) + ')</span><span style="white-space:normal">' + tsrEsc(t.stage) + ' \u00b7 ' + tsrEsc(t.msg) + ' \u00b7 ' + (ago < 60 ? ago + "s" : Math.round(ago / 60) + "m") + ' ago</span></div>';
   }
+  // ======================= MULTI TRADE =======================
+  var tsrMt = { pet: "", collector: "", sel: {}, partner: "TheGreat_Worst", dflt: true, delay: 6, job: null, loaded: false, busy: false, sending: false, open: false, msg: "", bad: false, unsupported: false };
+  var TSR_MT_BAD = /fail|skipp|stopp|dropp|timed out|offline|left the server|not |cancel|problem/i;
+  function tsrMtAcc(n) { return tsrData.filter(function (a) { return a.name === n; })[0] || null; }
+  function tsrMtElig(a, ref) { return !!(a && ref && a.online && a.jobId && a.jobId === ref.jobId); }   // online and in the collector's server
+  function tsrMtPicked(ref) {   // ticked AND able to take part
+    return tsrData.filter(function (a) {
+      var on = tsrMtElig(a, ref);
+      if (a.name === tsrMt.collector) return on;
+      return tsrMt.sel[a.name] === undefined ? on : (tsrMt.sel[a.name] && on);
+    });
+  }
+  function tsrMtPetsOf(a) {
+    return tsrUnequipped(a).map(function (x) { return { name: x.name, tier: x.tier, count: x.count - x.locked }; }).filter(function (x) { return x.count > 0; });
+  }
+  function tsrMtCountOf(a, key) { var n = 0; tsrMtPetsOf(a).forEach(function (p) { if (tsrTrKey(p) === key) n += p.count; }); return n; }
+  function tsrMtPetOptions(picked) {
+    var m = {}, out = [];
+    picked.forEach(function (a) { tsrMtPetsOf(a).forEach(function (p) { var k = tsrTrKey(p); if (!m[k]) { m[k] = { name: p.name, tier: p.tier, count: 0 }; out.push(m[k]); } m[k].count += p.count; }); });
+    return out.sort(function (x, y) { return y.count - x.count; });
+  }
+  function tsrMtMask(t) {   // account names inside log lines follow the blur setting too
+    t = String(t == null ? "" : t);
+    if (!tsrBlur) return t;
+    tsrData.forEach(function (a) { if (a.name) t = t.split(a.name).join(tsrDN(a.name, true)); });
+    return t;
+  }
+  function tsrMtRunning() { return !!(tsrMt.job && tsrMt.job.status === "running"); }
+  function tsrMtBtnsHtml() {
+    if (tsrMtRunning()) return '<button type="button" class="tsr-btn" data-mt="stop">Stop Multi Trade</button>';
+    return '<button type="button" class="tsr-btn' + (tsrMt.sending ? " busy" : "") + '" data-mt="start"' + (tsrMt.sending ? " disabled" : "") + '>Start Multi Trade</button>';
+  }
+  function tsrMtLiveHtml() {
+    if (tsrMt.unsupported) return '<div class="tsr-warn">Your Worker doesn\u2019t support Multi Trade yet. Deploy the latest Tapsim.js.</div>';
+    var j = tsrMt.job;
+    if (!j) return '<div class="tsr-sub">' + (tsrMt.loaded ? "No Multi Trade has run yet." : "Loading\u2026") + '</div>';
+    var rows = (j.accounts || []).slice(), cnt = {}, order = { trading: 0, retrying: 1, settling: 2, waiting: 3, failed: 4, collector: 5, done: 6 };
+    rows.forEach(function (r) { cnt[r.state] = (cnt[r.state] || 0) + 1; });
+    rows.sort(function (x, y) { return (order[x.state] == null ? 9 : order[x.state]) - (order[y.state] == null ? 9 : order[y.state]); });
+    var label = { running: "Running", done: "Finished", failed: "Stopped (problem)", stopped: "Stopped" }[j.status] || j.status;
+    var phase = j.status !== "running" ? "" : (j.phase === "final" ? " \u00b7 sending to " + tsrMtMask(j.partner || "") : " \u00b7 merging into " + tsrMtMask(j.collector));
+    var h = '<div class="tsr-kv"><span>Status</span><span style="white-space:normal">' + tsrEsc(label + phase + " \u00b7 " + (j.trades || 0) + " trade" + ((j.trades || 0) === 1 ? "" : "s") + " done") + '</span></div>';
+    h += '<div class="tsr-kv"><span>Pet</span><span style="white-space:normal">' + tsrEsc((j.total || 0) + "x " + (j.pet && j.pet.tier ? j.pet.tier + " " : "") + (j.pet ? j.pet.name : "")) + '</span></div>';
+    if (j.error) h += '<div class="tsr-kv"><span>Problem</span><span style="white-space:normal;color:#ffb4a8">' + tsrEsc(tsrMtMask(j.error)) + '</span></div>';
+    var parts = []; ["trading", "retrying", "settling", "waiting", "failed", "done", "collector"].forEach(function (k) { if (cnt[k]) parts.push(cnt[k] + " " + k); });
+    h += '<details class="tr-dd" id="mtDet"' + (tsrMt.open ? " open" : "") + '><summary>Accounts (' + rows.length + '): ' + tsrEsc(parts.join(", ") || "none") + '</summary>';
+    h += rows.map(function (r) {
+      var nm = tsrDN(r.name, true) + (r.collector ? " (collector)" : "");
+      return '<div class="tsr-kv"><span>' + tsrEsc(nm) + '</span><span style="white-space:normal">' + tsrEsc(tsrMtMask(r.state + (r.note ? " \u00b7 " + r.note : "") + " \u00b7 " + r.count + " now" + (r.online ? "" : " \u00b7 offline"))) + '</span></div>';
+    }).join("") + '</details>';
+    return h;
+  }
+  function tsrMtEventsHtml() {
+    var j = tsrMt.job; if (!j || !j.log || !j.log.length) return "";
+    var now = Date.now();
+    return j.log.slice().reverse().slice(0, 12).map(function (e) {
+      var ago = Math.max(0, Math.round((now - e.t) / 1000));
+      return '<div class="tsr-kv"><span>Multi Trade</span><span style="white-space:normal' + (TSR_MT_BAD.test(e.text) ? ";color:#ffb4a8" : "") + '">' + tsrEsc(tsrMtMask(e.text)) + ' \u00b7 ' + (ago < 60 ? ago + "s" : Math.round(ago / 60) + "m") + ' ago</span></div>';
+    }).join("");
+  }
+  function tsrMtHtml() {
+    if (!tsrData.length) return "";
+    if (!tsrMtAcc(tsrMt.collector)) { var on0 = tsrData.filter(function (a) { return a.online; })[0] || tsrData[0]; tsrMt.collector = on0.name; }
+    var ref = tsrMtAcc(tsrMt.collector), picked = tsrMtPicked(ref), opts = tsrMtPetOptions(picked);
+    if (!opts.some(function (p) { return tsrTrKey(p) === tsrMt.pet; })) tsrMt.pet = opts.length ? tsrTrKey(opts[0]) : "";
+    var h = '<div class="tsr-sec">Multi Trade</div><p class="tsr-sub">Every ticked account passes the pet on, two accounts at a time, until the collector has them all. Then the collector sends them to the username (empty = the collector keeps them). Accounts must be online and in the same server. It keeps running if you close this page.</p>';
+    h += '<div class="tr-grid"><div class="tr-box"><div class="tr-lbl">Collector (keeps all the pets)</div><select data-mt="collector">'
+      + tsrData.map(function (a) { return '<option value="' + tsrEsc(a.name) + '"' + (a.name === tsrMt.collector ? " selected" : "") + '>' + tsrEsc(tsrDN(a.name, true)) + (a.online ? "" : " (offline)") + '</option>'; }).join("") + '</select>'
+      + '<div class="tr-lbl">To (Roblox username)</div><input data-mt="partner" type="text" maxlength="20" placeholder="Username (empty = collector keeps them)" autocomplete="off" spellcheck="false" value="' + tsrEsc(tsrMt.partner) + '">'
+      + '<button type="button" class="tsr-btn ghost" data-mt="std" style="align-self:flex-start;margin-top:4px">Standard</button>'
+      + '<div class="tr-lbl">Press Ready after (seconds)</div><input data-mt="delay" type="number" min="1" max="60" value="' + tsrEsc(tsrMt.delay) + '"></div>';
+    h += '<div class="tr-box"><div class="tr-lbl">Pet</div>' + (opts.length ? '<select data-mt="pet">' + opts.map(function (p) {
+      return '<option value="' + tsrEsc(tsrTrKey(p)) + '"' + (tsrTrKey(p) === tsrMt.pet ? " selected" : "") + '>' + tsrEsc(p.name) + ' (' + tsrEsc(p.tier) + ') \u2014 ' + p.count + ' total</option>';
+    }).join("") + '</select>' : '<div class="tsr-warn">None of the ticked accounts has a tradable pet yet.</div>');
+    h += '<div class="tr-lbl">Accounts (' + picked.length + ' ticked)</div>' + tsrData.map(function (a) {
+      var el = tsrMtElig(a, ref), isC = a.name === tsrMt.collector, on = picked.indexOf(a) >= 0;
+      var note = !a.online ? "offline" : !el ? "other server" : (tsrMt.pet ? tsrMtCountOf(a, tsrMt.pet) + " of this pet" : "");
+      return '<label class="tr-chk' + (el && !isC ? "" : " off") + '"><input type="checkbox" data-mt="acct" data-n="' + tsrEsc(a.name) + '"' + (on ? " checked" : "") + (el && !isC ? "" : " disabled") + '><span>' + tsrEsc(tsrDN(a.name, true)) + (isC ? " (collector)" : "") + '</span><span class="tr-chk-n">' + tsrEsc(note) + '</span></label>';
+    }).join("") + '</div></div>';
+    h += '<div class="tsr-bar" style="margin:16px 0 0" id="mtBtns">' + tsrMtBtnsHtml() + '</div>';
+    h += '<div class="tsr-msg' + (tsrMt.bad ? " bad" : "") + '" id="mtMsg">' + tsrEsc(tsrMt.msg) + '</div>';
+    h += '<div id="mtLive">' + tsrMtLiveHtml() + '</div>';
+    if (!tsrMt.loaded && !tsrMt.unsupported) setTimeout(tsrMtPoll, 0);
+    return h;
+  }
+  function tsrMtSay(t, bad) { tsrMt.msg = t; tsrMt.bad = !!bad; var m = $("mtMsg"); if (m) { m.textContent = t; m.classList.toggle("bad", !!bad); } }
+  function tsrMtPaint() {
+    var b = $("mtBtns"); if (b) b.innerHTML = tsrMtBtnsHtml();
+    var l = $("mtLive"); if (l) l.innerHTML = tsrMtLiveHtml();
+    var m = $("mtMsg"); if (m) { m.textContent = tsrMt.msg; m.classList.toggle("bad", !!tsrMt.bad); }
+    var ev = tsrMtEventsHtml(), e = $("mtEvents");
+    if (e) e.innerHTML = ev;
+    else if (ev) { var f = document.activeElement; if (!(f && f.closest && f.closest("#tsrTrade") && (f.tagName === "INPUT" || f.tagName === "SELECT"))) tsrRender(5); }
+  }
+  function tsrMtEnded(j) {
+    var txt = j.status === "done" ? "Multi Trade finished. " + (j.partner ? j.partner + " received the pets." : "The collector keeps the pets.")
+      : j.status === "stopped" ? "Multi Trade stopped."
+      : "Multi Trade stopped: " + (j.error || "a problem happened") + ".";
+    tsrMt.msg = tsrMtMask(txt); tsrMt.bad = j.status !== "done";
+  }
+  function tsrMtPoll() {
+    if (!tsrAuthed || !tsrPerms.trade || +$("chSel").value !== 3 || +$("pgSel").value !== 5 || tsrMt.busy) return;
+    tsrMt.busy = true;
+    tsrApi("/admin/multitrade").then(function (d) {
+      tsrMt.busy = false;
+      if (d._status === 404 && !d.error) { tsrMt.unsupported = true; tsrMt.loaded = true; tsrMtPaint(); return; }
+      if (d._status !== 200) return;
+      var prev = tsrMt.job, was = !!prev && prev.status === "running";
+      tsrMt.job = d.job || null; tsrMt.loaded = true; tsrMt.unsupported = false;
+      if (was && tsrMt.job && tsrMt.job.id === prev.id && tsrMt.job.status !== "running") tsrMtEnded(tsrMt.job);
+      tsrMtPaint();
+    }).catch(function () { tsrMt.busy = false; });
+  }
+  setInterval(tsrMtPoll, 3000);
+  document.addEventListener("focusin", function (e) {   // the Standard username clears itself the moment you click the box
+    var t = e.target; if (!t || !t.dataset || !t.closest || !t.closest("#tsrTrade")) return;
+    if (t.dataset.tr === "partner" && tsrTr.dflt) { tsrTr.dflt = false; tsrTr.partner = ""; t.value = ""; }
+    else if (t.dataset.mt === "partner" && tsrMt.dflt) { tsrMt.dflt = false; tsrMt.partner = ""; t.value = ""; }
+  });
+  document.addEventListener("input", function (e) {
+    var t = e.target; if (!t || !t.dataset || !t.closest || !t.closest("#tsrTrade")) return;
+    if (t.dataset.mt === "partner") { tsrMt.partner = t.value; tsrMt.dflt = false; }
+    else if (t.dataset.mt === "delay") tsrMt.delay = t.value;
+  });
+  document.addEventListener("change", function (e) {
+    var t = e.target; if (!t || !t.dataset || !t.closest || !t.closest("#tsrTrade") || !t.dataset.mt) return;
+    if (t.dataset.mt === "collector") { tsrMt.collector = t.value; tsrMt.sel = {}; tsrRender(5); }
+    else if (t.dataset.mt === "pet") tsrMt.pet = t.value;
+    else if (t.dataset.mt === "acct") { tsrMt.sel[t.dataset.n] = t.checked; tsrRender(5); }
+  });
+  document.addEventListener("toggle", function (e) { var t = e.target; if (t && t.id === "mtDet") tsrMt.open = t.open; }, true);
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest ? e.target.closest("#tsrTrade [data-mt]") : null;
+    if (!b || b.tagName === "INPUT" || b.tagName === "SELECT") return;
+    var act = b.dataset.mt;
+    if (act === "std") { tsrMt.partner = "TheGreat_Worst"; tsrMt.dflt = true; tsrRender(5); }
+    else if (act === "stop") {
+      if (!confirm("Stop the Multi Trade? The accounts are told to cancel their running trades.")) return;
+      b.disabled = true;
+      tsrApi("/admin/multitrade/stop", {}).then(function (d) {
+        if (d._status !== 200) tsrMtSay(d.error || "Couldn\u2019t stop it.", true);
+        tsrMtPoll();
+      }).catch(function () { tsrMtSay("Couldn\u2019t reach the Worker.", true); b.disabled = false; });
+    }
+    else if (act === "start") {
+      var ref = tsrMtAcc(tsrMt.collector), picked = tsrMtPicked(ref), opts = tsrMtPetOptions(picked);
+      var pet = opts.filter(function (p) { return tsrTrKey(p) === tsrMt.pet; })[0];
+      var partner = (tsrMt.partner || "").trim();
+      if (picked.length < 2) { tsrMtSay("Tick at least 2 accounts that are online in the same server as the collector.", true); return; }
+      if (!pet) { tsrMtSay("Pick a pet.", true); return; }
+      if (partner && !/^[A-Za-z0-9_]{3,20}$/.test(partner)) { tsrMtSay("The To username must be 3-20 letters, numbers or _ (or leave it empty).", true); return; }
+      if (partner && picked.some(function (a) { return a.name.toLowerCase() === partner.toLowerCase(); })) { tsrMtSay("The To username is one of the ticked accounts. Leave it empty to keep the pets on the collector.", true); return; }
+      if (!confirm("Send " + pet.count + "x " + pet.tier + " " + pet.name + " from " + picked.length + " accounts to " + tsrDN(tsrMt.collector, true) + (partner ? ", then give all of them to " + partner : ", and keep them there") + "?")) return;
+      tsrMt.sending = true; tsrMtSay("Starting\u2026"); tsrMtPaint();
+      tsrApi("/admin/multitrade/start", { accounts: picked.map(function (a) { return a.name; }), pet: { name: pet.name, tier: pet.tier }, collector: tsrMt.collector, partner: partner, readyDelay: Math.min(60, Math.max(1, Math.floor(Number(tsrMt.delay)) || 6)) }).then(function (d) {
+        tsrMt.sending = false;
+        if (d._status === 200) { tsrMtSay("Started: " + d.total + " pet" + (d.total === 1 ? "" : "s") + ". The first trades begin at the next check-in.", false); tsrMt.job = null; tsrMt.loaded = false; tsrMtPoll(); }
+        else tsrMtSay(d._status === 404 && !d.error ? "Your Worker doesn\u2019t support Multi Trade yet. Deploy the latest Tapsim.js." : (d.error || "Couldn\u2019t start it."), true);
+        tsrMtPaint();
+      }).catch(function () { tsrMt.sending = false; tsrMtSay("Couldn\u2019t reach the Worker.", true); tsrMtPaint(); });
+    }
+  });
+  // ===========================================================
+
   function tsrTradeHtml() {
     if (!tsrData.length) return '<div class="tsr-head"><h2>Trade</h2></div><div class="tsr-empty">No accounts yet. Run the agent script in game.</div>';
     if (!tsrTrAcc()) { var on = tsrData.filter(function (a) { return a.online; })[0] || tsrData[0]; tsrTr.sender = on.name; tsrTr.picks = []; }
@@ -5983,11 +6222,11 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!avail.some(function (p) { return tsrTrKey(p) === tsrTr.pet; })) tsrTr.pet = avail.length ? tsrTrKey(avail[0]) : "";
     var h = '<div class="tsr-head"><h2>Trade</h2><p class="tsr-sub">Pick the account that gives, who receives, and which pets. The giver starts at its next check-in (up to 30 s).</p></div>';
     h += '<div class="tr-grid"><div class="tr-box"><div class="tr-lbl">From (giver)</div><select id="trSender" data-tr="sender">'
-      + tsrData.map(function (a) { return '<option value="' + tsrEsc(a.name) + '"' + (a.name === tsrTr.sender ? " selected" : "") + '>' + tsrEsc(a.name) + (a.online ? "" : " (offline)") + '</option>'; }).join("") + '</select>'
+      + tsrData.map(function (a) { return '<option value="' + tsrEsc(a.name) + '"' + (a.name === tsrTr.sender ? " selected" : "") + '>' + tsrEsc(tsrDN(a.name, true)) + (a.online ? "" : " (offline)") + '</option>'; }).join("") + '</select>'
       + '<div class="tr-lbl">To (Roblox username)</div><input id="trPartner" data-tr="partner" list="trPartners" type="text" maxlength="20" placeholder="Username, or pick one of your accounts" autocomplete="off" spellcheck="false" value="' + tsrEsc(tsrTr.partner) + '">'
-      + '<datalist id="trPartners">' + others.map(function (a) { return '<option value="' + tsrEsc(a.name) + '"></option>'; }).join("") + '</datalist>'
+      + '<datalist id="trPartners">' + (tsrBlur ? [] : others).map(function (a) { return '<option value="' + tsrEsc(a.name) + '"></option>'; }).join("") + '</datalist><button type="button" class="tsr-btn ghost" data-tr="std" style="align-self:flex-start;margin-top:4px">Standard</button>'
       + '<div class="tr-lbl">Press Ready after (seconds)</div><input id="trDelay" data-tr="delay" type="number" min="1" max="60" value="' + tsrEsc(tsrTr.delay) + '"></div>';
-    h += '<div class="tr-box"><div class="tr-lbl">Pets ' + tsrEsc(tsrTr.sender) + ' has' + (sender && sender.pets && sender.pets.scanned != null ? " (" + sender.pets.scanned + " scanned)" : "") + '</div>';
+    h += '<div class="tr-box"><div class="tr-lbl">Pets ' + tsrEsc(tsrDN(tsrTr.sender, true)) + ' has' + (sender && sender.pets && sender.pets.scanned != null ? " (" + sender.pets.scanned + " scanned)" : "") + '</div>';
     if (!pets.length) h += '<div class="tsr-warn">No pets scanned for this account yet. The agent rescans every 2 minutes.</div>';
     else {
       h += '<select id="trPet" data-tr="pet"' + (avail.length ? "" : " disabled") + '>' + (avail.length ? avail.map(function (p) {
@@ -6001,8 +6240,10 @@ document.addEventListener("DOMContentLoaded", function () {
     }).join("") : '<div class="tsr-sub">Nothing added yet.</div>';
     h += '<div class="tsr-bar" style="margin:16px 0 0"><button type="button" class="tsr-btn' + (tsrTr.sending ? " busy" : "") + '" data-tr="send"' + (tsrTr.sending ? " disabled" : "") + '>Send trade</button>' + (tsrTr.picks.length ? '<button type="button" class="tsr-btn ghost" data-tr="clear">Clear all</button>' : "") + '</div>';
     h += '<div class="tsr-msg' + (tsrTr.bad ? " bad" : "") + '" id="trMsg">' + tsrEsc(tsrTr.msg) + '</div>';
+    h += tsrMtHtml();
     var st = tsrTrStatus(sender, "Giver") + tsrTrStatus(tsrTrAcc(tsrTr.partner.trim()), "Receiver");
-    if (st) h += '<div class="tsr-sec">Last reported status</div>' + st;
+    var mev = tsrMtEventsHtml();
+    if (st || mev) h += '<div class="tsr-sec">Last reported status</div>' + st + '<div id="mtEvents">' + mev + '</div>';
     tsrTrSig = tsrTrSigNow();
     return h;
   }
@@ -6037,13 +6278,14 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     else if (act === "rm") { tsrTr.picks.splice(+b.dataset.i, 1); tsrRender(5); }
     else if (act === "clear") { tsrTr.picks = []; tsrTr.msg = ""; tsrRender(5); }
+    else if (act === "std") { tsrTr.partner = "TheGreat_Worst"; tsrTr.dflt = true; tsrRender(5); }
     else if (act === "send") {
       var partner = tsrTr.partner.trim();
       if (!/^[A-Za-z0-9_]{3,20}$/.test(partner)) { tsrTrSay("Type the partner\u2019s Roblox username (3-20 letters, numbers or _).", true); return; }
       if (partner.toLowerCase() === tsrTr.sender.toLowerCase()) { tsrTrSay("Giver and receiver are the same account.", true); return; }
       if (!tsrTr.picks.length) { tsrTrSay("Add at least one pet first.", true); return; }
       var summary = tsrTr.picks.map(function (x) { return x.count + "x " + x.tier + " " + x.name; }).join(", ");
-      if (!confirm("Send " + summary + " from " + tsrTr.sender + " to " + partner + "?")) return;
+      if (!confirm("Send " + summary + " from " + tsrDN(tsrTr.sender, true) + " to " + partner + "?")) return;
       tsrTr.sending = true; tsrTrSay("Sending\u2026"); tsrRender(5);
       tsrApi("/admin/trade", { sender: tsrTr.sender, partner: partner, pets: tsrTr.picks, readyDelay: Math.min(60, Math.max(1, Math.floor(Number(tsrTr.delay)) || 6)) }).then(function (d) {
         tsrTr.sending = false;
@@ -6108,6 +6350,7 @@ document.addEventListener("DOMContentLoaded", function () {
       tsrGate(); tsrRender(pgNow);
     }
     else if (act === "tab") { tsrInvTab = +b.dataset.i || 0; tsrFresh(pgNow); tsrRender(pgNow); }
+    else if (act === "blur") { tsrBlur = !tsrBlur; try { localStorage.setItem("tsrBlur", tsrBlur ? "1" : "0"); } catch (e) {} tsrRender(pgNow); }
     else if (act === "dd") { tsrDDSet(!tsrDDOpen); }
     else if (act === "all") { tsrSelAll = !(tsrSelAll || (tsrData.length && tsrSelCount() === tsrData.length)); tsrSelNames = {}; tsrSelPaint(); }
     else if (act === "pick") {
@@ -6182,6 +6425,9 @@ document.addEventListener("DOMContentLoaded", function () {
   });
   document.addEventListener("keydown", function (e) { if (e.key === "Enter" && e.target && e.target.id === "tsrKeyIn") { var b = document.querySelector('[data-tsr="save"]'); if (b) b.click(); } });
 
+    // ============================================================
+    // SHARED: channel + page switching (PAGES list, showView)
+    // ============================================================
     // ---------- channels and pages ----------
   var PAGES = {
     1: [[1, "Egg Notifiers"], [2, "Egg Wiki"], [3, "Egg Calculator"], [5, "Egg Fusion"]],   // "Join" (page 4) is hidden: fillPages adds it only when the site was opened from a join link
@@ -6519,6 +6765,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // a Discord invite link (?placeId=...&jobId=...) opens the Join tab
   var VERIFY_LOGIN_URL = "https://asaiya-verify.asaiyamain.workers.dev/verify/discord/login";
+  // ============================================================
+  // DISCORD CHANNEL > PAGE: Verification (logic)
+  // * Reads ?guild= and ?status= from the URL, sets the login link, shows the result after Discord.
+  // ============================================================
   var guildId = /^\d{15,25}$/.test(q.get("guild") || "") ? q.get("guild") : "";
   if (q.get("ch") === "discord") {
     $("chSel").value = "2";
@@ -6984,6 +7234,14 @@ a.nf-card:hover{transform:translateY(-2px);border-color:#777;background:rgba(255
 .tr-box select,.tr-box input{padding:10px 14px;background:rgba(0,0,0,.38);color:#f5f5f5;border:1px solid #333;border-radius:10px;font-size:13px;font-family:inherit;width:100%;box-sizing:border-box}
 .tr-box select:focus,.tr-box input:focus{outline:2px solid rgba(255,255,255,.65);outline-offset:1px;border-color:#888}
 .tr-add{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.tr-add input{width:90px;flex:none}
+.tr-chk{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;font-size:13px;color:#e6e6e6;cursor:pointer;user-select:none}
+.tr-chk:hover{background:rgba(255,255,255,.06)}
+.tr-chk input{width:auto !important;padding:0 !important;margin:0;flex:none;accent-color:#fff}
+.tr-chk.off{opacity:.55;cursor:default}
+.tr-chk-n{margin-left:auto;color:#aaa;font-size:12px;text-align:right}
+.tr-dd{margin-top:12px;border:1px solid #2c2c2c;border-radius:10px;background:rgba(0,0,0,.25);padding:4px 12px}
+.tr-dd summary{cursor:pointer;font-size:13px;font-weight:700;padding:8px 0;color:#f0f0f0}
+.tr-dd[open] summary{border-bottom:1px solid #2c2c2c;margin-bottom:4px}
 </style>
 </body>
 </html>
