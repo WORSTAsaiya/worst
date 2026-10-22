@@ -878,6 +878,20 @@ body.tsrMode #tsrLogout:not([hidden]){animation:tsrPop .45s cubic-bezier(.3,1.4,
 .tsr-kv.sel,.tsr-kv.sel:hover{background:rgba(255,255,255,.17);box-shadow:inset 0 0 0 1px #fff,0 0 14px rgba(255,255,255,.3);padding-left:8px;padding-right:8px}
 body.tsrMode #tsrAdminBtn:not([hidden]){animation:tsrPop .45s cubic-bezier(.3,1.4,.5,1) both}
 .tsr-krow.off{opacity:.6}
+.ht-sum{font-size:12px;color:#aaa;margin:0 0 12px}
+.ht-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+.ht-card{display:flex;gap:12px;align-items:center;padding:10px 12px;background:rgba(0,0,0,.38);border:1px solid #2c2c2c;border-radius:12px;min-width:0}
+.ht-img{width:64px;height:64px;flex:none;object-fit:contain;border-radius:10px;background:#161616}
+.ht-info{min-width:0;flex:1}
+.ht-name{font-weight:700;font-size:14px;color:#fff;word-break:break-word}
+.ht-x{font-weight:700;font-size:12px;color:#bbb;margin-left:6px}
+.ht-tags{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 4px}
+.ht-tag{padding:2px 9px;border:1px solid #555;border-radius:999px;font-size:11px;font-weight:700;color:#ddd}
+.ht-tag.v-gold{color:#f5c542;border-color:#f5c542}
+.ht-tag.v-diamond{color:#6fd6ff;border-color:#6fd6ff}
+.ht-tag.v-rainbow{border-color:transparent;color:#0a0a0a;background:linear-gradient(90deg,#ff6b6b,#ffd166,#06d6a0,#4cc9f0,#c77dff)}
+.ht-tag.r-mythical{color:#ff6fa5;border-color:#ff6fa5}
+.ht-meta{font-size:11px;color:#999}
 </style>
 </head>
 <body>
@@ -885,7 +899,7 @@ body.tsrMode #tsrAdminBtn:not([hidden]){animation:tsrPop .45s cubic-bezier(.3,1.
  SITE MAP (search for the banners below with "=====")
  * STEAL AN EGG CHANNEL: Egg Notifiers, Egg Wiki, Egg Calculator, Egg Fusion, Join (hidden)
  * DISCORD CHANNEL: Verification (working), Roles + Server Stuff (empty)
- * TAP SIMULATOR CHANNEL: Status, Inventory, Scripts, Trade (admin), Admin Panel (popup)
+ * TAP SIMULATOR CHANNEL: Status, Inventory, Scripts, Hatches, Trade (admin), Admin Panel (popup)
  * SHARED: Channels/Pages bar, channel + page switching, Inexistent card
  ============================================================ -->
 <!-- FOR EVERY NEW PAGE, ADD THE DISCORD BUTTON ON THE TOP RIGHT -->
@@ -1274,6 +1288,7 @@ body.tsrMode #tsrAdminBtn:not([hidden]){animation:tsrPop .45s cubic-bezier(.3,1.
 <section class="panel tsr" id="tsrScripts" hidden><div class="tsr-body"></div></section>
 <dialog id="tsrAdminDlg"><button type="button" id="tsrAdminX" aria-label="Close">&times;</button><section class="panel tsr" id="tsrAdmin"><div class="tsr-body"></div></section></dialog>
 <section class="panel tsr" id="tsrTrade" hidden><div class="tsr-body"></div></section>
+<section class="panel tsr" id="tsrHatch" hidden><div class="tsr-body"></div></section>
 
 <div id="wallLabel"></div>
 
@@ -5971,12 +5986,12 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   var tsrFreshT = 0;
   function tsrFresh(pg) {   // play the entrance animation once per page / tab change, not on every 10 s refresh
-    var el = $(["tsrStatus", "tsrInv", "tsrScripts", "tsrAdmin", "tsrTrade"][pg - 1]); if (!el) return;
+    var el = $(["tsrStatus", "tsrInv", "tsrScripts", "tsrAdmin", "tsrTrade", "tsrHatch"][pg - 1]); if (!el) return;
     el.classList.remove("fresh"); void el.offsetWidth; el.classList.add("fresh");
     clearTimeout(tsrFreshT); tsrFreshT = setTimeout(function () { el.classList.remove("fresh"); }, 1200);
   }
   function tsrShow(ch, pg) {
-    var on = ch === 3, ids = ["tsrStatus", "tsrInv", "tsrScripts", "tsrAdmin", "tsrTrade"];
+    var on = ch === 3, ids = ["tsrStatus", "tsrInv", "tsrScripts", "tsrAdmin", "tsrTrade", "tsrHatch"];
     ids.forEach(function (id, i) { if (id === "tsrAdmin") return; $(id).hidden = !(on && pg === i + 1); });   // Admin Panel is a popup now, not a page
     clearInterval(tsrTimer);
     if (!on) return;
@@ -5986,18 +6001,78 @@ document.addEventListener("DOMContentLoaded", function () {
     tsrTimer = setInterval(tsrLoad, 10000);
   }
   function tsrRender(pg) {
-    var ids = ["tsrStatus", "tsrInv", "tsrScripts", "tsrAdmin", "tsrTrade"], box = $(ids[pg - 1]).querySelector(".tsr-body");
+    var ids = ["tsrStatus", "tsrInv", "tsrScripts", "tsrAdmin", "tsrTrade", "tsrHatch"], box = $(ids[pg - 1]).querySelector(".tsr-body");
     if (!tsrKey()) { box.innerHTML = tsrKeyBox(); return; }
     if (tsrErr && !tsrAuthed) { box.innerHTML = '<div class="tsr-empty">' + tsrEsc(tsrErr) + '</div>'; return; }
     if (!tsrAuthed) { box.innerHTML = '<div class="tsr-empty">Checking key\u2026</div>'; return; }
     if (tsrErr) { box.innerHTML = '<div class="tsr-empty">' + tsrEsc(tsrErr) + '</div>'; return; }
     if (pg === 3) { box.innerHTML = tsrScriptsHtml(); return; }
+    if (pg === 6) { box.innerHTML = tsrHatHtml(); if (!tsrHat.loaded && !tsrHat.loading && !tsrHat.err) tsrHatRefresh(); return; }
     if (pg === 5) { box.innerHTML = tsrPerms.trade ? tsrTradeHtml() : '<div class="tsr-empty">No access.</div>'; return; }
     if (pg === 4) { box.innerHTML = tsrRole === "admin" ? tsrAdminHtml() : '<div class="tsr-empty">No access.</div>'; return; }
     if (!tsrData.length) { box.innerHTML = '<div class="tsr-empty">No accounts yet. Run the agent script in game.</div>'; return; }
     box.innerHTML = pg === 1 ? tsrStatusHtml() : tsrInvHtml();
     if (pg === 2) tsrInvFilter();
   }
+  // ============================================================
+  // TAP SIMULATOR CHANNEL > PAGE: Hatches
+  // * Lists every pet the accounts hatch (the Worker spots them when the agent rescans the inventory).
+  // * Pet art + rarity live in HAT_PETS below. Add every new pet there.
+  // ============================================================
+  // Key = pet name in lower case.  img = picture link ("" shows the grey "?" picture).  rarity = the text on the tag.
+  // Pets that are not listed show the grey "?" picture and "Unknown" rarity.
+  var HAT_PETS = {
+    "volcanic devil": { rarity: "Mythical", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSRCIWtdXRKOYQHp1Agy5rIG66mHUlAn5OxFI4RCAiFg&s=10" },
+    "reanimation":    { rarity: "Mythical", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSDD2iAlZxtD7lhE9VX2bYLOd5tTjr5KAhM9gUMATzpAg&s" },
+    "dragon tamer":   { rarity: "Mythical", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS5j-NJwBmjdh0iiRYOKK1TTGyU3tsR1ArPrjZT4sOKRg&s" },
+    // the rest of the secrets: put the picture link between the quotes after img:
+    "infernal lord":  { rarity: "Mythical", img: "" },
+    "cinder eye":     { rarity: "Mythical", img: "" },
+    "first light":    { rarity: "Mythical", img: "" },
+    "shinigami":      { rarity: "Mythical", img: "" }
+  };
+  var HAT_PH = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="#1c1c1c"/><text x="32" y="43" font-family="Arial,sans-serif" font-size="32" font-weight="700" text-anchor="middle" fill="#666">?</text></svg>');
+  var tsrHat = { list: [], skew: 0, loaded: false, loading: false, err: "", sig: "" };
+  function tsrHatAgoTxt(t) { return tsrAgo(Math.max(0, Math.round((Date.now() + tsrHat.skew - t) / 1000))); }
+  function tsrHatCard(h) {
+    var info = HAT_PETS[String(h.pet).trim().toLowerCase()] || {}, tier = String(h.tier || "Normal"), rar = info.rarity || "Unknown";
+    return '<div class="ht-card"><img class="ht-img" src="' + tsrEsc(info.img || HAT_PH) + '" alt="" loading="lazy" referrerpolicy="no-referrer">'
+      + '<div class="ht-info"><div class="ht-name">' + tsrEsc(h.pet) + (h.cnt > 1 ? '<span class="ht-x">x' + h.cnt + '</span>' : '') + '</div>'
+      + '<div class="ht-tags"><span class="ht-tag v-' + tsrEsc(tier.toLowerCase().replace(/[^a-z]/g, "")) + '">' + tsrEsc(tier) + '</span>'
+      + '<span class="ht-tag r-' + tsrEsc(rar.toLowerCase().replace(/[^a-z]/g, "")) + '">' + tsrEsc(rar) + '</span></div>'
+      + '<div class="ht-meta">' + tsrEsc(tsrDN(h.name)) + ' \u00b7 <span class="ht-ago" data-t="' + (+h.t || 0) + '">' + tsrHatAgoTxt(+h.t || 0) + '</span></div></div></div>';
+  }
+  function tsrHatHtml() {
+    var h = '<div class="tsr-head"><h2>Hatches</h2><p class="tsr-sub">Every pet your accounts hatch, newest first. Hatches are spotted when the agent rescans the inventory (every 2 minutes), so one can show up a little late.</p></div>';
+    if (tsrHat.err) return h + '<div class="tsr-empty">' + tsrEsc(tsrHat.err) + '</div>';
+    if (!tsrHat.loaded) return h + '<div class="tsr-empty">Loading\u2026</div>';
+    if (!tsrHat.list.length) return h + '<div class="tsr-empty">No hatches yet. A pet shows up here after an account hatches it and the next inventory scan runs.</div>';
+    var total = 0; tsrHat.list.forEach(function (x) { total += +x.cnt || 1; });
+    return h + '<div class="ht-sum">' + total.toLocaleString("en-US") + ' pet' + (total === 1 ? "" : "s") + ' in the latest ' + tsrHat.list.length + ' hatch' + (tsrHat.list.length === 1 ? "" : "es") + '</div>'
+      + '<div class="ht-grid">' + tsrHat.list.map(tsrHatCard).join("") + '</div>';
+  }
+  function tsrHatOnPage() { return +$("chSel").value === 3 && +$("pgSel").value === 6; }
+  function tsrHatRefresh() {
+    if (tsrHat.loading) return;
+    tsrHat.loading = true;
+    return tsrApi("/admin/hatches?limit=300").then(function (d) {
+      tsrHat.loading = false;
+      if (d._status === 200) { tsrHat.list = d.hatches || []; tsrHat.skew = (+d.now || Date.now()) - Date.now(); tsrHat.err = ""; tsrHat.loaded = true; }
+      else if (d._status === 404 && (!d.error || d.error === "not found")) tsrHat.err = "Your Worker doesn\u2019t have Hatches yet. Paste the new Tapsim.js into Cloudflare and deploy it.";
+      else if (d._status !== 401) tsrHat.err = d.error || "Couldn\u2019t load hatches.";
+      var sig = [tsrHat.err, tsrHat.loaded, tsrHat.list.length, tsrHat.list[0] ? tsrHat.list[0].id : 0, tsrBlur ? 1 : 0].join("|");
+      if (sig !== tsrHat.sig) { tsrHat.sig = sig; if (tsrHatOnPage()) tsrRender(6); }   // only rebuild when something changed, so the pictures do not flicker
+      else document.querySelectorAll("#tsrHatch .ht-ago").forEach(function (el) { el.textContent = tsrHatAgoTxt(+el.dataset.t); });
+    }).catch(function () {
+      tsrHat.loading = false; tsrHat.err = "Couldn\u2019t reach the Tap simulator Worker.";
+      if (tsrHatOnPage() && tsrHat.sig !== "err") { tsrHat.sig = "err"; tsrRender(6); }
+    });
+  }
+  document.addEventListener("error", function (e) {   // a picture link that does not load falls back to the grey "?"
+    var t = e.target;
+    if (t && t.tagName === "IMG" && t.classList.contains("ht-img") && !t.dataset.bad) { t.dataset.bad = "1"; t.src = HAT_PH; }
+  }, true);
+
   function tsrLoad() {
     var ch = +$("chSel").value, pg = +$("pgSel").value;
     if (ch !== 3 || !tsrKey()) return;
@@ -6021,6 +6096,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (+$("chSel").value !== 3) return;
         var pgc = +$("pgSel").value;
         if (pgc === 5) { tsrTrRefresh(); }
+        else if (pgc === 6) { tsrHatRefresh(); }
         else if (!(pgc === 3 && (tsrDDOpen || tsrEdit)) && !(pgc === 2 && document.activeElement && document.activeElement.id === "tsrInvSearch")) tsrRender(pgc);   // do not rebuild the page while you are typing in the search
         if ($("tsrAdminDlg").open) { if ($("tsrAdLists")) tsrAdPaint(); else tsrRender(4); }   // popup open: the form keeps what you typed, only the lists refresh
       });
@@ -6432,7 +6508,7 @@ document.addEventListener("DOMContentLoaded", function () {
   var PAGES = {
     1: [[1, "Egg Notifiers"], [2, "Egg Wiki"], [3, "Egg Calculator"], [5, "Egg Fusion"]],   // "Join" (page 4) is hidden: fillPages adds it only when the site was opened from a join link
     2: [[1, "Verification", "verification"], [2, "Roles", "roles"], [3, "Server Stuff", "server-stuff"]],
-    3: [[1, "Status"], [2, "Inventory"], [3, "Scripts"]]
+    3: [[1, "Status"], [2, "Inventory"], [3, "Scripts"], [6, "Hatches"]]
   };
   function fillPages(ch, pg) {
     var sel = $("pgSel"), list = PAGES[ch] || [];
@@ -6694,7 +6770,7 @@ document.addEventListener("DOMContentLoaded", function () {
   })();
 
   // ---------- tab / channel switch animations ----------
-  var VIEW_IDS = ["left", "right", "nfWrap", "guestWrap", "joinCard", "valDetail", "valuesPage", "calcPage", "fusionPage", "verifyPage", "soonPage", "tsrStatus", "tsrInv", "tsrScripts", "tsrTrade", "blank"];
+  var VIEW_IDS = ["left", "right", "nfWrap", "guestWrap", "joinCard", "valDetail", "valuesPage", "calcPage", "fusionPage", "verifyPage", "soonPage", "tsrStatus", "tsrInv", "tsrScripts", "tsrTrade", "tsrHatch", "blank"];
   var curCh, curPg, running = [], inflight = false;
   function reduced() { return window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches; }
   function canAnim() { return !reduced() && !!document.body.animate; }
