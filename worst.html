@@ -5760,7 +5760,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }).join("");
     return h + '</div>';
   }
-  var TSR_SECRETS = { "dragon tamer": 1, "infernal lord": 1, "reanimation": 1, "cinder eye": 1, "first light": 1, "shinigami": 1 };   // the ONLY secret pets in Tap simulator; add new ones here
+  var TSR_SECRETS = { "dragon tamer": 1, "infernal lord": 1, "reanimation": 1, "cinder eye": 1, "first light": 1, "shinigami": 1, "nameless diety": 1 };   // the ONLY secret pets in Tap simulator; add new ones here
   function tsrIsSecret(x) {   // only the pets in TSR_SECRETS above count as secret; add new secrets to that list
     return !!TSR_SECRETS[String(x.name).trim().toLowerCase()];
   }
