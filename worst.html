@@ -903,6 +903,128 @@ body.tsrMode #tsrAdminBtn:not([hidden]){animation:tsrPop .45s cubic-bezier(.3,1.
 .ht-filt button{padding:4px 12px;border:1px solid #333;background:rgba(0,0,0,.3);color:#cfcfcf;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer}
 .ht-filt button.on{background:#fff;color:#0a0a0a;border-color:#fff}
 .ht-slide{overflow-x:clip}
+
+/* ---- Inventory page: clean card layout (scoped to #tsrInv) ---- */
+#tsrInv .tsr-invbar{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px;min-height:0;margin:0 0 18px}
+#tsrInv .tsr-invbar .tsr-tabs{grid-column:1;margin:0;justify-self:start}
+#tsrInv .tsr-total{position:static;translate:none;grid-column:2;justify-self:center;padding:6px 18px;border:1px solid rgba(255,255,255,.28);border-radius:12px;background:rgba(255,255,255,.08);box-shadow:none}
+#tsrInv .tsr-total b{font-size:15px}
+#tsrInv .tsr-search{grid-column:3;justify-self:end;margin:0;width:240px;padding:9px 14px 9px 36px;border-radius:10px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.35) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E") no-repeat 12px center}
+@media(max-width:900px){#tsrInv .tsr-invbar{grid-template-columns:1fr}#tsrInv .tsr-invbar>*{grid-column:1;justify-self:stretch}#tsrInv .tsr-search{width:100%;box-sizing:border-box}}
+#tsrInv .tsr-grid.five{gap:14px;min-width:1060px}
+#tsrInv .tsr-card{display:flex;flex-direction:column;padding:16px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.10);border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.18);transition:border-color .2s,background .2s}
+#tsrInv .tsr-card:hover{border-color:rgba(255,255,255,.22);background:rgba(255,255,255,.06)}
+#tsrInv .tsr-card:hover .tsr-name{text-shadow:none}
+#tsrInv .tsr-name{font-size:15px;margin-bottom:12px;padding-bottom:12px;gap:9px}
+#tsrInv .inv-cap{margin:0 0 6px}
+#tsrInv .inv-cap-top{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#a8a8a8}
+#tsrInv .inv-cap-top b{font-size:13px;letter-spacing:0;text-transform:none;color:#fff;font-variant-numeric:tabular-nums}
+#tsrInv .inv-bar{height:5px;margin-top:7px;border-radius:99px;background:rgba(255,255,255,.10);overflow:hidden}
+#tsrInv .inv-bar i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#9aa4b2,#fff)}
+#tsrInv .inv-bar.full i{background:linear-gradient(90deg,#f5c542,#ffb454)}
+#tsrInv .tsr-warn{margin:8px 0 0;padding:6px 10px;border-radius:8px;background:rgba(245,197,66,.08);border:1px solid rgba(245,197,66,.25);color:#f5d27a;font-size:11.5px}
+#tsrInv .tsr-sec{display:flex;align-items:center;justify-content:space-between;margin:16px 0 6px;padding:0 2px 6px;background:none;border:0;border-bottom:1px solid rgba(255,255,255,.08);border-radius:0;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#a8a8a8}
+#tsrInv .tsr-sec em{font-style:normal;min-width:20px;padding:1px 8px;border-radius:99px;background:rgba(255,255,255,.10);color:#e6e6e6;font-size:11px;letter-spacing:0;text-align:center;font-variant-numeric:tabular-nums}
+#tsrInv .inv-list{max-height:340px;overflow-y:auto;margin:0 -4px;padding:0 4px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.22) transparent}
+#tsrInv .inv-list::-webkit-scrollbar{width:6px}
+#tsrInv .inv-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:6px}
+#tsrInv .tsr-kv{align-items:center;gap:8px;margin:2px 0;padding:6px 8px;border:1px solid transparent;border-top:1px solid transparent;border-radius:8px;text-shadow:none;transition:background .15s,border-color .15s}
+#tsrInv .tsr-kv:first-of-type{border-top:1px solid transparent}
+#tsrInv .tsr-kv:hover{background:rgba(255,255,255,.07);padding-left:8px;padding-right:8px}
+#tsrInv .tsr-kv.pet.sel,#tsrInv .tsr-kv.pet.sel:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.55);box-shadow:none;padding-left:8px;padding-right:8px}
+#tsrInv .pet-main{display:flex;align-items:center;flex-wrap:wrap;gap:3px 7px;min-width:0}
+#tsrInv .pet-name{font-size:13px;font-weight:600;color:#f1f1f1;word-break:break-word}
+#tsrInv .pet-tier{font-style:normal;padding:1px 7px;border-radius:99px;border:1px solid rgba(255,255,255,.22);font-size:10px;font-weight:800;letter-spacing:.03em;color:#cfcfcf;white-space:nowrap}
+#tsrInv .pet-tier.t-gold{color:#f5c542;border-color:rgba(245,197,66,.55);background:rgba(245,197,66,.10)}
+#tsrInv .pet-tier.t-diamond{color:#6fd6ff;border-color:rgba(111,214,255,.55);background:rgba(111,214,255,.10)}
+#tsrInv .pet-tier.t-silver{color:#cfd6df;border-color:rgba(207,214,223,.45)}
+#tsrInv .pet-tier.t-rainbow{color:#0a0a0a;border-color:transparent;background:linear-gradient(90deg,#ff8a8a,#ffd166,#06d6a0,#4cc9f0,#c77dff)}
+#tsrInv .tsr-kv span.pet-val{flex:none;padding:2px 9px;border-radius:7px;background:rgba(0,0,0,.35);font-size:12px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums}
+#tsrInv .tsr-kv span.pet-val:empty{display:none}
+#tsrInv .inv-none{padding:8px;font-size:12px;color:#8d8d8d;font-style:italic;text-shadow:none;margin:0}
+/* ---- Inventory v2: one account per tab, Equipped | Unequipped side by side (same height), Mythic and above ---- */
+#tsrInv .iv-bar{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:0 0 14px}
+#tsrInv .iv-searchwrap{position:relative;flex:0 1 340px;min-width:220px}
+#tsrInv .iv-search{width:100%;box-sizing:border-box;margin:0;padding:10px 14px 10px 36px;border-radius:10px;border:1px solid rgba(255,255,255,.14);color:#f5f5f5;font-size:13px;background:rgba(0,0,0,.35) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E") no-repeat 12px center}
+#tsrInv .iv-search:focus{outline:none;border-color:#fff;box-shadow:0 0 14px rgba(255,255,255,.18)}
+#tsrInv .iv-note{font-size:12px;color:#9a9a9a}
+#tsrInv .iv-dd{position:absolute;top:calc(100% + 6px);left:0;width:min(440px,92vw);max-height:420px;overflow-y:auto;z-index:40;box-sizing:border-box;padding:8px;border-radius:12px;background:#17181b;border:1px solid rgba(255,255,255,.16);box-shadow:0 14px 32px rgba(0,0,0,.6);scrollbar-width:thin}
+#tsrInv .iv-ddp{padding:8px 6px 6px;border-bottom:1px solid rgba(255,255,255,.08)}
+#tsrInv .iv-ddp:last-child{border-bottom:0}
+#tsrInv .iv-ddh{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;margin-bottom:6px}
+#tsrInv .iv-ddh .iv-tot{margin-left:auto;font-weight:800;font-size:13px;font-variant-numeric:tabular-nums}
+#tsrInv .iv-rar{font-style:normal;font-size:10px;font-weight:800;letter-spacing:.03em;color:var(--c,#aaa)}
+#tsrInv .iv-ddu{display:flex;align-items:center;gap:8px;width:100%;box-sizing:border-box;margin:2px 0;padding:7px 9px;border:1px solid transparent;border-radius:8px;background:rgba(255,255,255,.04);color:#f1f1f1;font:inherit;font-size:13px;text-align:left;cursor:pointer}
+#tsrInv .iv-ddu:hover{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.25)}
+#tsrInv .iv-ddu .un{flex:1;min-width:0;word-break:break-all}
+#tsrInv .iv-ddu .am{font-weight:800;font-variant-numeric:tabular-nums}
+#tsrInv .iv-ddu small{color:#9a9a9a;font-size:11px;margin-left:6px}
+#tsrInv .iv-empty{padding:12px 8px;color:#9a9a9a;font-size:12.5px}
+#tsrInv .iv-more{padding:8px 8px 2px;color:#9a9a9a;font-size:11.5px}
+#tsrInv .iv-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px}
+#tsrInv .iv-tabs button{display:inline-flex;align-items:center;gap:7px}
+#tsrInv .iv-dot{width:8px;height:8px;border-radius:50%;background:#666;flex:none}
+#tsrInv .iv-dot.on{background:#3ddc84;box-shadow:0 0 6px #3ddc84}
+#tsrInv .iv-card{padding:18px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.10);border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.18)}
+#tsrInv .iv-user{display:flex;align-items:center;gap:10px;font-size:19px;font-weight:800;margin:0 0 14px;word-break:break-all}
+#tsrInv .iv-user small{font-size:11px;font-weight:700;color:#9a9a9a;letter-spacing:.04em;text-transform:uppercase}
+#tsrInv .iv-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin-top:16px}
+@media(max-width:760px){#tsrInv .iv-cols{grid-template-columns:minmax(0,1fr)}}
+#tsrInv .iv-col{display:flex;flex-direction:column;min-width:0;padding:12px;border-radius:12px;background:rgba(0,0,0,.20);border:1px solid rgba(255,255,255,.08)}
+#tsrInv .iv-colh{display:flex;justify-content:space-between;align-items:center;margin:0 0 8px;padding:0 2px 8px;border-bottom:1px solid rgba(255,255,255,.08);font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#cfcfcf}
+#tsrInv .iv-colh em{font-style:normal;min-width:20px;padding:1px 9px;border-radius:99px;background:rgba(255,255,255,.10);color:#fff;font-size:11px;letter-spacing:0;text-align:center;font-variant-numeric:tabular-nums}
+#tsrInv .iv-list{height:460px;overflow-y:auto;margin:0 -4px;padding:0 4px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.22) transparent}
+#tsrInv .iv-list::-webkit-scrollbar{width:6px}
+#tsrInv .iv-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:6px}
+#tsrInv .iv-rh{position:sticky;top:0;z-index:1;display:flex;justify-content:space-between;align-items:center;margin:0 0 4px;padding:6px 6px 4px;background:#222326;border-radius:6px;border-left:3px solid var(--c,#aaa);font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--c,#aaa)}
+#tsrInv .iv-rh em{font-style:normal;color:#cfcfcf;font-variant-numeric:tabular-nums}
+#tsrInv .iv-rh:not(:first-child){margin-top:10px}
+#tsrInv .iv-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:2px 0;padding:6px 8px;border:1px solid transparent;border-radius:8px;transition:background .15s}
+#tsrInv .iv-row:hover{background:rgba(255,255,255,.07)}
+#tsrInv .iv-row.hi{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.55)}
+#tsrInv .iv-row .pet-val{flex:none;padding:2px 9px;border-radius:7px;background:rgba(0,0,0,.35);font-size:12px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums}
+#tsrInv .iv-row .pet-val:empty{display:none}
+#tsrInv .iv-hid{margin-top:8px;font-size:11.5px;color:#8d8d8d}
+
+/* ---- Inventory v3: pet tiles, stats strip, rarity colours ---- */
+#tsrInv .iv-tabs{gap:8px;margin:0 0 18px;padding:0 0 2px}
+#tsrInv .iv-tabs button{padding:8px 15px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);color:#cfcfcf;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s,border-color .15s,color .15s,transform .15s}
+#tsrInv .iv-tabs button:hover{border-color:rgba(255,255,255,.45);color:#fff;transform:translateY(-1px)}
+#tsrInv .iv-tabs button.on{background:#fff;color:#0a0a0a;border-color:#fff;box-shadow:0 4px 16px rgba(255,255,255,.18)}
+#tsrInv .iv-card{padding:20px;background:linear-gradient(180deg,rgba(255,255,255,.065),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.12);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+#tsrInv .iv-user{font-size:22px;letter-spacing:-.01em;margin:0 0 16px}
+#tsrInv .iv-user small{padding:3px 10px;border-radius:99px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);font-size:10.5px}
+#tsrInv .iv-stats{display:grid;grid-template-columns:minmax(200px,1.3fr) repeat(2,minmax(110px,.7fr)) minmax(240px,2fr);gap:10px}
+@media(max-width:900px){#tsrInv .iv-stats{grid-template-columns:1fr 1fr}#tsrInv .iv-stat-r{grid-column:1 / -1}}
+#tsrInv .iv-stat{padding:12px 14px;border-radius:12px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.08);min-width:0}
+#tsrInv .iv-stat>span{display:block;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#9a9fa9}
+#tsrInv .iv-stat>b{display:block;margin-top:4px;font-size:24px;font-weight:800;line-height:1.1;color:#fff;font-variant-numeric:tabular-nums}
+#tsrInv .iv-stat>b small{font-size:13px;font-weight:600;color:#8d93a0}
+#tsrInv .iv-stat .inv-bar{height:6px;margin-top:9px}
+#tsrInv .iv-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+#tsrInv .iv-chip{display:inline-flex;align-items:center;gap:6px;padding:3px 10px 3px 8px;border-radius:99px;font-size:11.5px;font-weight:700;color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent);border:1px solid color-mix(in srgb,var(--c) 45%,transparent)}
+#tsrInv .iv-chip i{width:7px;height:7px;border-radius:50%;background:var(--c);box-shadow:0 0 8px var(--c)}
+#tsrInv .iv-chip b{color:#fff;font-variant-numeric:tabular-nums}
+#tsrInv .iv-nochip{font-size:12px;color:#8d93a0}
+#tsrInv .iv-cols{gap:16px;margin-top:16px}
+#tsrInv .iv-col{padding:14px;border-radius:14px;background:rgba(0,0,0,.26);border:1px solid rgba(255,255,255,.09)}
+#tsrInv .iv-colh{margin:0 0 10px;padding:0 2px 10px;font-size:12.5px}
+#tsrInv .iv-colh em{padding:2px 11px;font-size:12px;background:rgba(255,255,255,.12)}
+#tsrInv .iv-list{height:520px;margin:0 -6px;padding:0 6px}
+#tsrInv .iv-rh{top:0;margin:0 0 8px;padding:7px 10px;background:rgba(24,25,28,.96);backdrop-filter:blur(4px);border-radius:8px;border-left:0;border-bottom:2px solid var(--c);font-size:11px;box-shadow:0 6px 10px -6px rgba(0,0,0,.6)}
+#tsrInv .iv-rh:not(:first-child){margin-top:14px}
+#tsrInv .iv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+#tsrInv .iv-row.iv-tile{position:relative;display:flex;align-items:center;justify-content:flex-start;gap:10px;margin:0;padding:8px 10px 8px 8px;min-width:0;border:1px solid color-mix(in srgb,var(--c) 28%,rgba(255,255,255,.06));border-radius:12px;background:linear-gradient(135deg,color-mix(in srgb,var(--c) 13%,transparent),rgba(255,255,255,.025) 70%);transition:transform .15s,border-color .15s,box-shadow .15s}
+#tsrInv .iv-row.iv-tile:hover{transform:translateY(-1px);border-color:var(--c);box-shadow:0 6px 18px color-mix(in srgb,var(--c) 22%,transparent);background:linear-gradient(135deg,color-mix(in srgb,var(--c) 20%,transparent),rgba(255,255,255,.04) 70%)}
+#tsrInv .iv-row.iv-tile.hi{border-color:#fff;box-shadow:0 0 0 1px #fff,0 0 22px color-mix(in srgb,var(--c) 60%,transparent)}
+#tsrInv .iv-img{flex:none;width:46px;height:46px;border-radius:10px;display:grid;place-items:center;overflow:hidden;font-size:18px;font-weight:800;color:#0a0a0a;background:color-mix(in srgb,var(--c) 55%,#e8e8e8);box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)}
+#tsrInv .iv-img img{width:100%;height:100%;object-fit:contain}
+#tsrInv .iv-info{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+#tsrInv .iv-info .pet-name{font-size:13px;font-weight:700;line-height:1.2;word-break:break-word}
+#tsrInv .iv-row.iv-tile .pet-val{position:absolute;top:-7px;right:8px;padding:1px 8px;border-radius:99px;background:#0e0f11;border:1px solid color-mix(in srgb,var(--c) 70%,#fff 0%);font-size:11px;font-weight:800;color:#fff}
+#tsrInv .iv-hid{margin-top:10px;padding:6px 10px;border-radius:8px;background:rgba(255,255,255,.04);font-size:11.5px;color:#9a9fa9}
+#tsrInv .inv-none{padding:36px 8px;text-align:center;font-size:13px;color:#7d828c}
+
 </style>
 </head>
 <body>
@@ -1291,7 +1413,7 @@ body.tsrMode #tsrAdminBtn:not([hidden]){animation:tsrPop .45s cubic-bezier(.3,1.
 <!-- ============================================================
  TAP SIMULATOR CHANNEL > PAGES: Status, Inventory, Scripts, Trade, Admin Panel
  * Needs an admin or VIP key. Trade and the Admin Panel popup are admin only.
- * Status = accounts online. Inventory = pets (Equipped / Secrets / Unequipped).
+ * Status = accounts online. Inventory = one tab per account, pets (Equipped / Unequipped), Mythic and above.
  * Scripts = run Lua on accounts. Trade = send pets between accounts.
  ============================================================ -->
 <section class="panel tsr" id="tsrStatus" hidden><div class="tsr-body"></div></section>
@@ -5715,14 +5837,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ============================================================
   // TAP SIMULATOR CHANNEL (Status, Inventory, Scripts, Trade, Admin Panel)
-  // * Secret pets are ONLY the names in TSR_SECRETS. Add new secrets there.
+  // * Secret pets are detected automatically from the rarity the Lua script sends (nothing to update).
   // ============================================================
   // ---------- Tap simulator channel (status, inventory, scripts) ----------
   var TSR_WORKER = "https://tsr-hub.asaiyamain.workers.dev";
   // Scripts live in your Worker (add / edit them on the Scripts page). Selected accounts + editor state:
   var tsrScTab = "manual", tsrScBusy = false, tsrScripts = null, tsrScriptsErr = "", tsrSelAll = true, tsrSelNames = {}, tsrDDOpen = false, tsrEdit = null, tsrMsgTxt = "", tsrMsgBad = false;
   var tsrRole = "", tsrWho = "", tsrExp = 0, tsrPerms = {}, tsrAuthMsg = "", tsrKeys = null, tsrLogs = null, tsrLogFilter = "all", tsrReveal = null, tsrNewDays = 7, tsrAdErr = "";
-  var tsrAuthed = false, tsrInvTab = 0, tsrData = [], tsrTimer = 0, tsrErr = "", tsrAuthBad = false;
+  var tsrAuthed = false, tsrData = [], tsrTimer = 0, tsrErr = "", tsrAuthBad = false;
   function tsrGate() {   // Tap simulator: the Pages dropdown stays hidden until the admin key has been accepted
     var lock = +$("chSel").value === 3 && !tsrAuthed, lb = document.querySelector('label[for="pgSel"]');
     $("pgSel").hidden = lock; if (lb) lb.hidden = lock;
@@ -5771,10 +5893,11 @@ document.addEventListener("DOMContentLoaded", function () {
     }).join("");
     return h + '</div>';
   }
-   var TSR_SECRETS = { "dragon tamer": 1, "infernal lord": 1, "reanimation": 1, "cinder eye": 1, "first light": 1, "shinigami": 1, "nameless diety": 1 };
-  function tsrIsSecret(x) {   // only the pets in TSR_SECRETS above count as secret; add new secrets to that list
-    return !!TSR_SECRETS[String(x.name).trim().toLowerCase()];
-  }
+  // Secret pets are found AUTOMATICALLY: the Lua script sends the rarity of every pet (read from the game itself) and any rarity
+  // that starts with "Secret" (Secret, Secrets 1, Secret II ...) is grouped as Secret. Nothing to update when a new secret comes out.
+  // TSR_SECRETS is only a last-resort fallback for a pet whose rarity has not arrived yet.
+  var TSR_SECRETS = { "dragon tamer": 1, "infernal lord": 1, "reanimation": 1, "cinder eye": 1, "first light": 1, "shinigami": 1, "nameless diety": 1, "nameless deity": 1 };
+  function tsrIsSecret(x) { return tsrRarOf(x) === "Secret"; }
   function tsrEqCounts(a) {   // "name|tier" -> how many copies are equipped
     var m = {}; ((a.pets && a.pets.equipped) || []).forEach(function (x) { var k = x.name + "|" + x.tier; m[k] = (m[k] || 0) + 1; });
     return m;
@@ -5783,87 +5906,153 @@ document.addEventListener("DOMContentLoaded", function () {
     var m = tsrEqCounts(a), out = [];
     ((a.pets && a.pets.grouped) || []).forEach(function (x) {
       var c = (+x.count || 0) - (m[x.name + "|" + x.tier] || 0);
-      if (c > 0) out.push({ name: x.name, tier: x.tier, count: c, locked: Math.min(c, +x.locked || 0) });
+      if (c > 0) out.push({ name: x.name, tier: x.tier, count: c, locked: Math.min(c, +x.locked || 0), rarity: x.rarity });
     });
     return out;
   }
-  function tsrSecretsOf(a) {   // every secret pet the account owns, equipped or not
-    var tot = {}, order = [];
-    ((a.pets && a.pets.grouped) || []).forEach(function (x) { if (tsrIsSecret(x)) { var k = x.name + "|" + x.tier; tot[k] = { name: x.name, tier: x.tier, count: +x.count || 0 }; order.push(k); } });
-    var m = tsrEqCounts(a);
-    ((a.pets && a.pets.equipped) || []).forEach(function (x) {
-      if (!tsrIsSecret(x)) return;
+  function tsrInvOwned(a) {   // every pet an account has, equipped or not: { name, tier, rarity, total, eq, un }
+    var p = a.pets || {}, eqm = tsrEqCounts(a), m = {}, out = [];
+    function get(x) {
       var k = x.name + "|" + x.tier;
-      if (!tot[k]) { tot[k] = { name: x.name, tier: x.tier, count: 0 }; order.push(k); }
-      if (tot[k].count < m[k]) tot[k].count = m[k];
+      if (!m[k]) { m[k] = { name: x.name, tier: x.tier, rarity: "", total: 0 }; out.push(m[k]); }
+      if (x.rarity) m[k].rarity = x.rarity;
+      return m[k];
+    }
+    (p.equipped || []).forEach(get);
+    (p.grouped || []).forEach(function (x) { get(x).total = +x.count || 0; });
+    out.forEach(function (o) { o.eq = eqm[o.name + "|" + o.tier] || 0; if (o.total < o.eq) o.total = o.eq; o.un = o.total - o.eq; });
+    return out;
+  }
+  var tsrInvQ = "";          // Inventory search text
+  var tsrInvAcc = "";        // account whose tab is open
+  var tsrInvHi = "";         // "Name|Tier" picked in the search dropdown: lit up in that account's lists
+  var tsrInvJump = false;    // scroll the lit up row into view once after the next paint
+  var tsrInvDDOpen = false;  // search dropdown open
+  var tsrInvScroll = { E: 0, U: 0 };   // list scroll positions (kept across the 10 s refresh)
+  function tsrTierCls(t) { t = String(t || "").toLowerCase(); return /rainbow|shiny/.test(t) ? "rainbow" : /diamond/.test(t) ? "diamond" : /gold/.test(t) ? "gold" : /silver/.test(t) ? "silver" : "base"; }
+  function tsrRarSort(x) { var r = tsrRarOf(x), k = tsrRarRank(r); return k >= 0 ? k : (r ? 99 : -1); }
+  function tsrInvRow(x, val, rar) {   // one pet tile: picture, name, tier, amount
+    var u = tsrTrImg(x.name), col = TSR_RAR_COL[rar] || "#8d93a0", hi = (x.name + "|" + x.tier) === tsrInvHi;
+    return '<div class="iv-row iv-tile' + (hi ? " hi" : "") + '" style="--c:' + col + '" title="' + tsrEsc(x.name) + '"><span class="iv-img">'
+      + (u ? '<img src="' + tsrEsc(u) + '" alt="" loading="lazy" referrerpolicy="no-referrer">' : tsrEsc(String(x.name).charAt(0)))
+      + '</span><span class="iv-info"><span class="pet-name">' + tsrEsc(x.name) + '</span>'
+      + (x.tier ? '<em class="pet-tier t-' + tsrTierCls(x.tier) + '">' + tsrEsc(x.tier) + '</em>' : "") + '</span>'
+      + (val ? '<span class="pet-val">' + tsrEsc(val) + '</span>' : "") + '</div>';
+  }
+  document.addEventListener("error", function (e) {   // an inventory picture that does not load falls back to the first letter
+    var t = e.target;
+    if (t && t.tagName === "IMG" && t.parentNode && t.parentNode.classList && t.parentNode.classList.contains("iv-img")) { var pn = t.closest(".iv-tile"), n = pn && pn.querySelector(".pet-name"); t.parentNode.textContent = n ? n.textContent.charAt(0) : "?"; }
+  }, true);
+  function tsrInvColHtml(title, id, items, valFn) {   // one list (Equipped / Unequipped): Mythic and above, grouped by rarity, rarest first
+    var shown = [], low = 0, none = 0;
+    items.forEach(function (x) {
+      var n = +x.count || 1, r = tsrRarOf(x);
+      if (tsrRarShown(r)) shown.push(x); else if (r) low += n; else none += n;
     });
-    return order.map(function (k) { return tot[k]; });
+    shown.sort(function (a, b) { return (tsrRarSort(b) - tsrRarSort(a)) || (tsrRarOf(a) < tsrRarOf(b) ? -1 : tsrRarOf(a) > tsrRarOf(b) ? 1 : 0) || String(a.name).localeCompare(String(b.name)) || String(a.tier).localeCompare(String(b.tier)); });
+    var groups = [], cur = null, tot = 0;
+    shown.forEach(function (x) {
+      var r = tsrRarOf(x), n = +x.count || 1; tot += n;
+      if (!cur || cur.r !== r) { cur = { r: r, list: [], n: 0 }; groups.push(cur); }
+      cur.list.push(x); cur.n += n;
+    });
+    var body = groups.map(function (g) {
+      return '<div class="iv-rh" style="--c:' + (TSR_RAR_COL[g.r] || "#8d93a0") + '"><span>' + tsrEsc(g.r || "Unknown") + '</span><em>' + g.n.toLocaleString() + '</em></div>'
+        + '<div class="iv-grid">' + g.list.map(function (x) { return tsrInvRow(x, valFn(x), g.r); }).join("") + '</div>';
+    }).join("");
+    var note = [];
+    if (low) note.push(low.toLocaleString() + " below Mythic hidden");
+    if (none) note.push(none.toLocaleString() + " without a rarity yet hidden");
+    return '<div class="iv-col"><div class="iv-colh"><span>' + title + '</span><em>' + tot.toLocaleString() + '</em></div><div class="iv-list" data-iv="' + id + '">'
+      + (body || '<div class="inv-none">None</div>') + '</div>' + (note.length ? '<div class="iv-hid">' + note.join(" \u00b7 ") + '</div>' : "") + '</div>';
   }
-  var tsrInvQ = "";   // Inventory search text
-  var tsrInvSel = "";   // pet clicked on the Inventory page ("Name|Tier"): lit up on every account, total shown above the middle one
-  function tsrPetKey(x, sec) { return sec + ":" + x.name + "|" + x.tier; }   // sec: "E" = Equipped list, "A" = All pets list (kept separate)
-  function tsrPetKv(x, val, sec) {
-    var k = tsrPetKey(x, sec);
-    return '<div class="tsr-kv pet' + (k === tsrInvSel ? " sel" : "") + '" data-tsr="petsel" data-k="' + tsrEsc(k) + '" tabindex="0" role="button"><span>' + tsrEsc(x.name + " (" + x.tier + ")") + '</span><span>' + tsrEsc(val) + '</span></div>';
-  }
-  function tsrInvTotalHtml() {
-    if (!tsrInvSel) return "";
-    var sec = tsrInvSel.charAt(0), n = 0, who = { E: "Equipped", S: "Secret", A: "Unequipped" }[sec] || "";
+  function tsrInvSearchRes() {   // pets that match the search, with every account that has them
+    var q = tsrInvQ.trim().toLowerCase(); if (!q) return { pets: [], more: 0 };
+    var m = {}, list = [];
     tsrData.forEach(function (a) {
-      var p = a.pets || {};
-      if (sec === "E") (p.equipped || []).forEach(function (x) { if (tsrPetKey(x, "E") === tsrInvSel) n++; });
-      else (sec === "S" ? tsrSecretsOf(a) : tsrUnequipped(a)).forEach(function (x) { if (tsrPetKey(x, sec) === tsrInvSel) n += +x.count || 0; });
-    });
-    var body = tsrInvSel.slice(2), i = body.lastIndexOf("|"), label = body.slice(0, i) + " (" + body.slice(i + 1) + ")";
-    return "<small>" + who + " \u00b7 " + tsrEsc(label) + "</small><b>Total: " + n.toLocaleString() + "</b>";
-  }
-  document.addEventListener("keydown", function (e) { if ((e.key === "Enter" || e.key === " ") && e.target && e.target.classList && e.target.classList.contains("pet")) { e.preventDefault(); e.target.click(); } });
-  function tsrInvFilter() {   // hide pets that do not match the search, and any section left empty
-    var root = $("tsrInv"); if (!root) return;
-    var q = tsrInvQ.trim().toLowerCase();
-    root.querySelectorAll(".tsr-grp").forEach(function (g) {
-      var any = false;
-      g.querySelectorAll(".pet").forEach(function (r) {
-        var m = !q || r.firstElementChild.textContent.toLowerCase().indexOf(q) > -1;
-        r.hidden = !m; if (m) any = true;
+      tsrInvOwned(a).forEach(function (o) {
+        if (!(o.name + " " + o.tier).toLowerCase().includes(q) && !(o.tier + " " + o.name).toLowerCase().includes(q)) return;
+        if (!tsrRarShown(tsrRarOf(o))) return;
+        var k = o.name + "|" + o.tier;
+        if (!m[k]) { m[k] = { name: o.name, tier: o.tier, rarity: o.rarity, total: 0, users: [] }; list.push(m[k]); }
+        if (o.rarity) m[k].rarity = o.rarity;
+        m[k].total += o.total; m[k].users.push({ acc: a, total: o.total, eq: o.eq, un: o.un });
       });
-      g.hidden = !!q && !any;
     });
+    list.sort(function (a, b) { return (tsrRarSort(b) - tsrRarSort(a)) || String(a.name).localeCompare(String(b.name)) || String(a.tier).localeCompare(String(b.tier)); });
+    var LIM = 8;
+    return { pets: list.slice(0, LIM), more: Math.max(0, list.length - LIM) };
   }
-  document.addEventListener("input", function (e) { if (e.target && e.target.id === "tsrInvSearch") { tsrInvQ = e.target.value; tsrInvFilter(); } });
-  function tsrInvPaint() {   // light up / clear matching rows without re-rendering the page
+  function tsrInvDDHtml() {
+    if (!tsrInvQ.trim()) return "";
+    var r = tsrInvSearchRes();
+    if (!r.pets.length) return '<div class="iv-empty">No Mythic or above pet matches \u201c' + tsrEsc(tsrInvQ.trim()) + '\u201d on any account.</div>';
+    return r.pets.map(function (p) {
+      var rar = tsrRarOf(p);
+      p.users.sort(function (a, b) { return b.total - a.total; });
+      return '<div class="iv-ddp"><div class="iv-ddh"><span class="pet-name">' + tsrEsc(p.name) + '</span>' + (p.tier ? '<em class="pet-tier t-' + tsrTierCls(p.tier) + '">' + tsrEsc(p.tier) + '</em>' : "")
+        + (rar ? '<em class="iv-rar" style="--c:' + (TSR_RAR_COL[rar] || "#aaa") + '">' + tsrEsc(rar) + '</em>' : "") + '<span class="iv-tot">' + p.users.length + (p.users.length === 1 ? " user" : " users") + ' \u00b7 x' + p.total.toLocaleString() + '</span></div>'
+        + p.users.map(function (u) {
+          return '<button type="button" class="iv-ddu" data-tsr="invacc" data-n="' + tsrEsc(u.acc.name) + '" data-k="' + tsrEsc(p.name + "|" + p.tier) + '"><span class="iv-dot' + (u.acc.online ? " on" : "") + '"></span><span class="un">' + tsrEsc(tsrDN(u.acc.name, true)) + '</span>'
+            + '<span class="am">x' + u.total.toLocaleString() + '<small>Equipped ' + u.eq + ' \u00b7 Unequipped ' + u.un + '</small></span></button>';
+        }).join("") + '</div>';
+    }).join("") + (r.more ? '<div class="iv-more">+' + r.more + ' more pets match. Type more to narrow it down.</div>' : "");
+  }
+  function tsrInvDDPaint() {   // refresh only the dropdown (typing never rebuilds the page)
+    var dd = $("ivDD"); if (!dd) return;
+    dd.innerHTML = tsrInvDDHtml(); dd.hidden = !(tsrInvDDOpen && tsrInvQ.trim());
+  }
+  document.addEventListener("input", function (e) { if (e.target && e.target.id === "tsrInvSearch") { tsrInvQ = e.target.value; tsrInvDDOpen = true; tsrInvDDPaint(); } });
+  document.addEventListener("focusin", function (e) { if (e.target && e.target.id === "tsrInvSearch" && tsrInvQ.trim()) { tsrInvDDOpen = true; tsrInvDDPaint(); } });
+  document.addEventListener("click", function (e) {
+    if (!tsrInvDDOpen) return;
+    if (!(e.target.closest && e.target.closest(".iv-searchwrap"))) { tsrInvDDOpen = false; tsrInvDDPaint(); }
+  });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && tsrInvDDOpen) { tsrInvDDOpen = false; tsrInvDDPaint(); } });
+  function tsrInvSave() {   // remember list scroll before the page is rebuilt
     var root = $("tsrInv"); if (!root) return;
-    root.querySelectorAll("[data-k]").forEach(function (r) { r.classList.toggle("sel", !!tsrInvSel && r.dataset.k === tsrInvSel); });
-    var t = $("tsrInvTotal"); if (t) t.innerHTML = tsrInvTotalHtml();
+    root.querySelectorAll(".iv-list").forEach(function (l) { tsrInvScroll[l.dataset.iv] = l.scrollTop; });
+  }
+  function tsrInvFilter() {   // runs after every Inventory paint: put the lists back where they were
+    var root = $("tsrInv"); if (!root) return;
+    root.querySelectorAll(".iv-list").forEach(function (l) { l.scrollTop = tsrInvScroll[l.dataset.iv] || 0; });
+    if (tsrInvJump) {
+      tsrInvJump = false;
+      var hi = root.querySelector(".iv-row.hi");
+      if (hi && hi.parentNode) hi.parentNode.scrollTop = Math.max(0, hi.offsetTop - hi.parentNode.offsetTop - 60);
+    }
+  }
+  function tsrInvPick() {
+    var a = tsrData.filter(function (x) { return x.name === tsrInvAcc; })[0];
+    if (!a) { a = tsrData.filter(function (x) { return x.online; })[0] || tsrData[0]; tsrInvAcc = a.name; }
+    return a;
   }
   function tsrInvHtml() {
-    var PER = 5, pages = Math.max(1, Math.ceil(tsrData.length / PER));
-    if (tsrInvTab >= pages) tsrInvTab = pages - 1;
-    var h = '<div class="tsr-head"><h2>Inventory</h2><p class="tsr-sub">Pets on each account</p></div>';
-    h += '<div class="tsr-invbar">';
-    if (pages > 1) {
-      h += '<div class="tsr-tabs">';
-      for (var i = 0; i < pages; i++) {
-        var lo = i * PER + 1, hi = Math.min(tsrData.length, (i + 1) * PER);
-        h += '<button type="button" data-tsr="tab" data-i="' + i + '"' + (i === tsrInvTab ? ' class="on"' : '') + '>' + (lo === hi ? lo : lo + '\u2013' + hi) + '</button>';
-      }
-      h += '</div>';
-    }
-    h += '<input type="search" id="tsrInvSearch" class="tsr-search" placeholder="Search pets..." autocomplete="off" spellcheck="false" value="' + tsrEsc(tsrInvQ) + '">';
-    h += '<div class="tsr-total" id="tsrInvTotal">' + tsrInvTotalHtml() + '</div></div>';   // sits above the middle account
-    h += '<div class="tsr-scroll"><div class="tsr-grid five">';
-    h += tsrData.slice(tsrInvTab * PER, tsrInvTab * PER + PER).map(function (a) {
-      var p = tsrPets(a), eq = p.equipped || [], g = p.grouped || [];
-      var c = '<div class="tsr-card"><div class="tsr-name"><span class="tsr-dot ' + (a.online ? "on" : "") + '"></span>' + tsrEsc(tsrDN(a.name)) + '</div>';
-      c += tsrKv("Pets owned", (p.owned != null ? p.owned : "?") + " / " + (p.capacity != null ? p.capacity : "?"));
-      if (p.owned != null && p.scanned != null && p.scanned < p.owned) c += '<div class="tsr-warn">Showing ' + p.scanned + ' of ' + p.owned + ' pets' + (p.stale ? " (older scan)" : "") + '.</div>';
-      c += '<div class="tsr-grp"><div class="tsr-sec">Equipped</div>' + (eq.length ? eq.map(function (x) { return tsrPetKv(x, x.multi || "", "E"); }).join("") : '<div class="tsr-sub">None scanned yet</div>') + '</div>';
-      var secs = tsrSecretsOf(a), rest = tsrUnequipped(a).filter(function (x) { return !tsrIsSecret(x); });
-      c += '<div class="tsr-grp"><div class="tsr-sec">Secrets</div>' + (secs.length ? secs.map(function (x) { return tsrPetKv(x, "x" + x.count, "S"); }).join("") : '<div class="tsr-sub">None</div>') + '</div>';
-      c += '<div class="tsr-grp"><div class="tsr-sec">Unequipped pets</div>' + (rest.length ? rest.map(function (x) { return tsrPetKv(x, "x" + x.count, "A"); }).join("") : '<div class="tsr-sub">' + (g.length ? "None" : "None scanned yet") + '</div>') + '</div>';
-      return c + '</div>';
+    var a = tsrInvPick(), p = tsrPets(a);
+    var h = '<div class="tsr-head"><h2>Inventory</h2><p class="tsr-sub">Pets on each account \u00b7 ' + tsrData.filter(function (x) { return x.online; }).length + ' of ' + tsrData.length + ' online \u00b7 Mythic and above</p></div>';
+    h += '<div class="iv-bar"><div class="iv-searchwrap"><input type="search" id="tsrInvSearch" class="iv-search" placeholder="Search a pet to see who has it..." autocomplete="off" spellcheck="false" value="' + tsrEsc(tsrInvQ) + '">'
+      + '<div class="iv-dd" id="ivDD"' + (tsrInvDDOpen && tsrInvQ.trim() ? "" : " hidden") + '>' + tsrInvDDHtml() + '</div></div></div>';
+    h += '<div class="iv-tabs">' + tsrData.map(function (x) {
+      return '<button type="button" data-tsr="invacc" data-n="' + tsrEsc(x.name) + '"' + (x.name === a.name ? ' class="on"' : "") + '><span class="iv-dot' + (x.online ? " on" : "") + '"></span>' + tsrEsc(tsrDN(x.name, true)) + '</button>';
+    }).join("") + '</div>';
+    var eq = p.equipped || [], un = tsrUnequipped(a);
+    var pct = (p.owned != null && p.capacity) ? Math.min(100, Math.round(p.owned / p.capacity * 100)) : null;
+    h += '<div class="iv-card"><div class="iv-user"><span class="iv-dot' + (a.online ? " on" : "") + '"></span>' + tsrEsc(tsrDN(a.name)) + '<small>' + (a.online ? "Online" : "Offline") + '</small></div>';
+    var own = tsrInvOwned(a), eqN = 0, unN = 0, byR = {};
+    own.forEach(function (o) { var r = tsrRarOf(o); if (!tsrRarShown(r)) return; eqN += o.eq; unN += o.un; byR[r] = (byR[r] || 0) + o.total; });
+    var chips = Object.keys(byR).sort(function (x, y) { return tsrRarRank(y) - tsrRarRank(x); }).map(function (r) {
+      return '<span class="iv-chip" style="--c:' + (TSR_RAR_COL[r] || "#8d93a0") + '"><i></i>' + tsrEsc(r || "Unknown") + ' <b>' + byR[r].toLocaleString() + '</b></span>';
     }).join("");
-    return h + '</div></div>';
+    h += '<div class="iv-stats">'
+      + '<div class="iv-stat iv-stat-cap"><span>Pets owned</span><b>' + (p.owned != null ? p.owned.toLocaleString() : "?") + '<small> / ' + (p.capacity != null ? p.capacity.toLocaleString() : "?") + '</small></b>' + (pct != null ? '<div class="inv-bar' + (pct >= 100 ? " full" : "") + '"><i style="width:' + pct + '%"></i></div>' : "") + '</div>'
+      + '<div class="iv-stat"><span>Equipped</span><b>' + eqN.toLocaleString() + '</b></div>'
+      + '<div class="iv-stat"><span>Unequipped</span><b>' + unN.toLocaleString() + '</b></div>'
+      + '<div class="iv-stat iv-stat-r"><span>By rarity</span><div class="iv-chips">' + (chips || '<em class="iv-nochip">Nothing Mythic or above</em>') + '</div></div></div>';
+    if (p.owned != null && p.scanned != null && p.scanned < p.owned) h += '<div class="tsr-warn">Showing ' + p.scanned + ' of ' + p.owned + ' pets' + (p.stale ? " (older scan)" : "") + '.</div>';
+    h += '<div class="iv-cols">'
+      + tsrInvColHtml("Equipped", "E", eq, function (x) { return x.multi || ""; })
+      + tsrInvColHtml("Unequipped", "U", un, function (x) { return "x" + x.count; }) + '</div></div>';
+    return h;
   }
   function tsrSelLabel() {
     var n = tsrData.length, c = tsrSelCount();
@@ -6022,6 +6211,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (pg === 5) { box.innerHTML = tsrPerms.trade ? tsrTradeHtml() : '<div class="tsr-empty">No access.</div>'; return; }
     if (pg === 4) { box.innerHTML = tsrRole === "admin" ? tsrAdminHtml() : '<div class="tsr-empty">No access.</div>'; return; }
     if (!tsrData.length) { box.innerHTML = '<div class="tsr-empty">No accounts yet. Run the agent script in game.</div>'; return; }
+    if (pg === 2) tsrInvSave();
     box.innerHTML = pg === 1 ? tsrStatusHtml() : tsrInvHtml();
     if (pg === 2) tsrInvFilter();
   }
@@ -6170,11 +6360,91 @@ document.addEventListener("DOMContentLoaded", function () {
   // ---------- Tap simulator: Trade page (admin only) ----------
   var tsrTr = { sender: "", partner: "Worst_Trader", dflt: true, delay: 15, picks: [], pet: "", qty: 1, msg: "", bad: false, sending: false }, tsrTrSig = "";
   function tsrTrAcc(n) { n = n || tsrTr.sender; return tsrData.filter(function (a) { return a.name === n; })[0] || null; }
-  function tsrTrPets() {   // equipped and locked pets can't be traded, so they never appear here
-    var a = tsrTrAcc(); if (!a) return [];
-    return tsrUnequipped(a).map(function (x) { return { name: x.name, tier: x.tier, count: x.count - x.locked }; }).filter(function (x) { return x.count > 0; });
+  function tsrTrOwned(a) {   // every tradable copy of every pet: { name, tier, rarity, un, eq, count }. Locked pets can't be traded; equipped ones are unequipped when picked
+    var lock = {}; tsrUnequipped(a).forEach(function (x) { lock[x.name + "|" + x.tier] = x.locked; });
+    return tsrInvOwned(a).map(function (o) {
+      var un = Math.max(0, o.un - (lock[o.name + "|" + o.tier] || 0));
+      return { name: o.name, tier: o.tier, rarity: o.rarity, un: un, eq: o.eq, count: un + o.eq };
+    }).filter(function (x) { return x.count > 0; });
   }
+  function tsrTrPets() { var a = tsrTrAcc(); return a ? tsrTrOwned(a) : []; }
+  function tsrTrNeedUn(pick) {   // how many copies of this pick are equipped right now and must be unequipped before the trade
+    var p = tsrTrPets().filter(function (x) { return tsrTrKey(x) === tsrTrKey(pick); })[0];
+    return p ? Math.max(0, pick.count - p.un) : 0;
+  }
+  function tsrTrUnequipList() { var out = []; tsrTr.picks.forEach(function (p) { var n = tsrTrNeedUn(p); if (n > 0) out.push({ name: p.name, tier: p.tier, count: n }); }); return out; }
   function tsrTrKey(p) { return p.name + "|" + p.tier; }
+  // ---- Trade search: every account's tradable Mythic+ pets, grouped pet > variant > account ----
+  var tsrTrQ = "", tsrTrDDOpen = false;
+  var TR_TIER_ORDER = { base: 0, silver: 1, gold: 2, diamond: 3, rainbow: 4 };
+  function tsrTrSearchRes() {
+    var toks = tsrTrQ.trim().toLowerCase().split(/\s+/).filter(Boolean); if (!toks.length) return { pets: [], more: 0 };
+    var byName = {}, list = [];
+    tsrData.forEach(function (a) {
+      tsrTrOwned(a).forEach(function (x) {
+        var n = x.count; if (n < 1) return;                            // locked pets cannot be traded; equipped ones are unequipped on pick
+        var rar = tsrRarOf(x); if (!tsrRarShown(rar)) return;           // Mythic and above only, whatever "Show all" says
+        var hay = (x.tier + " " + x.name).toLowerCase();
+        if (!toks.every(function (t) { return hay.indexOf(t) >= 0; })) return;
+        var g = byName[x.name]; if (!g) { g = byName[x.name] = { name: x.name, rarity: rar, total: 0, vars: {} }; list.push(g); }
+        var v = g.vars[x.tier]; if (!v) v = g.vars[x.tier] = { tier: x.tier, total: 0, users: [] };
+        v.total += n; g.total += n; v.users.push({ acc: a, n: n, eq: x.eq });
+      });
+    });
+    list.sort(function (a, b) { return (tsrRarSort(b) - tsrRarSort(a)) || String(a.name).localeCompare(String(b.name)); });
+    var LIM = 6;
+    return { pets: list.slice(0, LIM), more: Math.max(0, list.length - LIM) };
+  }
+  function tsrTrDDHtml() {
+    if (!tsrTrQ.trim()) return "";
+    var r = tsrTrSearchRes();
+    if (!r.pets.length) return '<div class="tr-ddn">No tradable Mythic or above pet matches \u201c' + tsrEsc(tsrTrQ.trim()) + '\u201d on any account. Locked pets can\u2019t be traded.</div>';
+    return r.pets.map(function (g) {
+      var vars = Object.keys(g.vars).map(function (k) { return g.vars[k]; }).sort(function (a, b) { return ((TR_TIER_ORDER[tsrTierCls(a.tier)] || 0) - (TR_TIER_ORDER[tsrTierCls(b.tier)] || 0)) || String(a.tier).localeCompare(String(b.tier)); });
+      return '<div class="tr-ddp"><div class="tr-ddh"><span class="tr-pn2">' + tsrEsc(g.name) + '</span>'
+        + (g.rarity ? '<em class="tr-rar2" style="color:' + (TSR_RAR_COL[g.rarity] || "#aaa") + '">' + tsrEsc(g.rarity) + '</em>' : '')
+        + '<span class="tr-tot2">' + vars.length + (vars.length === 1 ? " variant" : " variants") + ' \u00b7 x' + g.total.toLocaleString() + ' tradable</span></div>'
+        + vars.map(function (v) {
+          v.users.sort(function (a, b) { return b.n - a.n; });
+          return '<div class="tr-ddv"><em class="tr-tier t-' + tsrTierCls(v.tier) + '">' + tsrEsc(v.tier || "Normal") + '</em>'
+            + v.users.map(function (u) {
+              return '<button type="button" class="tr-ddu' + (u.acc.name === tsrTr.sender ? " cur" : "") + (u.acc.online ? "" : " off") + '" data-tr="srcpick" data-n="' + tsrEsc(u.acc.name) + '" data-k="' + tsrEsc(g.name + "|" + v.tier) + '" title="' + (u.acc.online ? "Online" : "Offline") + '"><span class="tr-dot' + (u.acc.online ? " on" : "") + '"></span>' + tsrEsc(tsrDN(u.acc.name, true)) + ' <b>x' + u.n.toLocaleString() + '</b>' + (u.eq ? '<small class="tr-eqs">' + u.eq + ' equipped</small>' : '') + '</button>';
+            }).join("") + '</div>';
+        }).join("") + '</div>';
+    }).join("") + (r.more ? '<div class="tr-ddn">+' + r.more + ' more pets match. Type more to narrow it down.</div>' : "");
+  }
+  function tsrTrDDPaint() {   // typing only repaints the dropdown, so the search box never loses focus
+    var dd = $("trDD"); if (!dd) return;
+    dd.innerHTML = tsrTrDDHtml(); dd.hidden = !(tsrTrDDOpen && tsrTrQ.trim());
+  }
+  function tsrTrPickFrom(name, key) {   // a username in the results was pressed: switch the giver and put that pet in the trade
+    var a = tsrTrAcc(name); if (!a) return;
+    var switched = tsrTr.sender !== name, cleared = switched && tsrTr.picks.length;
+    if (switched) { tsrTr.sender = name; tsrTr.picks = []; tsrTr.pet = ""; }
+    tsrTrQ = ""; tsrTrDDOpen = false;
+    var p = tsrTrPets().filter(function (x) { return tsrTrKey(x) === key; })[0];
+    if (!p) { tsrTr.msg = tsrDN(name, true) + " no longer has that pet."; tsrTr.bad = true; tsrRender(5); return; }
+    var n = Math.min(Math.max(1, Math.floor(Number(tsrTr.qty) || 1)), tsrTrLeft(p));
+    var types = tsrTr.picks.length + (tsrTrPicked(key) ? 0 : 1);
+    if (n < 1) { tsrTr.msg = "None left of this pet."; tsrTr.bad = true; tsrRender(5); return; }
+    if (types > 1 && tsrTrTotal() + n > 20) { tsrTr.msg = "A trade with different pets holds at most 20."; tsrTr.bad = true; tsrRender(5); return; }
+    var ex = tsrTr.picks.filter(function (x) { return tsrTrKey(x) === key; })[0];
+    if (ex) ex.count += n; else tsrTr.picks.push({ name: p.name, tier: p.tier, count: n });
+    tsrTr.msg = switched ? "Giver is now " + tsrDN(name, true) + (cleared ? ". Earlier picks were cleared." : ".") : ""; tsrTr.bad = false;
+    tsrRender(5);
+  }
+  document.addEventListener("focusin", function (e) { if (e.target && e.target.id === "trSearch" && tsrTrQ.trim()) { tsrTrDDOpen = true; tsrTrDDPaint(); } });
+  document.addEventListener("click", function (e) {
+    if (!tsrTrDDOpen) return;
+    if (!(e.target.closest && e.target.closest("#tsrTrade .tr-sbar"))) { tsrTrDDOpen = false; tsrTrDDPaint(); }
+  });
+  document.addEventListener("keydown", function (e) {
+    if (!e.target || e.target.id !== "trSearch") return;
+    if (e.key === "Escape") { tsrTrDDOpen = false; tsrTrDDPaint(); }
+    else if (e.key === "Enter") {   // exactly one account in the results: take it without touching the mouse
+      var b = document.querySelectorAll("#trDD .tr-ddu"); if (b.length === 1) { e.preventDefault(); tsrTrPickFrom(b[0].dataset.n, b[0].dataset.k); }
+    }
+  });
   function tsrTrPicked(key) { var n = 0; tsrTr.picks.forEach(function (p) { if (tsrTrKey(p) === key) n += p.count; }); return n; }
   function tsrTrTotal() { var n = 0; tsrTr.picks.forEach(function (p) { n += p.count; }); return n; }
   function tsrTrLeft(p) { return Math.max(0, p.count - tsrTrPicked(tsrTrKey(p))); }
@@ -6191,21 +6461,79 @@ document.addEventListener("DOMContentLoaded", function () {
   var tsrMt = { amt: "", amtAll: true, pet: "", collector: "", sel: {}, partner: "Worst_Trader", dflt: true, delay: 6, job: null, loaded: false, busy: false, sending: false, open: false, msg: "", bad: false, unsupported: false };
   var TSR_MT_BAD = /fail|skipp|stopp|dropp|timed out|offline|left the server|not |cancel|problem/i;
   function tsrMtAcc(n) { return tsrData.filter(function (a) { return a.name === n; })[0] || null; }
-  function tsrMtElig(a, ref) { return !!(a && ref && a.online && a.jobId && a.jobId === ref.jobId); }   // online and in the collector's server
-  function tsrMtPicked(ref) {   // ticked AND able to take part
-    return tsrData.filter(function (a) {
-      var on = tsrMtElig(a, ref);
-      if (a.name === tsrMt.collector) return on;
-      return tsrMt.sel[a.name] === undefined ? on : (tsrMt.sel[a.name] && on);
-    });
+  function tsrMtElig(a) { return !!(a && a.online && a.jobId); }   // online and in a server (any server)
+  function tsrMtPicked() {   // ticked AND able to take part
+    return tsrData.filter(function (x) { var on = tsrMtElig(x); return tsrMt.sel[x.name] === undefined ? on : (tsrMt.sel[x.name] && on); });
   }
-  function tsrMtPetsOf(a) {
-    return tsrUnequipped(a).map(function (x) { return { name: x.name, tier: x.tier, count: x.count - x.locked }; }).filter(function (x) { return x.count > 0; });
+  function tsrMtPetsOf(a) {   // every tradable copy, equipped ones too (they are unequipped before the trade): { name, tier, count, eq, rarity }
+    return tsrTrOwned(a).map(function (x) { return { name: x.name, tier: x.tier, count: x.count, eq: x.eq, rarity: x.rarity }; }).filter(function (x) { return x.count > 0; });
   }
   function tsrMtCountOf(a, key) { var n = 0; tsrMtPetsOf(a).forEach(function (p) { if (tsrTrKey(p) === key) n += p.count; }); return n; }
+  // ---- Multi Trade search: every tradable Mythic+ pet on EVERY account, grouped by server. Press an account to make it the collector. ----
+  var tsrMtQ = "", tsrMtDDOpen = false;
+  function tsrMtSrvLabels() {   // "Server A", "Server B"... for every server an online account is in
+    var ids = [], lab = {};
+    tsrData.slice().sort(function (x, y) { return String(x.name).localeCompare(String(y.name)); }).forEach(function (a) { if (a.online && a.jobId && ids.indexOf(a.jobId) < 0) ids.push(a.jobId); });
+    ids.forEach(function (id, i) { lab[id] = "Server " + String.fromCharCode(65 + i); });
+    return lab;
+  }
+  function tsrMtSearchRes() {
+    var toks = tsrMtQ.trim().toLowerCase().split(/\s+/).filter(Boolean); if (!toks.length) return { pets: [], more: 0 };
+    var byName = {}, list = [];
+    tsrData.forEach(function (a) {
+      tsrMtPetsOf(a).forEach(function (x) {
+        var rar = tsrRarOf(x); if (!tsrRarShown(rar)) return;         // Mythic and above only
+        var hay = (x.tier + " " + x.name).toLowerCase();
+        if (!toks.every(function (t) { return hay.indexOf(t) >= 0; })) return;
+        var g = byName[x.name]; if (!g) { g = byName[x.name] = { name: x.name, rarity: rar, total: 0, vars: {} }; list.push(g); }
+        var v = g.vars[x.tier]; if (!v) v = g.vars[x.tier] = { tier: x.tier, total: 0, srv: {} };
+        var sk = a.online && a.jobId ? a.jobId : "";                  // "" = offline / no server
+        var s = v.srv[sk]; if (!s) s = v.srv[sk] = { id: sk, total: 0, users: [] };
+        s.total += x.count; v.total += x.count; g.total += x.count; s.users.push({ acc: a, n: x.count });
+      });
+    });
+    list.sort(function (a, b) { return (tsrRarSort(b) - tsrRarSort(a)) || String(a.name).localeCompare(String(b.name)); });
+    var LIM = 6; return { pets: list.slice(0, LIM), more: Math.max(0, list.length - LIM) };
+  }
+  function tsrMtDDHtml() {
+    if (!tsrMtQ.trim()) return "";
+    var r = tsrMtSearchRes(), lab = tsrMtSrvLabels();
+    if (!r.pets.length) return '<div class="tr-ddn">No tradable Mythic or above pet matches \u201c' + tsrEsc(tsrMtQ.trim()) + '\u201d on any account.</div>';
+    return r.pets.map(function (g) {
+      var vars = Object.keys(g.vars).map(function (k) { return g.vars[k]; }).sort(function (a, b) { return ((TR_TIER_ORDER[tsrTierCls(a.tier)] || 0) - (TR_TIER_ORDER[tsrTierCls(b.tier)] || 0)) || String(a.tier).localeCompare(String(b.tier)); });
+      return '<div class="tr-ddp"><div class="tr-ddh"><span class="tr-pn2">' + tsrEsc(g.name) + '</span>'
+        + (g.rarity ? '<em class="tr-rar2" style="color:' + (TSR_RAR_COL[g.rarity] || "#aaa") + '">' + tsrEsc(g.rarity) + '</em>' : '')
+        + '<span class="tr-tot2">x' + g.total.toLocaleString() + ' on all accounts</span></div>'
+        + vars.map(function (v) {
+          var srvs = Object.keys(v.srv).map(function (k) { return v.srv[k]; }).sort(function (a, b) { return (b.id ? 1 : 0) - (a.id ? 1 : 0) || b.total - a.total; });
+          return '<div class="tr-ddv" style="align-items:flex-start"><em class="tr-tier t-' + tsrTierCls(v.tier) + '">' + tsrEsc(v.tier || "Normal") + '</em><div style="display:flex;flex-direction:column;gap:5px;flex:1;min-width:0">'
+            + srvs.map(function (s) {
+              return '<div class="tr-srv"><span class="tr-srvh">' + (s.id ? tsrEsc(lab[s.id] || "Server") : "Offline") + ' \u00b7 x' + s.total.toLocaleString() + '</span>'
+                + s.users.sort(function (a, b) { return b.n - a.n; }).map(function (u) {
+                  var on = !!s.id;
+                  return '<button type="button" class="tr-ddu' + (on ? "" : " off") + '" data-mt="srcpick" data-n="' + tsrEsc(u.acc.name) + '" data-k="' + tsrEsc(g.name + "|" + v.tier) + '" title="' + (on ? "Select this pet" : "Offline") + '"><span class="tr-dot' + (u.acc.online ? " on" : "") + '"></span>' + tsrEsc(tsrDN(u.acc.name, true)) + ' <b>x' + u.n.toLocaleString() + '</b></button>';
+                }).join("") + '</div>';
+            }).join("") + '</div></div>';
+        }).join("") + '</div>';
+    }).join("") + (r.more ? '<div class="tr-ddn">+' + r.more + ' more pets match. Type more to narrow it down.</div>' : "");
+  }
+  function tsrMtDDPaint() { var dd = $("mtDD"); if (!dd) return; dd.innerHTML = tsrMtDDHtml(); dd.hidden = !(tsrMtDDOpen && tsrMtQ.trim()); }
+  function tsrMtPickFrom(name, key) {   // a result was pressed: select that pet (any server, no collector to choose)
+    tsrMtQ = ""; tsrMtDDOpen = false; tsrMt.pet = key; tsrMt.amtAll = true; tsrMt.msg = ""; tsrMt.bad = false; tsrRender(5);
+  }
+  document.addEventListener("focusin", function (e) { if (e.target && e.target.id === "mtSearch" && tsrMtQ.trim()) { tsrMtDDOpen = true; tsrMtDDPaint(); } });
+  document.addEventListener("click", function (e) {
+    if (!tsrMtDDOpen) return;
+    if (!(e.target.closest && e.target.closest("#tsrTrade .tr-sbar"))) { tsrMtDDOpen = false; tsrMtDDPaint(); }
+  });
+  document.addEventListener("keydown", function (e) {
+    if (!e.target || e.target.id !== "mtSearch") return;
+    if (e.key === "Escape") { tsrMtDDOpen = false; tsrMtDDPaint(); }
+    else if (e.key === "Enter") { var b = document.querySelectorAll("#mtDD .tr-ddu:not(.off)"); if (b.length === 1) { e.preventDefault(); tsrMtPickFrom(b[0].dataset.n, b[0].dataset.k); } }
+  });
   function tsrMtPetOptions(picked) {
     var m = {}, out = [];
-    picked.forEach(function (a) { tsrMtPetsOf(a).forEach(function (p) { var k = tsrTrKey(p); if (!m[k]) { m[k] = { name: p.name, tier: p.tier, count: 0 }; out.push(m[k]); } m[k].count += p.count; }); });
+    picked.forEach(function (a) { tsrMtPetsOf(a).forEach(function (p) { var k = tsrTrKey(p); if (!m[k]) { m[k] = { name: p.name, tier: p.tier, count: 0, rarity: p.rarity }; out.push(m[k]); } if (!m[k].rarity && p.rarity) m[k].rarity = p.rarity; m[k].count += p.count; }); });
     return out.sort(function (x, y) { return y.count - x.count; });
   }
   function tsrMtMask(t) {   // account names inside log lines follow the blur setting too
@@ -6227,14 +6555,14 @@ document.addEventListener("DOMContentLoaded", function () {
     rows.forEach(function (r) { cnt[r.state] = (cnt[r.state] || 0) + 1; });
     rows.sort(function (x, y) { return (order[x.state] == null ? 9 : order[x.state]) - (order[y.state] == null ? 9 : order[y.state]); });
     var label = { running: "Running", done: "Finished", failed: "Stopped (problem)", stopped: "Stopped" }[j.status] || j.status;
-    var phase = j.status !== "running" ? "" : (j.phase === "final" ? " \u00b7 sending to " + tsrMtMask(j.partner || "") : " \u00b7 merging into " + tsrMtMask(j.collector));
+    var phase = j.status !== "running" ? "" : (j.auto ? " \u00b7 sending to " + tsrMtMask(j.partner || "") : j.phase === "final" ? " \u00b7 sending to " + tsrMtMask(j.partner || "") : " \u00b7 merging into " + tsrMtMask(j.collector));
     var h = '<div class="tsr-kv"><span>Status</span><span style="white-space:normal">' + tsrEsc(label + phase + " \u00b7 " + (j.trades || 0) + " trade" + ((j.trades || 0) === 1 ? "" : "s") + " done") + '</span></div>';
     h += '<div class="tsr-kv"><span>Pet</span><span style="white-space:normal">' + tsrEsc((j.total || 0) + "x " + (j.pet && j.pet.tier ? j.pet.tier + " " : "") + (j.pet ? j.pet.name : "")) + '</span></div>';
     if (j.error) h += '<div class="tsr-kv"><span>Problem</span><span style="white-space:normal;color:#ffb4a8">' + tsrEsc(tsrMtMask(j.error)) + '</span></div>';
     var parts = []; ["trading", "retrying", "settling", "waiting", "failed", "done", "collector"].forEach(function (k) { if (cnt[k]) parts.push(cnt[k] + " " + k); });
     h += '<details class="tr-dd" id="mtDet"' + (tsrMt.open ? " open" : "") + '><summary>Accounts (' + rows.length + '): ' + tsrEsc(parts.join(", ") || "none") + '</summary>';
     h += rows.map(function (r) {
-      var nm = tsrDN(r.name, true) + (r.collector ? " (collector)" : "");
+      var racc = tsrMtAcc(r.name), nm = tsrDN(r.name, true) + (r.collector ? " (collector)" : "") + (racc && racc.jobId ? " \u00b7 " + (tsrMtSrvLabels()[racc.jobId] || "Server") : "");
       return '<div class="tsr-kv"><span>' + tsrEsc(nm) + '</span><span style="white-space:normal">' + tsrEsc(tsrMtMask(r.state + (r.note ? " \u00b7 " + r.note : "") + " \u00b7 " + r.count + " now" + (r.online ? "" : " \u00b7 offline"))) + '</span></div>';
     }).join("") + '</details>';
     return h;
@@ -6248,34 +6576,59 @@ document.addEventListener("DOMContentLoaded", function () {
     }).join("");
   }
   // ---------- Trade page look: pet tiles, Mythic-and-above filter, Trade / Multi Trade tabs ----------
-  var TSR_RAR_ORDER = ["Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic", "Cosmic", "Secret", "Eternal", "Divine"];
+  var TSR_RAR_ORDER = ["Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic", "Cosmic", "Godly", "Secret", "Eternal", "Divine"];   // Godly sits just below Secret
   var TSR_MIN_RARITY = "Mythic";   // the lowest rarity the Trade page shows. Change it to show more.
-  var TSR_RAR_COL = { Mythic: "#ff6fa5", Cosmic: "#5dade2", Secret: "#E74C3C", Eternal: "#9B59B6", Divine: "#F1C40F" };
+  var TSR_RAR_COL = { Mythic: "#ff6fa5", Cosmic: "#5dade2", Godly: "#ff9f43", Secret: "#E74C3C", Eternal: "#9B59B6", Divine: "#F1C40F" };
+  var TSR_LOW_RAR = { common: 1, uncommon: 1, rare: 1, epic: 1, legendary: 1 };   // the only rarities that are hidden (Common to Legendary)
   // Rarity of pets that are not in the egg list (key = pet name in lower case). Add new pets here.
-  var TSR_PET_RARITY = { "ophanim": "Mythic", "elegance": "Mythic" };
+  var TSR_PET_RARITY = { "ophanim": "Mythic", "elegance": "Mythic", "cerberus": "Mythic" };   // Tap Simulator only (Cerberus is Secret in Steal an Egg, Mythic here)
   // Pet pictures: "Pet name": "https://image-link". Pets not listed use the Hatches list, then the egg pictures, then a letter.
   var TSR_PET_IMAGES = {};
   var tsrShowAll = false, tsrRarMap = null, tsrTrTab = "trade", tsrTrBusy = false;
-  function tsrRarNorm(r) { r = String(r || "").trim(); return /^mythical$/i.test(r) ? "Mythic" : r; }
-  function tsrRarRank(r) { var l = tsrRarNorm(r).toLowerCase(); for (var i = 0; i < TSR_RAR_ORDER.length; i++) if (TSR_RAR_ORDER[i].toLowerCase() === l) return i; return -1; }
-  function tsrRarOf(name) {
-    var k = String(name).trim().toLowerCase();
-    if (TSR_PET_RARITY[k]) return TSR_PET_RARITY[k];
-    if (typeof TSR_SECRETS !== "undefined" && TSR_SECRETS[k]) return "Secret";
-    if (!tsrRarMap) { tsrRarMap = {}; (typeof CALC_EGGS !== "undefined" ? CALC_EGGS : []).forEach(function (e) { tsrRarMap[String(e[0]).toLowerCase()] = e[1]; }); }
-    return tsrRarMap[k] || "";
+  function tsrRarNorm(r) {   // "Mythical" -> Mythic, "Secret I" / "Secrets 2" -> Secret, "godly" -> Godly
+    r = String(r || "").trim();
+    if (/^mythic(al)?$/i.test(r)) return "Mythic";
+    if (/^secrets?\b/i.test(r)) return "Secret";
+    if (/^godly$/i.test(r)) return "Godly";
+    return r;
   }
-  function tsrTrVis(p) { return tsrShowAll || tsrRarRank(tsrRarOf(p.name)) >= tsrRarRank(TSR_MIN_RARITY); }
+  function tsrRarRank(r) { var l = tsrRarNorm(r).toLowerCase(); for (var i = 0; i < TSR_RAR_ORDER.length; i++) if (TSR_RAR_ORDER[i].toLowerCase() === l) return i; return -1; }
+  function tsrRarShown(r) {   // Mythic and above. Only Common..Legendary are hidden; a brand new rarity is treated as higher, not lower
+    r = tsrRarNorm(r);   // unknown/empty rarity is no longer hidden: only Common to Legendary are
+    var k = tsrRarRank(r);
+    if (k >= 0) return k >= tsrRarRank(TSR_MIN_RARITY);
+    return !TSR_LOW_RAR[r.toLowerCase()];
+  }
+  var tsrLiveRarSrc = null, tsrLiveRarMap = {};
+  function tsrLiveRar(k) {   // rarity the Lua script sent for this pet name (from any account)
+    if (tsrLiveRarSrc !== tsrData) {
+      tsrLiveRarSrc = tsrData; tsrLiveRarMap = {};
+      tsrData.forEach(function (a) {
+        var p = a.pets || {};
+        [p.grouped, p.equipped].forEach(function (l) { (l || []).forEach(function (x) { if (x && x.rarity && x.name) tsrLiveRarMap[String(x.name).trim().toLowerCase()] = x.rarity; }); });
+      });
+    }
+    return tsrLiveRarMap[k] || "";
+  }
+  function tsrRarOf(p) {   // p = a pet object ({ name, rarity }) or just its name
+    var obj = p && typeof p === "object", name = obj ? p.name : p, k = String(name).trim().toLowerCase();
+    if (obj && p.rarity) return tsrRarNorm(p.rarity);                        // 1) sent by the Lua script with this pet
+    var live = tsrLiveRar(k); if (live) return tsrRarNorm(live);              // 2) sent for the same pet by any account
+    if (TSR_PET_RARITY[k]) return tsrRarNorm(TSR_PET_RARITY[k]);              // 3) manual list above (only for pets nothing else knows)
+    if (TSR_SECRETS[k]) return "Secret";                                      // 4) old secret list, fallback only
+    return "";   // Tap Simulator never borrows rarities from the Steal an Egg list (CALC_EGGS): the two games rate the same pet name differently
+  }
+  function tsrTrVis(p) { return tsrShowAll || tsrRarShown(tsrRarOf(p)); }
   function tsrTrImg(name) {
     var k = String(name).trim().toLowerCase(), hp = (typeof HAT_PETS !== "undefined" && HAT_PETS[k]) || null, u = TSR_PET_IMAGES[name] || TSR_PET_IMAGES[k] || (hp && hp.img) || (typeof EGG_IMAGES !== "undefined" && EGG_IMAGES[name]) || "";
     return typeof u === "string" ? u : "";
   }
   function tsrTrTile(p, attr, picked, left, sel) {
-    var u = tsrTrImg(p.name), rar = tsrRarNorm(tsrRarOf(p.name)), col = TSR_RAR_COL[rar] || "#aaa";
+    var u = tsrTrImg(p.name), rar = tsrRarOf(p), col = TSR_RAR_COL[rar] || "#aaa";
     return '<button type="button" class="tr-pet' + (picked || sel ? " picked" : "") + (left < 1 ? " empty" : "") + '" ' + attr + ' data-k="' + tsrEsc(tsrTrKey(p)) + '">'
       + (picked ? '<span class="tr-badge">' + picked + '</span>' : '') + '<span class="tr-left">' + left + '</span>'
       + '<span class="tr-img">' + (u ? '<img src="' + tsrEsc(u) + '" alt="" loading="lazy" referrerpolicy="no-referrer">' : tsrEsc(String(p.name).charAt(0))) + '</span>'
-      + '<span class="tr-pn">' + tsrEsc(p.name) + '</span><span class="tr-pt">' + tsrEsc(p.tier) + '</span>' + (rar ? '<span class="tr-pr" style="color:' + col + '">' + tsrEsc(rar) + '</span>' : '') + '</button>';
+      + '<span class="tr-pn">' + tsrEsc(p.name) + '</span><span class="tr-pt tr-tier t-' + tsrTierCls(p.tier) + '">' + tsrEsc(p.tier || "Normal") + '</span>' + (p.eq ? '<span class="tr-eq">' + p.eq + ' equipped</span>' : '') + (rar ? '<span class="tr-pr" style="color:' + col + '">' + tsrEsc(rar) + '</span>' : '') + '</button>';
   }
   function tsrTrAllChip(act, hid) {
     if (!hid && !tsrShowAll) return "";
@@ -6287,22 +6640,21 @@ document.addEventListener("DOMContentLoaded", function () {
   }, true);
   function tsrMtHtml() {
     if (!tsrData.length) return "";
-    if (!tsrMtAcc(tsrMt.collector)) { var on0 = tsrData.filter(function (a) { return a.online; })[0] || tsrData[0]; tsrMt.collector = on0.name; }
-    var ref = tsrMtAcc(tsrMt.collector), picked = tsrMtPicked(ref), allOpts = tsrMtPetOptions(picked), opts = allOpts.filter(tsrTrVis), hid = allOpts.length - opts.length;
+    var lab = tsrMtSrvLabels(), picked = tsrMtPicked(), allOpts = tsrMtPetOptions(picked), opts = allOpts.filter(tsrTrVis), hid = allOpts.length - opts.length;
     if (!opts.some(function (p) { return tsrTrKey(p) === tsrMt.pet; })) tsrMt.pet = opts.length ? tsrTrKey(opts[0]) : "";
     var cur = opts.filter(function (p) { return tsrTrKey(p) === tsrMt.pet; })[0], avail = cur ? cur.count : 0;
     var amtVal = tsrMt.amtAll ? avail : (avail ? Math.min(Math.max(1, Math.floor(Number(tsrMt.amt) || 1)), avail) : tsrMt.amt);
-    var h = '<div class="tr-top"><div class="tr-opts"><label class="tr-f">Collector<select data-mt="collector">'
-      + tsrData.map(function (a) { return '<option value="' + tsrEsc(a.name) + '"' + (a.name === tsrMt.collector ? " selected" : "") + '>' + tsrEsc(tsrDN(a.name, true)) + (a.online ? "" : " (offline)") + '</option>'; }).join("") + '</select></label>'
-      + '<label class="tr-f">Ready after<input data-mt="delay" type="number" min="1" max="60" value="' + tsrEsc(tsrMt.delay) + '"> s</label>'
+    var h = '<div class="tr-top"><div class="tr-opts"><label class="tr-f">Ready after<input data-mt="delay" type="number" min="1" max="60" value="' + tsrEsc(tsrMt.delay) + '"> s</label>'
       + '<label class="tr-f">Amount<input id="mtAmt" data-mt="amount" type="number" min="1" max="' + avail + '" value="' + tsrEsc(amtVal) + '"></label><button type="button" class="tr-chip" data-mt="all">All</button></div>'
-      + '<div class="tr-who"><label for="mtPartner">To</label><input id="mtPartner" data-mt="partner" type="text" maxlength="20" placeholder="Empty = collector keeps them" autocomplete="off" spellcheck="false" value="' + tsrEsc(tsrMt.partner) + '"><button type="button" class="tr-chip" data-mt="std">Standard</button></div></div>';
+      + '<div class="tr-who"><label for="mtPartner">To</label><input id="mtPartner" data-mt="partner" type="text" maxlength="20" placeholder="Roblox username that receives the pets" autocomplete="off" spellcheck="false" value="' + tsrEsc(tsrMt.partner) + '"><button type="button" class="tr-chip" data-mt="std">Standard</button></div></div>';
+    h += '<div class="tr-sbar"><input type="search" id="mtSearch" data-mt="search" class="tr-search" placeholder="Search a pet on all accounts (Mythic and above), press a result to select it..." autocomplete="off" spellcheck="false" value="' + tsrEsc(tsrMtQ) + '">'
+      + '<div class="tr-dd" id="mtDD"' + (tsrMtDDOpen && tsrMtQ.trim() ? "" : " hidden") + '>' + tsrMtDDHtml() + '</div></div>';
     h += '<div class="tr-well"><div class="tr-wh"><b>Pet to move</b><span class="tr-whr">' + tsrTrAllChip("mt", hid) + '<span>Taking ' + tsrEsc(amtVal) + ' of ' + avail + ' \u00b7 moved in trades of 20</span></span></div>'
       + (opts.length ? '<div class="tr-tiles">' + opts.map(function (p) { return tsrTrTile(p, 'data-mt="tile"', 0, p.count, tsrTrKey(p) === tsrMt.pet); }).join("") + '</div>' : '<div class="tsr-warn">None of the ticked accounts has a tradable ' + (tsrShowAll ? "" : "Mythic+ ") + 'pet.</div>') + '</div>';
     h += '<div class="tr-well"><div class="tr-wh"><b>Accounts</b><span>' + picked.length + ' ticked</span></div><div class="tr-accts">' + tsrData.map(function (a) {
-      var el = tsrMtElig(a, ref), isC = a.name === tsrMt.collector, on = picked.indexOf(a) >= 0;
-      var note = isC ? "collector" : !a.online ? "offline" : !el ? "other server" : (tsrMt.pet ? tsrMtCountOf(a, tsrMt.pet) + " of this pet" : "");
-      return '<label class="tr-acct' + (on ? " on" : "") + (el && !isC ? "" : " off") + '"><input type="checkbox" data-mt="acct" data-n="' + tsrEsc(a.name) + '"' + (on ? " checked" : "") + (el && !isC ? "" : " disabled") + '><span class="tr-dot' + (a.online ? " on" : "") + '"></span><span>' + tsrEsc(tsrDN(a.name, true)) + '<small>' + tsrEsc(note) + '</small></span><span class="tr-ck"></span></label>';
+      var el = tsrMtElig(a), on = picked.indexOf(a) >= 0;
+      var note = !a.online ? "offline" : !a.jobId ? "no server yet" : (lab[a.jobId] || "Server") + (tsrMt.pet ? " \u00b7 " + tsrMtCountOf(a, tsrMt.pet) + " of this pet" : "");
+      return '<label class="tr-acct' + (on ? " on" : "") + (el ? "" : " off") + '"><input type="checkbox" data-mt="acct" data-n="' + tsrEsc(a.name) + '"' + (on ? " checked" : "") + (el ? "" : " disabled") + '><span class="tr-dot' + (a.online ? " on" : "") + '"></span><span>' + tsrEsc(tsrDN(a.name, true)) + '<small>' + tsrEsc(note) + '</small></span><span class="tr-ck"></span></label>';
     }).join("") + '</div></div>';
     h += '<div class="tsr-bar" style="margin:16px 0 0" id="mtBtns">' + tsrMtBtnsHtml() + '</div>';
     h += '<div class="tsr-msg' + (tsrMt.bad ? " bad" : "") + '" id="mtMsg">' + tsrEsc(tsrMt.msg) + '</div>';
@@ -6323,7 +6675,7 @@ document.addEventListener("DOMContentLoaded", function () {
     else if (ev) { var f = document.activeElement; if (!(f && f.closest && f.closest("#tsrTrade") && (f.tagName === "INPUT" || f.tagName === "SELECT"))) tsrRender(5); }
   }
   function tsrMtEnded(j) {
-    var txt = j.status === "done" ? "Multi Trade finished. " + (j.partner ? j.partner + " received the pets." : "The collector keeps the pets.")
+    var txt = j.status === "done" ? (j.timedOut ? "3 hours passed: " + (j.partner || "the receiver") + " never collected, so the collectors keep the pets." : "Multi Trade finished. " + (j.partner ? j.partner + " received the pets." : "The collector keeps the pets."))
       : j.status === "stopped" ? "Multi Trade stopped."
       : "Multi Trade stopped: " + (j.error || "a problem happened") + ".";
     tsrMt.msg = tsrMtMask(txt); tsrMt.bad = j.status !== "done";
@@ -6352,11 +6704,11 @@ document.addEventListener("DOMContentLoaded", function () {
     if (t.dataset.mt === "partner") { tsrMt.partner = t.value; tsrMt.dflt = false; }
     else if (t.dataset.mt === "delay") tsrMt.delay = t.value;
     else if (t.dataset.mt === "amount") { tsrMt.amt = t.value; tsrMt.amtAll = false; }
+    else if (t.dataset.mt === "search") { tsrMtQ = t.value; tsrMtDDOpen = true; tsrMtDDPaint(); }
   });
   document.addEventListener("change", function (e) {
     var t = e.target; if (!t || !t.dataset || !t.closest || !t.closest("#tsrTrade") || !t.dataset.mt) return;
-    if (t.dataset.mt === "collector") { tsrMt.collector = t.value; tsrMt.sel = {}; tsrRender(5); }
-    else if (t.dataset.mt === "pet") tsrMt.pet = t.value;
+    if (t.dataset.mt === "pet") tsrMt.pet = t.value;
     else if (t.dataset.mt === "acct") { tsrMt.sel[t.dataset.n] = t.checked; tsrRender(5); }
   });
   document.addEventListener("toggle", function (e) { var t = e.target; if (t && t.id === "mtDet") tsrMt.open = t.open; }, true);
@@ -6364,6 +6716,7 @@ document.addEventListener("DOMContentLoaded", function () {
     var b = e.target.closest ? e.target.closest("#tsrTrade [data-mt]") : null;
     if (!b || b.tagName === "INPUT" || b.tagName === "SELECT") return;
     var act = b.dataset.mt;
+    if (act === "srcpick") { tsrMtPickFrom(b.dataset.n, b.dataset.k); return; }
     if (act === "tile") { tsrMt.pet = b.dataset.k; tsrRender(5); }
     else if (act === "all") { tsrMt.amtAll = true; tsrRender(5); }
     else if (act === "showall") { tsrShowAll = !tsrShowAll; tsrRender(5); }
@@ -6377,22 +6730,23 @@ document.addEventListener("DOMContentLoaded", function () {
       }).catch(function () { tsrMtSay("Couldn\u2019t reach the Worker.", true); b.disabled = false; });
     }
     else if (act === "start") {
-      var ref = tsrMtAcc(tsrMt.collector), picked = tsrMtPicked(ref), opts = tsrMtPetOptions(picked);
+      var picked = tsrMtPicked(), opts = tsrMtPetOptions(picked);
       var pet = opts.filter(function (p) { return tsrTrKey(p) === tsrMt.pet; })[0];
       var partner = (tsrMt.partner || "").trim();
-      if (picked.length < (partner ? 1 : 2)) { tsrMtSay("Tick at least 2 accounts in the collector\u2019s server (1 is enough when a To username is set).", true); return; }
+      if (!/^[A-Za-z0-9_]{3,20}$/.test(partner)) { tsrMtSay("Type the Roblox username that receives the pets (To): 3-20 letters, numbers or _.", true); return; }
+      if (!picked.length) { tsrMtSay("Tick at least one online account.", true); return; }
       if (!pet) { tsrMtSay("Pick a pet.", true); return; }
       var amt = tsrMt.amtAll ? 0 : Math.floor(Number(tsrMt.amt) || 0);
       if (!tsrMt.amtAll && amt < 1) { tsrMtSay("Type how many to move, or press All.", true); return; }
       if (amt > pet.count) { tsrMtSay("The ticked accounts only have " + pet.count + " of this pet.", true); return; }
-      if (partner && !/^[A-Za-z0-9_]{3,20}$/.test(partner)) { tsrMtSay("The To username must be 3-20 letters, numbers or _ (or leave it empty).", true); return; }
-      if (partner && picked.some(function (a) { return a.name.toLowerCase() === partner.toLowerCase(); })) { tsrMtSay("The To username is one of the ticked accounts. Leave it empty to keep the pets on the collector.", true); return; }
-      if (!confirm("Send " + (amt || pet.count) + "x " + pet.tier + " " + pet.name + " from " + picked.length + " accounts to " + tsrDN(tsrMt.collector, true) + (partner ? ", then give all of them to " + partner : ", and keep them there") + "?")) return;
+      if (picked.some(function (a) { return a.name.toLowerCase() === partner.toLowerCase(); })) { tsrMtSay("The To username is one of the ticked accounts. Untick it or type someone else.", true); return; }
+      var srvN = {}; picked.forEach(function (a) { srvN[a.jobId] = 1; });
+      if (!confirm("Send " + (amt || pet.count) + "x " + pet.tier + " " + pet.name + " from " + picked.length + " accounts in " + Object.keys(srvN).length + " server" + (Object.keys(srvN).length === 1 ? "" : "s") + " to " + partner + "?\n\nAccounts in a server with " + partner + " send straight to them, one trade at a time. In the other servers the accounts pass the pets to each other until one holds them all, then it waits for " + partner + " (up to 3 hours, then it keeps them).")) return;
       tsrMt.sending = true; tsrMtSay("Starting\u2026"); tsrMtPaint();
-      tsrApi("/admin/multitrade/start", { accounts: picked.map(function (a) { return a.name; }), pet: { name: pet.name, tier: pet.tier }, collector: tsrMt.collector, partner: partner, amount: amt, readyDelay: Math.min(60, Math.max(1, Math.floor(Number(tsrMt.delay)) || 6)) }).then(function (d) {
+      tsrApi("/admin/multitrade/start", { auto: true, accounts: picked.map(function (a) { return a.name; }), pet: { name: pet.name, tier: pet.tier }, collector: "", partner: partner, amount: amt, readyDelay: Math.min(60, Math.max(1, Math.floor(Number(tsrMt.delay)) || 6)) }).then(function (d) {
         tsrMt.sending = false;
-        if (d._status === 200) { tsrMtSay("Started: " + d.total + " pet" + (d.total === 1 ? "" : "s") + ". The first trades begin at the next check-in.", false); tsrMt.job = null; tsrMt.loaded = false; tsrMtPoll(); }
-        else tsrMtSay(d._status === 404 && !d.error ? "Your Worker doesn\u2019t support Multi Trade yet. Deploy the latest Tapsim.js." : (d.error || "Couldn\u2019t start it."), true);
+        if (d._status === 200) { tsrMtSay("Started: " + d.total + " pet" + (d.total === 1 ? "" : "s") + ". It keeps running if you close this page.", false); tsrMt.job = null; tsrMt.loaded = false; tsrMtPoll(); }
+        else tsrMtSay(d._status === 404 && !d.error ? "Your Worker doesn\u2019t support this yet. Deploy the latest Tapsim.js." : (d.error || "Couldn\u2019t start it."), true);
         tsrMtPaint();
       }).catch(function () { tsrMt.sending = false; tsrMtSay("Couldn\u2019t reach the Worker.", true); tsrMtPaint(); });
     }
@@ -6407,13 +6761,15 @@ document.addEventListener("DOMContentLoaded", function () {
       + '<label class="tr-f">Ready after<input id="trDelay" data-tr="delay" type="number" min="1" max="60" value="' + tsrEsc(tsrTr.delay) + '"> s</label></div>'
       + '<div class="tr-who"><label for="trPartner">To</label><input id="trPartner" data-tr="partner" list="trPartners" type="text" maxlength="20" placeholder="Username, or pick one of your accounts" autocomplete="off" spellcheck="false" value="' + tsrEsc(tsrTr.partner) + '">'
       + '<datalist id="trPartners">' + (tsrBlur ? [] : others).map(function (a) { return '<option value="' + tsrEsc(a.name) + '"></option>'; }).join("") + '</datalist><button type="button" class="tr-chip" data-tr="std">Standard</button></div></div>';
+    h += '<div class="tr-sbar"><input type="search" id="trSearch" data-tr="search" class="tr-search" placeholder="Search a pet on all accounts (Mythic and above)..." autocomplete="off" spellcheck="false" value="' + tsrEsc(tsrTrQ) + '">'
+      + '<div class="tr-dd" id="trDD"' + (tsrTrDDOpen && tsrTrQ.trim() ? "" : " hidden") + '>' + tsrTrDDHtml() + '</div></div>';
     h += '<div class="tr-well"><div class="tr-wh"><b>' + tsrEsc(tsrDN(tsrTr.sender, true)) + '\u2019s pets' + (sender && sender.pets && sender.pets.scanned != null ? ' <span style="font-weight:400">(' + sender.pets.scanned + ' scanned)</span>' : "") + '</b><span class="tr-whr">' + tsrTrAllChip("tr", hid)
       + '<label class="tr-f">Amount per tap<input id="trQty" data-tr="qty" type="number" min="1" value="' + tsrEsc(tsrTr.qty) + '"></label></span></div>';
     if (!pets.length) h += '<div class="tsr-warn">No pets scanned for this account yet. The agent rescans every 2 minutes.</div>';
-    else if (!shown.length) h += '<div class="tsr-warn">None of this account\u2019s pets are Mythic or above.</div>';
+    else if (!shown.length) h += '<div class="tsr-warn">None of this account\u2019s pets are Mythic or above (Common to Legendary are hidden).</div>';
     else h += '<div class="tr-tiles">' + shown.map(function (p) { return tsrTrTile(p, 'data-tr="tile"', tsrTrPicked(tsrTrKey(p)), tsrTrLeft(p)); }).join("") + '</div>';
     h += '</div><div class="tr-tray"><span class="tr-tl">To give (' + total + ')</span>';
-    h += tsrTr.picks.length ? tsrTr.picks.map(function (p, i) { return '<span class="tr-tag">' + p.count + '\u00d7 ' + tsrEsc(p.tier + " " + p.name) + '<button type="button" data-tr="dec" data-i="' + i + '" aria-label="Remove one">\u2212</button></span>'; }).join("") : '<span class="tsr-sub" style="margin:0">Nothing added yet.</span>';
+    h += tsrTr.picks.length ? tsrTr.picks.map(function (p, i) { return '<span class="tr-tag">' + p.count + '\u00d7 ' + tsrEsc(p.tier + " " + p.name) + (tsrTrNeedUn(p) ? ' <small class="tr-unq">unequips ' + tsrTrNeedUn(p) + '</small>' : '') + '<button type="button" data-tr="dec" data-i="' + i + '" aria-label="Remove one">\u2212</button></span>'; }).join("") : '<span class="tsr-sub" style="margin:0">Nothing added yet.</span>';
     if (total > 20 && tsrTr.picks.length === 1) h += '<span class="tsr-sub" style="margin:0">Sent as ' + Math.ceil(total / 20) + ' trades of up to 20, one after another.</span>';
     else if (tsrTr.picks.length > 1) h += '<span class="tsr-sub" style="margin:0">Max 20 when mixing different pets.</span>';
     h += '</div><div class="tsr-bar" style="margin:16px 0 0"><button type="button" class="tsr-btn' + (tsrTr.sending ? " busy" : "") + '" data-tr="send"' + (tsrTr.sending ? " disabled" : "") + '>Send trade</button>' + (tsrTr.picks.length ? '<button type="button" class="tsr-btn ghost" data-tr="clear">Clear all</button>' : "") + '</div>';
@@ -6428,7 +6784,7 @@ document.addEventListener("DOMContentLoaded", function () {
     var multi = tsrTrTab === "multi", lim = tsrShowAll ? "" : " Only Mythic and above are shown.";
     var h = '<div class="tsr-head"><div class="tsr-ttlrow"><button type="button" class="tsr-ttl' + (multi ? " dim" : "") + '" data-trtab="trade">Trade</button>'
       + '<button type="button" class="tsr-btn tsr-autobtn' + (multi ? " on" : " ghost") + '" data-trtab="multi">Multi Trade</button></div>'
-      + '<p class="tsr-sub">' + (multi ? "Every ticked account passes the pet on, two at a time, until the collector has them all. Then the collector sends the amount to the username (empty = the collector keeps them). Accounts must be online and in the same server. It keeps running if you close this page." : "Pick who gives, who receives and which pets. The giver starts at its next check-in (up to 30 s).") + lim + '</p></div>';
+      + '<p class="tsr-sub">' + (multi ? "Pick a pet and who receives it (To). Every ticked online account trades for it, in any server. Accounts in the same server as the To user send straight to them, one trade at a time. In the other servers the accounts pass the pet to each other until one of them holds it all, and that account waits for the To user (up to 3 hours, then it keeps them). It keeps running if you close this page." : "Pick who gives, who receives and which pets. The giver starts at its next check-in (up to 30 s).") + lim + '</p></div>';
     h += '<div class="tsr-scslide tr-slide">' + (multi ? tsrMtHtml() : tsrTrBody()) + '</div>';
     tsrTrSig = tsrTrSigNow();
     return h;
@@ -6457,6 +6813,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (t.dataset.tr === "partner") tsrTr.partner = t.value;
     else if (t.dataset.tr === "delay") tsrTr.delay = t.value;
     else if (t.dataset.tr === "qty") tsrTr.qty = t.value;
+    else if (t.dataset.tr === "search") { tsrTrQ = t.value; tsrTrDDOpen = true; tsrTrDDPaint(); }
   });
   document.addEventListener("change", function (e) {
     var t = e.target; if (!t || !t.dataset || !t.closest || !t.closest("#tsrTrade")) return;
@@ -6467,6 +6824,7 @@ document.addEventListener("DOMContentLoaded", function () {
     var b = e.target.closest ? e.target.closest("#tsrTrade [data-tr]") : null;
     if (!b || b.tagName === "INPUT" || b.tagName === "SELECT") return;
     var act = b.dataset.tr;
+    if (act === "srcpick") { tsrTrPickFrom(b.dataset.n, b.dataset.k); return; }
     if (act === "tile") {
       var p = tsrTrPets().filter(function (x) { return tsrTrKey(x) === b.dataset.k; })[0]; if (!p) return;
       var n = Math.min(Math.max(1, Math.floor(Number(tsrTr.qty) || 1)), tsrTrLeft(p));
@@ -6488,7 +6846,9 @@ document.addEventListener("DOMContentLoaded", function () {
       if (partner.toLowerCase() === tsrTr.sender.toLowerCase()) { tsrTrSay("Giver and receiver are the same account.", true); return; }
       if (!tsrTr.picks.length) { tsrTrSay("Add at least one pet first.", true); return; }
       var summary = tsrTr.picks.map(function (x) { return x.count + "x " + x.tier + " " + x.name; }).join(", ");
-      if (!confirm("Send " + summary + " from " + tsrDN(tsrTr.sender, true) + " to " + partner + "?")) return;
+      var unq = tsrTrUnequipList(), unqN = unq.reduce(function (s, x) { return s + x.count; }, 0);
+      if (unqN && tsrTr.picks.length === 1 && tsrTrTotal() > 20) { tsrTrSay("More than 20 of one pet can\u2019t include equipped copies yet. Send 20 or fewer, or unequip them first.", true); return; }
+      if (!confirm("Send " + summary + " from " + tsrDN(tsrTr.sender, true) + " to " + partner + (unqN ? ". " + unqN + " equipped pet" + (unqN === 1 ? "" : "s") + " will be unequipped first" : "") + "?")) return;
       if (tsrTr.picks.length === 1 && tsrTrTotal() > 20) {   // more than 20 of one pet: the Multi Trade engine sends it in rounds of 20
         var pk0 = tsrTr.picks[0];
         tsrTr.sending = true; tsrTrSay("Sending\u2026"); tsrRender(5);
@@ -6501,7 +6861,7 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
       tsrTr.sending = true; tsrTrSay("Sending\u2026"); tsrRender(5);
-      tsrApi("/admin/trade", { sender: tsrTr.sender, partner: partner, pets: tsrTr.picks, readyDelay: Math.min(60, Math.max(1, Math.floor(Number(tsrTr.delay)) || 6)) }).then(function (d) {
+      tsrApi("/admin/trade", { sender: tsrTr.sender, partner: partner, pets: tsrTr.picks, unequip: unq, readyDelay: Math.min(60, Math.max(1, Math.floor(Number(tsrTr.delay)) || 6)) }).then(function (d) {
         tsrTr.sending = false;
         if (d._status === 200) {
           var m = "Queued " + d.total + " pet" + (d.total === 1 ? "" : "s") + " for " + d.queued.join(" + ") + ".";
@@ -6555,15 +6915,18 @@ document.addEventListener("DOMContentLoaded", function () {
       if (!tk) return;
       tsrApi("/admin/keys/update", { id: tk.id, disabled: !tk.disabled }).then(function () { return tsrLoadAdmin(); }).then(tsrAdPaint);
     }
-    else if (act === "petsel") { tsrInvSel = (tsrInvSel === b.dataset.k) ? "" : b.dataset.k; tsrInvPaint(); }
+    else if (act === "invacc") {   // account tab, or a user picked in the search dropdown
+      tsrInvAcc = b.dataset.n; tsrInvHi = b.dataset.k || ""; tsrInvJump = !!tsrInvHi; tsrInvDDOpen = false; tsrInvScroll = { E: 0, U: 0 };
+      if (!tsrInvHi) { tsrInvQ = ""; }
+      tsrFresh(pgNow); tsrRender(pgNow);
+    }
     else if (act === "adminpanel") { tsrOpenAdmin(); }
     else if (act === "logf") { tsrLogFilter = b.dataset.f; tsrAdPaint(); }
     else if (act === "logrefresh") { tsrLoadAdmin().then(tsrAdPaint); }
-    else if (act === "logout") { tsrInvSel = ""; tsrInvQ = "";
+    else if (act === "logout") { tsrInvAcc = ""; tsrInvHi = ""; tsrInvQ = ""; tsrInvDDOpen = false;
       tsrSetKey(""); tsrAuthed = false; tsrAuthBad = false; tsrAuthMsg = ""; tsrErr = ""; tsrData = []; tsrScripts = null; tsrScriptsErr = ""; tsrEdit = null; tsrDDOpen = false; tsrMsgTxt = ""; tsrRole = ""; tsrWho = ""; tsrExp = 0; tsrPerms = {}; tsrKeys = null; tsrLogs = null; tsrReveal = null; tsrAdErr = "";
       tsrGate(); tsrRender(pgNow);
     }
-    else if (act === "tab") { tsrInvTab = +b.dataset.i || 0; tsrFresh(pgNow); tsrRender(pgNow); }
     else if (act === "blur") { tsrBlur = !tsrBlur; try { localStorage.setItem("tsrBlur", tsrBlur ? "1" : "0"); } catch (e) {} tsrRender(pgNow); }
     else if (act === "dd") { tsrDDSet(!tsrDDOpen); }
     else if (act === "all") { tsrSelAll = !(tsrSelAll || (tsrData.length && tsrSelCount() === tsrData.length)); tsrSelNames = {}; tsrSelPaint(); }
@@ -7472,6 +7835,34 @@ a.nf-card:hover{transform:translateY(-2px);border-color:#777;background:rgba(255
 .tr-wh{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;font-size:13px;color:#aaa}
 .tr-wh b{color:#fff;font-size:14px}
 .tr-whr{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+/* ---- Trade search: find a Mythic+ pet on any account, press a username to take it ---- */
+#tsrTrade .tr-sbar{position:relative;margin:0 0 12px}
+#tsrTrade .tr-search{width:100%;box-sizing:border-box;padding:10px 14px 10px 36px;border-radius:10px;border:1px solid rgba(255,255,255,.14);color:#f5f5f5;font-size:13px;font-family:inherit;background:rgba(0,0,0,.35) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E") no-repeat 12px center}
+#tsrTrade .tr-search:focus{outline:none;border-color:#fff;box-shadow:0 0 14px rgba(255,255,255,.18)}
+#tsrTrade .tr-dd{position:absolute;top:calc(100% + 6px);left:0;width:min(560px,94vw);max-height:440px;overflow-y:auto;z-index:40;box-sizing:border-box;padding:8px;border-radius:12px;background:#17181b;border:1px solid rgba(255,255,255,.16);box-shadow:0 14px 32px rgba(0,0,0,.6);scrollbar-width:thin}
+#tsrTrade .tr-ddp{padding:8px 6px 6px;border-bottom:1px solid rgba(255,255,255,.08)}
+#tsrTrade .tr-ddp:last-child{border-bottom:0}
+#tsrTrade .tr-ddh{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;margin-bottom:4px}
+#tsrTrade .tr-ddh .tr-pn2{font-size:14px;font-weight:700;color:#f1f1f1}
+#tsrTrade .tr-ddh .tr-rar2{font-style:normal;font-size:10px;font-weight:800;letter-spacing:.03em}
+#tsrTrade .tr-ddh .tr-tot2{margin-left:auto;font-weight:800;font-size:12px;color:#aaa;font-variant-numeric:tabular-nums}
+#tsrTrade .tr-ddv{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:5px 0}
+#tsrTrade .tr-tier{font-style:normal;min-width:62px;text-align:center;padding:2px 8px;border-radius:99px;border:1px solid rgba(255,255,255,.22);font-size:10px;font-weight:800;letter-spacing:.03em;color:#cfcfcf;white-space:nowrap;position:relative;overflow:hidden}
+#tsrTrade .tr-tier.t-base{color:#fff;background:#000;border-color:rgba(255,255,255,.30)}
+#tsrTrade .tr-tier.t-gold{color:#3d3000;border-color:#fff176;background:linear-gradient(110deg,#ffe600 0%,#fff59d 22%,#ffe600 40%,#ffd400 70%,#fff176 100%);background-size:220% 100%;box-shadow:0 0 8px rgba(255,230,0,.55),inset 0 0 4px rgba(255,255,255,.6);animation:trShine 3s linear infinite}
+#tsrTrade .tr-tier.t-diamond{color:#e6f0ff;border-color:#4d7bff;background:linear-gradient(110deg,#061a63 0%,#1636b8 25%,#2f5bff 42%,#0b2488 65%,#061a63 100%);background-size:220% 100%;box-shadow:0 0 8px rgba(30,70,220,.65),inset 0 0 4px rgba(120,160,255,.45);animation:trShine 3s linear infinite}
+#tsrTrade .tr-tier.t-silver{color:#cfd6df;border-color:rgba(207,214,223,.45)}
+#tsrTrade .tr-tier.t-rainbow{color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.65);border-color:transparent;background:linear-gradient(90deg,#ff0000,#ff9900,#ffee00,#00d000,#0099ff,#4b2bff,#c000ff,#ff0000);background-size:200% 100%;animation:trRainbow 3s linear infinite}
+@keyframes trShine{0%{background-position:0 0}100%{background-position:-220% 0}}
+@keyframes trRainbow{0%{background-position:0 0}100%{background-position:-200% 0}}
+#tsrTrade .tr-ddu{display:inline-flex;align-items:center;gap:7px;box-sizing:border-box;padding:6px 10px;border:1px solid rgba(255,255,255,.14);border-radius:8px;background:rgba(255,255,255,.05);color:#f1f1f1;font:inherit;font-size:12.5px;cursor:pointer}
+#tsrTrade .tr-ddu:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.45)}
+#tsrTrade .tr-ddu b{font-variant-numeric:tabular-nums}
+#tsrTrade .tr-ddu.cur{border-color:#43b581}
+#tsrTrade .tr-ddu.off{opacity:.6}
+#tsrTrade .tr-srv{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+#tsrTrade .tr-srvh{font-size:10.5px;font-weight:800;color:#9a9a9a;min-width:86px}
+#tsrTrade .tr-ddn{padding:12px 8px;color:#9a9a9a;font-size:12.5px}
 .tr-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px;max-height:320px;overflow-y:auto;padding:8px 4px 2px}
 .tr-pet{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 6px 9px;border:1px solid #2c2c2c;border-radius:12px;background:rgba(255,255,255,.04);cursor:pointer;color:inherit;font:inherit;text-align:center;transition:border-color .15s,background .15s}
 .tr-pet:hover{border-color:#888}
@@ -7482,7 +7873,11 @@ a.nf-card:hover{transform:translateY(-2px);border-color:#777;background:rgba(255
 .tr-img img{width:100%;height:100%;object-fit:contain}
 .tr-pn{font-size:12px;font-weight:700;line-height:1.2;word-break:break-word}
 .tr-pt{font-size:11px;color:#aaa}
+#tsrTrade .tr-pt.tr-tier{min-width:0;padding:1px 9px;margin:2px 0}
 .tr-pr{font-size:10px;font-weight:800}
+.tr-eq{font-size:10px;font-weight:800;color:#43b581}
+#tsrTrade .tr-eqs{color:#43b581;font-size:10.5px;font-weight:700;margin-left:2px}
+.tr-unq{color:#43b581;font-size:10.5px;font-weight:800}
 .tr-left{position:absolute;top:6px;right:6px;font-size:11px;font-weight:800;background:#000;border:1px solid #444;border-radius:999px;padding:1px 7px}
 .tr-badge{position:absolute;top:-7px;left:-7px;min-width:24px;height:24px;border-radius:999px;background:#fff;color:#0a0a0a;font-size:12px;font-weight:800;display:grid;place-items:center;padding:0 6px}
 .tr-tray{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 4px}
@@ -7501,62 +7896,6 @@ a.nf-card:hover{transform:translateY(-2px);border-color:#777;background:rgba(255
 .tr-acct.on .tr-ck{background:#fff;border-color:#fff}
 .tr-acct.on .tr-ck::after{content:"";position:absolute;left:5px;top:1px;width:4px;height:9px;border:solid #0a0a0a;border-width:0 2px 2px 0;transform:rotate(45deg)}
 .tr-status{margin-top:16px;border:1px solid #2c2c2c;border-radius:14px;padding:12px 14px;background:rgba(0,0,0,.28)}
-
-/* ============================================================
-   Tap simulator: CLEAN LOOK (same language as the Notifier page)
-   real cards, quiet rows, small-caps section labels, no glow/shadow noise
-   ============================================================ */
-/* inventory: each account is a proper card like a Notifier card (was loose text columns) */
-.tsr-grid,.tsr-grid.five{gap:14px}
-.tsr-card{padding:14px 16px 12px;border-radius:14px;background:rgba(0,0,0,.30);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border:1px solid #2c2c2c;transition:border-color .15s,background .15s}
-.tsr-card:hover{border-color:#444}
-.tsr-card:hover .tsr-name{text-shadow:none}
-.tsr-name{font-size:16px;margin-bottom:4px;padding-bottom:10px;border-bottom:1px solid #2c2c2c}
-.tsr-name + .tsr-kv{border-top:0}
-/* status dot: calm (no pulse, no ripple ring, no glow) */
-.tsr-dot.on,.tsr-dot.on.hatch{background:#43b581;box-shadow:none;animation:none}
-.tsr-dot.on::after{display:none}
-/* rows: no text shadow, no hover jump, softer dividers */
-.tsr-kv{padding:7px 2px;border-top:1px solid #232323;text-shadow:none;border-radius:6px}
-.tsr-kv:hover,.tsr-kv.sel,.tsr-kv.sel:hover{padding-left:2px;padding-right:2px}
-.tsr-kv:hover{background:rgba(255,255,255,.04)}
-.tsr-kv.sel,.tsr-kv.sel:hover{background:rgba(255,255,255,.10);box-shadow:inset 0 0 0 1px #fff}
-.tsr-kv span:first-child{color:#d0d0d0}
-/* section titles: small caps label (like the Notifier sub-heads) instead of boxed bars */
-.tsr-sec{margin:18px 0 4px;padding:0;background:none;border:0;border-radius:0;font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#b5b5ba}
-.tsr .tsr-sub,.tsr-sub{text-shadow:none;color:#aaa}
-.tsr-warn{color:#aaa}
-/* pills / buttons / inputs: flat and consistent, no glow or lift */
-.tsr-tabs button.on{box-shadow:none;animation:none}
-.tsr-tabs button:hover{transform:none}
-.tsr-btn:hover{transform:none;box-shadow:none}
-.tsr-autobtn.on,.tsr-sbtn .tsr-autobtn.on{box-shadow:none}
-.tsr-search:focus{box-shadow:none;border-color:#888}
-.tsr-ddbtn:hover,.tsr-dd.open .tsr-ddbtn{box-shadow:none}
-.tsr-total{background:rgba(0,0,0,.30);border:1px solid #2c2c2c;box-shadow:none}
-.tsr-reveal{box-shadow:none}
-/* script cards: Notifier-card hover */
-.tsr-sbtn{background:rgba(0,0,0,.30);border-color:#2c2c2c;border-radius:14px;text-shadow:none}
-.tsr-sbtn:hover{transform:translateY(-2px);border-color:#777;background:rgba(255,255,255,.07);box-shadow:0 6px 18px rgba(0,0,0,.25)}
-/* no entrance animations on cards */
-.tsr.fresh .tsr-card,.tsr.fresh .tsr-sbtn{animation:none}
-
-/* trade / multi trade */
-.tr-top{margin:0 0 14px}
-.tr-who,.tr-chip{border-color:#333}
-.tr-who:focus-within,.tr-chip:hover{border-color:#fff}
-.tr-well{background:rgba(0,0,0,.30);border-color:#2c2c2c;padding:16px;margin-bottom:14px}
-.tr-wh{margin-bottom:14px;color:#aaa}
-.tr-wh b{font-size:15px}
-.tr-tiles{gap:12px;grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
-.tr-pet{padding:12px 8px 10px;border-radius:14px;background:rgba(0,0,0,.30);gap:6px}
-.tr-pet:hover{border-color:#777;background:rgba(255,255,255,.07)}
-.tr-pet.picked{border-color:#fff;background:rgba(255,255,255,.10)}
-.tr-img{background:radial-gradient(ellipse at 50% 62%,rgba(255,255,255,.14),rgba(0,0,0,.42) 70%);border:1px solid #292929;color:#ddd}
-.tr-img img{filter:drop-shadow(0 5px 8px rgba(0,0,0,.45))}
-.tr-acct{background:rgba(0,0,0,.30);border-radius:12px}
-.tr-acct:hover:not(.off){border-color:#777}
-.tr-status{background:rgba(0,0,0,.30)}
 </style>
 </body>
 </html>
