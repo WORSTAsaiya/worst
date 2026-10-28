@@ -702,6 +702,8 @@ body.wkSearching .vdet *{ animation:none !important; }
 .tsr-name{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.12);color:#fff;text-shadow:none;word-break:break-all}
 .tsr-dot{width:9px;height:9px;border-radius:50%;background:#555;flex:none}
 .tsr-dot.on{background:#fff;box-shadow:0 0 10px rgba(255,255,255,.6);animation:tsrPulse 2.8s ease-in-out infinite}
+.ht-search{width:100%;box-sizing:border-box;margin:0 0 10px;padding:9px 12px;background:#0a0a0a;color:#f2f3f5;border:1px solid #444;border-radius:8px;font-size:13px}.ht-search:focus{outline:none;border-color:#fff}
+.ht-snd{display:flex;gap:8px;margin:0 0 10px;flex-wrap:wrap}.ht-snd button{background:#161616;color:#ddd;border:1px solid #444;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer}.ht-snd button.on{background:#fff;color:#0a0a0a;border-color:#fff}
 .tsr-dot.on.hatch{background:#fff;box-shadow:0 0 14px rgba(255,255,255,.9)}
 .tsr-tag{margin-left:auto;padding:3px 10px;border:1px solid #666;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:0;text-transform:none;color:#ddd}
 .tsr-tag.hatch{background:#fff;color:#0a0a0a;border-color:#fff;text-shadow:none}
@@ -891,6 +893,7 @@ body.tsrMode #tsrAdminBtn:not([hidden]){animation:tsrPop .45s cubic-bezier(.3,1.
 .ht-tag.v-diamond{color:#6fd6ff;border-color:#6fd6ff}
 .ht-tag.v-rainbow{border-color:transparent;color:#0a0a0a;background:linear-gradient(90deg,#ff6b6b,#ffd166,#06d6a0,#4cc9f0,#c77dff)}
 .ht-tag.r-mythical{color:#ff6fa5;border-color:#ff6fa5}
+.ht-tag.r-secret{color:#ff4d4d;border-color:#ff4d4d}
 .ht-meta{font-size:11px;color:#999}
 .ht-tag.act-hatched{color:#0a0a0a;background:#fff;border-color:#fff}
 .ht-tag.act-crafted{color:#f5c542;border-color:#f5c542;background:rgba(245,197,66,.1)}
@@ -6233,11 +6236,23 @@ document.addEventListener("DOMContentLoaded", function () {
     "shinigami":      { rarity: "Mythical", img: "" }
   };
   var HAT_PH = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="#1c1c1c"/><text x="32" y="43" font-family="Arial,sans-serif" font-size="32" font-weight="700" text-anchor="middle" fill="#666">?</text></svg>');
-  var tsrHat = { list: [], skew: 0, loaded: false, loading: false, err: "", sig: "", tab: "local", filter: "all", glist: [], gloaded: false, gerr: "" };
+  var tsrHat = { list: [], skew: 0, loaded: false, loading: false, err: "", sig: "", tab: "local", filter: "all", glist: [], gloaded: false, gerr: "", q: "", again: false };
   function tsrHatAgoTxt(t) { return tsrAgo(Math.max(0, Math.round((Date.now() + tsrHat.skew - t) / 1000))); }
   function tsrHatKind(h) { if (h.kind) return h.kind === "craft" ? "craft" : "hatch"; return /gold|diamond|rainbow|shiny/i.test(String(h.tier || "")) ? "craft" : "hatch"; }   // only Normal pets come out of eggs: every other tier is a craft
+  // ---------- Search (Local + Global): filters what is loaded right away, then asks the Worker so older rows are found too ----------
+  var tsrHatQT = 0;
+  function tsrHatQ() { return String(tsrHat.q || "").trim().toLowerCase(); }
+  function tsrHatHit(hay) { var t = tsrHatQ().split(/\s+/).filter(Boolean); hay = String(hay).toLowerCase(); return t.every(function (w) { return hay.indexOf(w) >= 0; }); }
+  function tsrHatMatchL(h) { return !tsrHatQ() || tsrHatHit([h.pet, h.name, tsrDN(h.name), h.tier, tsrRarOf(h.pet), tsrHatKind(h) === "craft" ? "crafted" : "hatched"].join(" ")); }
+  function tsrHatMatchG(g) { return !tsrHatQ() || tsrHatHit([g.pet, g.player, g.rarity || tsrRarOf(g.pet), g.scope, g.num ? "#" + g.num : "", g.odds].join(" ")); }
+  function tsrHatPaint() { var el = document.querySelector("#tsrHatch .ht-slide"); if (el) el.innerHTML = tsrHat.tab === "global" ? tsrHatGlobal() : tsrHatLocal(); }
+  document.addEventListener("input", function (e) {
+    var t = e.target; if (!t || !t.classList || !t.classList.contains("ht-search")) return;
+    tsrHat.q = String(t.value).slice(0, 40); tsrHatPaint();
+    clearTimeout(tsrHatQT); tsrHatQT = setTimeout(function () { tsrHatRefresh(); }, 350);
+  });
   function tsrHatCard(h) {
-    var info = HAT_PETS[String(h.pet).trim().toLowerCase()] || {}, tier = String(h.tier || "Normal"), rar = info.rarity || "Unknown", craft = tsrHatKind(h) === "craft";
+    var info = HAT_PETS[String(h.pet).trim().toLowerCase()] || {}, tier = String(h.tier || "Normal"), rar = tsrRarOf(h.pet) || info.rarity || "Unknown", craft = tsrHatKind(h) === "craft";
     var tcl = /rainbow|shiny/i.test(tier) ? "rainbow" : /diamond/i.test(tier) ? "diamond" : /gold/i.test(tier) ? "gold" : "normal";
     return '<div class="ht-card"><img class="ht-img" src="' + tsrEsc(info.img || HAT_PH) + '" alt="" loading="lazy" referrerpolicy="no-referrer">'
       + '<div class="ht-info"><div class="ht-name">' + tsrEsc(h.pet) + (h.cnt > 1 ? '<span class="ht-x">x' + h.cnt + '</span>' : '') + '</div>'
@@ -6247,7 +6262,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   // Global card. The Worker sends rows like { id, t, player, pet, num, rarity, odds, scope: "Server" | "Global" }
   function tsrHatGCard(g) {
-    var info = HAT_PETS[String(g.pet).trim().toLowerCase()] || {}, rar = g.rarity || info.rarity || "Unknown", gl = String(g.scope || "").toLowerCase() === "global";
+    var info = HAT_PETS[String(g.pet).trim().toLowerCase()] || {}, rar = g.rarity || tsrRarOf(g.pet) || info.rarity || "Unknown", gl = String(g.scope || "").toLowerCase() === "global";
     return '<div class="ht-card"><img class="ht-img" src="' + tsrEsc(info.img || HAT_PH) + '" alt="" loading="lazy" referrerpolicy="no-referrer">'
       + '<div class="ht-info"><div class="ht-name">' + tsrEsc((g.num ? "#" + g.num + " " : "") + g.pet) + (g.odds ? '<span class="ht-odds">' + tsrEsc(g.odds) + '</span>' : '') + '</div>'
       + '<div class="ht-tags"><span class="ht-tag ' + (gl ? "sc-global" : "sc-server") + '">' + (gl ? "Global" : "Server") + '</span>'
@@ -6258,47 +6273,131 @@ document.addEventListener("DOMContentLoaded", function () {
     if (tsrHat.err) return '<div class="tsr-empty">' + tsrEsc(tsrHat.err) + '</div>';
     if (!tsrHat.loaded) return '<div class="tsr-empty">Loading\u2026</div>';
     if (!tsrHat.list.length) return '<div class="tsr-empty">Nothing yet. A pet shows up here after one of your accounts hatches or crafts it and the next inventory scan runs.</div>';
-    var nh = 0, nc = 0, f = tsrHat.filter;
-    tsrHat.list.forEach(function (x) { if (tsrHatKind(x) === "craft") nc += +x.cnt || 1; else nh += +x.cnt || 1; });
-    var rows = tsrHat.list.filter(function (x) { return f === "all" || tsrHatKind(x) === (f === "crafted" ? "craft" : "hatch"); });
+    var nh = 0, nc = 0, f = tsrHat.filter, base = tsrHat.list.filter(tsrHatMatchL);
+    base.forEach(function (x) { if (tsrHatKind(x) === "craft") nc += +x.cnt || 1; else nh += +x.cnt || 1; });
+    var rows = base.filter(function (x) { return f === "all" || tsrHatKind(x) === (f === "crafted" ? "craft" : "hatch"); });
     var btn = function (k, t) { return '<button type="button" data-ht="filter" data-f="' + k + '" class="' + (f === k ? "on" : "") + '">' + t + '</button>'; };
-    return '<div class="ht-bar"><div class="ht-sum">' + nh.toLocaleString("en-US") + ' hatched \u00b7 ' + nc.toLocaleString("en-US") + ' crafted (latest ' + tsrHat.list.length + ')</div><div class="ht-filt">' + btn("all", "All") + btn("hatched", "Hatched") + btn("crafted", "Crafted") + '</div></div>'
-      + (rows.length ? '<div class="ht-grid">' + rows.map(tsrHatCard).join("") + '</div>' : '<div class="tsr-empty">Nothing here for this filter.</div>');
+    return '<div class="ht-bar"><div class="ht-sum">' + nh.toLocaleString("en-US") + ' hatched \u00b7 ' + nc.toLocaleString("en-US") + ' crafted (' + (tsrHatQ() ? 'matching' : 'latest') + ' ' + base.length + ')</div><div class="ht-filt">' + btn("all", "All") + btn("hatched", "Hatched") + btn("crafted", "Crafted") + '</div></div>'
+      + (rows.length ? '<div class="ht-grid">' + rows.map(tsrHatCard).join("") + '</div>' : '<div class="tsr-empty">' + (tsrHatQ() ? 'Nothing matches \u201c' + tsrEsc(tsrHat.q.trim()) + '\u201d.' : 'Nothing here for this filter.') + '</div>');
   }
   function tsrHatGlobal() {
     if (tsrHat.gerr) return '<div class="tsr-empty">' + tsrEsc(tsrHat.gerr) + '</div>';
     if (!tsrHat.gloaded) return '<div class="tsr-empty">Loading\u2026</div>';
-    if (!tsrHat.glist.length) return '<div class="tsr-empty">No global hatches yet.</div>';
-    return '<div class="ht-sum">' + tsrHat.glist.length + ' latest hatches from every player</div><div class="ht-grid">' + tsrHat.glist.map(tsrHatGCard).join("") + '</div>';
+    if (!tsrHat.glist.length && !tsrHatQ()) return '<div class="tsr-empty">No global hatches yet. They appear once an account running the new WORSTHUB.lua sees a hatch announcement in the game chat.</div>';
+    var gl = tsrHat.glist.filter(tsrHatMatchG);
+    if (!gl.length) return '<div class="tsr-empty">Nothing matches \u201c' + tsrEsc(tsrHat.q.trim()) + '\u201d.</div>';
+    return '<div class="ht-sum">' + gl.length + (tsrHatQ() ? ' matching hatches' : ' latest hatches from every player') + '</div><div class="ht-grid">' + gl.map(tsrHatGCard).join("") + '</div>';
   }
   function tsrHatHtml() {
     var gl = tsrHat.tab === "global";
     return '<div class="tsr-head"><h2>Hatches</h2><p class="tsr-sub">' + (gl ? "Every rare hatch announced in the game chat, from every player (not only your accounts), newest first." : "Pets your own accounts hatched or crafted, newest first. Spotted when the agent rescans the inventory (every 2 minutes), so one can show up a little late.") + '</p></div>'
+      + '<div class="ht-snd"><button type="button" data-ht="sound" class="' + (tsrHatSndOn ? "on" : "") + '">Secret hatch sound: ' + (tsrHatSndOn ? "On" : "Off") + '</button><button type="button" data-ht="soundtest">Test</button><button type="button" data-ht="gsound" class="' + (tsrHatGSndOn ? "on" : "") + '">Global secret sound: ' + (tsrHatGSndOn ? "On" : "Off") + '</button></div>'
+      + '<input class="ht-search" type="search" placeholder="' + (gl ? "Search pet, player, rarity, #number..." : "Search pet, account, tier...") + '" value="' + tsrEsc(tsrHat.q || "") + '" maxlength="40" autocomplete="off" spellcheck="false">'
       + '<div class="tsr-tabs"><button type="button" data-ht="tab" data-t="local" class="' + (gl ? "" : "on") + '">Local</button><button type="button" data-ht="tab" data-t="global" class="' + (gl ? "on" : "") + '">Global</button></div>'
       + '<div class="ht-slide">' + (gl ? tsrHatGlobal() : tsrHatLocal()) + '</div>';
   }
+  // ---------- Secret hatch alert: one of YOUR accounts (Local tab) hatched a secret -> noise + voice ----------
+  // "Secret" = any pet the Lua script rates Secret / Secrets 1..3 (automatic), plus the HAT_PETS fallback list above. Only real hatches count (crafted pets never ring). Rings once per hatch.
+  var tsrHatSndOn = true; try { tsrHatSndOn = localStorage.getItem("tsrHatSound") !== "0"; } catch (e) {}
+  var tsrHatSeen = {}, tsrHatSeeded = false, tsrHatBg = false, tsrHatGSeen = {}, tsrHatGSeeded = false;
+  var tsrHatGSndOn = false; try { tsrHatGSndOn = localStorage.getItem("tsrHatGSound") === "1"; } catch (e) {}   // global secrets ring only if you switch it on
+  function tsrHatIsSecret(h) {   // auto: the Lua script sends every pet's rarity, anything rated "Secret..." counts. HAT_PETS / TSR_SECRETS are only a fallback
+    if (tsrHatKind(h) !== "hatch") return false;
+    var nm = String(h.pet || "").trim(); if (!nm) return false;
+    return tsrRarOf(nm) === "Secret" || !!HAT_PETS[nm.toLowerCase()];
+  }
+  function tsrHatUnlock() { try { if (typeof alarmUnlock === "function") alarmUnlock(); } catch (e) {} }
+  function tsrHatBeep() {   // 3 rising beeps, then the voice
+    try {
+      tsrHatUnlock();
+      if (typeof alarmCtx === "undefined" || !alarmCtx) return;
+      var t0 = alarmCtx.currentTime + 0.05, f = [784, 988, 1319];
+      for (var i = 0; i < 3; i++) {
+        var o = alarmCtx.createOscillator(), g = alarmCtx.createGain(), st = t0 + i * 0.22;
+        o.type = "triangle"; o.frequency.value = f[i];
+        g.gain.setValueAtTime(0.0001, st);
+        g.gain.exponentialRampToValueAtTime(0.3, st + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, st + 0.5);
+        o.connect(g); g.connect(alarmCtx.destination);
+        o.start(st); o.stop(st + 0.55);
+      }
+    } catch (e) {}
+  }
+  function tsrHatSay(text) {
+    try {
+      var ss = window.speechSynthesis; if (!ss || !text) return;
+      if (ss.paused) ss.resume();
+      var u = new SpeechSynthesisUtterance(text); u.rate = 1; u.pitch = 1; u.volume = 1;
+      setTimeout(function () { try { ss.speak(u); } catch (e) {} }, 700);   // after the beeps
+    } catch (e) {}
+  }
+  function tsrHatRing(list, glob) {   // list = new secret hatches (glob = they came from the Global tab)
+    if (!(glob ? tsrHatGSndOn : tsrHatSndOn) || !list.length) return;
+    tsrHatBeep();
+    var names = []; list.forEach(function (h) { if (names.indexOf(h.pet) < 0) names.push(h.pet); });
+    var say = (glob ? "Global secret hatched. " : "Secret hatched. ") + names.slice(0, 3).join(". ") + (names.length > 3 ? ". And " + (names.length - 3) + " more" : "");
+    tsrHatSay(say);
+  }
+  function tsrHatSoundCheck(rows) {   // rows = Local hatches from the Worker; the first load only seeds silently
+    var fresh = [];
+    (rows || []).forEach(function (h) {
+      var k = h.id != null ? "i" + h.id : h.t + "|" + h.name + "|" + h.pet + "|" + h.tier;
+      if (tsrHatSeen[k]) return;
+      tsrHatSeen[k] = true;
+      if (tsrHatSeeded && tsrHatIsSecret(h) && (Date.now() + tsrHat.skew - (+h.t || 0)) < 600000) fresh.push(h);   // ignore anything older than 10 min
+    });
+    tsrHatSeeded = true;
+    tsrHatRing(fresh);
+  }
+  function tsrHatGSoundCheck(rows) {   // Global rows: rings for a new announcement whose rarity is Secret (or a pet the Lua script rates Secret)
+    var fresh = [];
+    (rows || []).forEach(function (g) {
+      var k = g.id != null ? "g" + g.id : g.t + "|" + g.player + "|" + g.pet;
+      if (tsrHatGSeen[k]) return;
+      tsrHatGSeen[k] = true;
+      if (tsrHatGSeeded && (tsrRarNorm(g.rarity || "") === "Secret" || tsrRarOf(g.pet) === "Secret") && (Date.now() + tsrHat.skew - (+g.t || 0)) < 600000) fresh.push({ pet: g.pet });
+    });
+    tsrHatGSeeded = true;
+    tsrHatRing(fresh, true);
+  }
+  function tsrHatBgPoll() {   // keeps listening when the Hatches page (or that tab) is not the one on screen
+    if (tsrHatBg || !tsrKey()) return;
+    var onPg = tsrHatOnPage(), needL = tsrHatSndOn && !(onPg && tsrHat.tab === "local"), needG = tsrHatGSndOn && !(onPg && tsrHat.tab === "global");
+    if (!needL && !needG) return;
+    tsrHatBg = true;
+    var jobs = [];
+    if (needL) jobs.push(tsrApi("/admin/hatches?limit=60").then(function (d) { if (d && d._status === 200) { tsrHat.skew = (+d.now || Date.now()) - Date.now(); tsrHatSoundCheck(d.hatches || []); } }));
+    if (needG) jobs.push(tsrApi("/admin/hatches/global?limit=60").then(function (d) { if (d && d._status === 200) { tsrHat.skew = (+d.now || Date.now()) - Date.now(); tsrHatGSoundCheck(d.hatches || []); } }));
+    Promise.all(jobs.map(function (j) { return j.catch(function () {}); })).then(function () { tsrHatBg = false; });
+  }
+  document.addEventListener("pointerdown", function () { if (tsrHatSndOn) tsrHatUnlock(); });
   function tsrHatOnPage() { return +$("chSel").value === 3 && +$("pgSel").value === 6; }
   function tsrHatRefresh() {
-    if (tsrHat.loading) return;
+    var gl = tsrHat.tab === "global", qk = tsrHatQ() ? tsrHat.tab + "|" + tsrHatQ() : "";
+    if (qk && tsrHat.qDone === qk) return;   // this search was already fetched: do not ask the database again every 10 s (saves Cloudflare reads)
+    if (tsrHat.loading) { tsrHat.again = true; return; }
     tsrHat.loading = true;
-    var gl = tsrHat.tab === "global";
-    return tsrApi(gl ? "/admin/hatches/global?limit=300" : "/admin/hatches?limit=300").then(function (d) {
+    var qq = qk ? "&q=" + encodeURIComponent(tsrHat.q.trim().slice(0, 40)) : "";
+    var rerun = function () { if (tsrHat.again) { tsrHat.again = false; setTimeout(tsrHatRefresh, 0); } };
+    return tsrApi((gl ? "/admin/hatches/global?limit=300" : "/admin/hatches?limit=300") + qq).then(function (d) {
       tsrHat.loading = false;
       if (d._status === 200) {
-        if (gl) { tsrHat.glist = d.hatches || []; tsrHat.gerr = ""; tsrHat.gloaded = true; }
-        else { tsrHat.list = d.hatches || []; tsrHat.err = ""; tsrHat.loaded = true; }
+        tsrHat.qDone = qk;
+        if (gl) { tsrHat.glist = d.hatches || []; tsrHat.gerr = ""; tsrHat.gloaded = true; if (!qq) { tsrHat.skew = (+d.now || Date.now()) - Date.now(); tsrHatGSoundCheck(tsrHat.glist); } }
+        else { tsrHat.list = d.hatches || []; tsrHat.err = ""; tsrHat.loaded = true; tsrHat.skew = (+d.now || Date.now()) - Date.now(); if (!qq) tsrHatSoundCheck(tsrHat.list); }
         tsrHat.skew = (+d.now || Date.now()) - Date.now();
       }
       else if (d._status === 404 && (!d.error || d.error === "not found")) {
-        if (gl) tsrHat.gerr = "Global hatches are not set up on your Worker yet.";
+        if (gl) tsrHat.gerr = "Global hatches are not set up on your Worker yet. Paste the new Tapsim.js into Cloudflare and deploy it.";
         else tsrHat.err = "Your Worker doesn\u2019t have Hatches yet. Paste the new Tapsim.js into Cloudflare and deploy it.";
       }
       else if (d._status !== 401) { if (gl) tsrHat.gerr = d.error || "Couldn\u2019t load global hatches."; else tsrHat.err = d.error || "Couldn\u2019t load hatches."; }
-      var sig = [tsrHat.tab, tsrHat.err, tsrHat.gerr, tsrHat.loaded, tsrHat.gloaded, tsrHat.list.length, tsrHat.list[0] ? tsrHat.list[0].id : 0, tsrHat.glist.length, tsrHat.glist[0] ? tsrHat.glist[0].id : 0, tsrBlur ? 1 : 0].join("|");
-      if (sig !== tsrHat.sig) { tsrHat.sig = sig; if (tsrHatOnPage()) tsrRender(6); }   // only rebuild when something changed, so the pictures do not flicker
+      var sig = [tsrHat.tab, tsrHat.err, tsrHat.gerr, tsrHat.loaded, tsrHat.gloaded, tsrHat.list.length, tsrHat.list[0] ? tsrHat.list[0].id : 0, tsrHat.glist.length, tsrHat.glist[0] ? tsrHat.glist[0].id : 0, tsrBlur ? 1 : 0, tsrHatQ()].join("|");
+      if (sig !== tsrHat.sig) { tsrHat.sig = sig; if (tsrHatOnPage()) { var ae = document.activeElement; if (ae && ae.classList && ae.classList.contains("ht-search")) tsrHatPaint(); else tsrRender(6); } }   // only rebuild when something changed, so the pictures do not flicker
       else document.querySelectorAll("#tsrHatch .ht-ago").forEach(function (el) { el.textContent = tsrHatAgoTxt(+el.dataset.t); });
+      rerun();
     }).catch(function () {
-      tsrHat.loading = false;
+      tsrHat.loading = false; rerun();
       if (tsrHat.tab === "global") tsrHat.gerr = "Couldn\u2019t reach the Tap simulator Worker."; else tsrHat.err = "Couldn\u2019t reach the Tap simulator Worker.";
       if (tsrHatOnPage() && tsrHat.sig !== "err") { tsrHat.sig = "err"; tsrRender(6); }
     });
@@ -6306,6 +6405,9 @@ document.addEventListener("DOMContentLoaded", function () {
   var tsrHatBusy = false;
   document.addEventListener("click", function (e) {   // Local <-> Global slides like Scripts <-> Auto execute; the filter chips only re-draw
     var b = e.target.closest ? e.target.closest("#tsrHatch [data-ht]") : null; if (!b) return;
+    if (b.dataset.ht === "sound") { tsrHatSndOn = !tsrHatSndOn; try { localStorage.setItem("tsrHatSound", tsrHatSndOn ? "1" : "0"); } catch (x) {} if (tsrHatSndOn) { tsrHatUnlock(); tsrHatSay("Secret hatch sound on"); } tsrRender(6); return; }
+    if (b.dataset.ht === "gsound") { tsrHatGSndOn = !tsrHatGSndOn; try { localStorage.setItem("tsrHatGSound", tsrHatGSndOn ? "1" : "0"); } catch (x) {} if (tsrHatGSndOn) { tsrHatUnlock(); tsrHatSay("Global secret sound on"); } tsrRender(6); return; }
+    if (b.dataset.ht === "soundtest") { var was = tsrHatSndOn; tsrHatSndOn = true; tsrHatUnlock(); tsrHatRing([{ pet: "Infernal Lord" }]); tsrHatSndOn = was; return; }
     if (b.dataset.ht === "filter") { tsrHat.filter = b.dataset.f; tsrRender(6); return; }
     var nt = b.dataset.t; if (nt === tsrHat.tab || tsrHatBusy) return;
     var dir = nt === "global" ? 1 : -1, el = document.querySelector("#tsrHatch .ht-slide");
@@ -6346,6 +6448,7 @@ document.addEventListener("DOMContentLoaded", function () {
         tsrGate();
         if (+$("chSel").value !== 3) return;
         var pgc = +$("pgSel").value;
+        tsrHatBgPoll();   // secret-hatch alert keeps working on every Tap simulator page
         if (pgc === 5) { tsrTrRefresh(); }
         else if (pgc === 6) { tsrHatRefresh(); }
         else if (!(pgc === 3 && (tsrDDOpen || tsrEdit)) && !(pgc === 2 && document.activeElement && document.activeElement.id === "tsrInvSearch")) tsrRender(pgc);   // do not rebuild the page while you are typing in the search
@@ -6427,7 +6530,7 @@ document.addEventListener("DOMContentLoaded", function () {
     var n = Math.min(Math.max(1, Math.floor(Number(tsrTr.qty) || 1)), tsrTrLeft(p));
     var types = tsrTr.picks.length + (tsrTrPicked(key) ? 0 : 1);
     if (n < 1) { tsrTr.msg = "None left of this pet."; tsrTr.bad = true; tsrRender(5); return; }
-    if (types > 1 && tsrTrTotal() + n > 20) { tsrTr.msg = "A trade with different pets holds at most 20."; tsrTr.bad = true; tsrRender(5); return; }
+    if (types > 1 && tsrTrTotal() + n > TSR_TRADE_MAX) { tsrTr.msg = "A trade with different pets holds at most " + TSR_TRADE_MAX + "."; tsrTr.bad = true; tsrRender(5); return; }
     var ex = tsrTr.picks.filter(function (x) { return tsrTrKey(x) === key; })[0];
     if (ex) ex.count += n; else tsrTr.picks.push({ name: p.name, tier: p.tier, count: n });
     tsrTr.msg = switched ? "Giver is now " + tsrDN(name, true) + (cleared ? ". Earlier picks were cleared." : ".") : ""; tsrTr.bad = false;
@@ -6446,6 +6549,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
   function tsrTrPicked(key) { var n = 0; tsrTr.picks.forEach(function (p) { if (tsrTrKey(p) === key) n += p.count; }); return n; }
+  var TSR_TRADE_MAX = 40;   // the game's limit of pets per trade (was 20): change it here if it changes again
   function tsrTrTotal() { var n = 0; tsrTr.picks.forEach(function (p) { n += p.count; }); return n; }
   function tsrTrLeft(p) { return Math.max(0, p.count - tsrTrPicked(tsrTrKey(p))); }
   function tsrTrSigNow() {
@@ -6649,7 +6753,7 @@ document.addEventListener("DOMContentLoaded", function () {
       + '<div class="tr-who"><label for="mtPartner">To</label><input id="mtPartner" data-mt="partner" type="text" maxlength="20" placeholder="Roblox username that receives the pets" autocomplete="off" spellcheck="false" value="' + tsrEsc(tsrMt.partner) + '"><button type="button" class="tr-chip" data-mt="std">Standard</button></div></div>';
     h += '<div class="tr-sbar"><input type="search" id="mtSearch" data-mt="search" class="tr-search" placeholder="Search a pet on all accounts (Mythic and above), press a result to select it..." autocomplete="off" spellcheck="false" value="' + tsrEsc(tsrMtQ) + '">'
       + '<div class="tr-dd" id="mtDD"' + (tsrMtDDOpen && tsrMtQ.trim() ? "" : " hidden") + '>' + tsrMtDDHtml() + '</div></div>';
-    h += '<div class="tr-well"><div class="tr-wh"><b>Pet to move</b><span class="tr-whr">' + tsrTrAllChip("mt", hid) + '<span>Taking ' + tsrEsc(amtVal) + ' of ' + avail + ' \u00b7 moved in trades of 20</span></span></div>'
+    h += '<div class="tr-well"><div class="tr-wh"><b>Pet to move</b><span class="tr-whr">' + tsrTrAllChip("mt", hid) + '<span>Taking ' + tsrEsc(amtVal) + ' of ' + avail + ' \u00b7 moved in trades of ' + TSR_TRADE_MAX + '</span></span></div>'
       + (opts.length ? '<div class="tr-tiles">' + opts.map(function (p) { return tsrTrTile(p, 'data-mt="tile"', 0, p.count, tsrTrKey(p) === tsrMt.pet); }).join("") + '</div>' : '<div class="tsr-warn">None of the ticked accounts has a tradable ' + (tsrShowAll ? "" : "Mythic+ ") + 'pet.</div>') + '</div>';
     h += '<div class="tr-well"><div class="tr-wh"><b>Accounts</b><span>' + picked.length + ' ticked</span></div><div class="tr-accts">' + tsrData.map(function (a) {
       var el = tsrMtElig(a), on = picked.indexOf(a) >= 0;
@@ -6770,8 +6874,8 @@ document.addEventListener("DOMContentLoaded", function () {
     else h += '<div class="tr-tiles">' + shown.map(function (p) { return tsrTrTile(p, 'data-tr="tile"', tsrTrPicked(tsrTrKey(p)), tsrTrLeft(p)); }).join("") + '</div>';
     h += '</div><div class="tr-tray"><span class="tr-tl">To give (' + total + ')</span>';
     h += tsrTr.picks.length ? tsrTr.picks.map(function (p, i) { return '<span class="tr-tag">' + p.count + '\u00d7 ' + tsrEsc(p.tier + " " + p.name) + (tsrTrNeedUn(p) ? ' <small class="tr-unq">unequips ' + tsrTrNeedUn(p) + '</small>' : '') + '<button type="button" data-tr="dec" data-i="' + i + '" aria-label="Remove one">\u2212</button></span>'; }).join("") : '<span class="tsr-sub" style="margin:0">Nothing added yet.</span>';
-    if (total > 20 && tsrTr.picks.length === 1) h += '<span class="tsr-sub" style="margin:0">Sent as ' + Math.ceil(total / 20) + ' trades of up to 20, one after another.</span>';
-    else if (tsrTr.picks.length > 1) h += '<span class="tsr-sub" style="margin:0">Max 20 when mixing different pets.</span>';
+    if (total > TSR_TRADE_MAX && tsrTr.picks.length === 1) h += '<span class="tsr-sub" style="margin:0">Sent as ' + Math.ceil(total / TSR_TRADE_MAX) + ' trades of up to ' + TSR_TRADE_MAX + ', one after another.</span>';
+    else if (tsrTr.picks.length > 1) h += '<span class="tsr-sub" style="margin:0">Max ' + TSR_TRADE_MAX + ' when mixing different pets.</span>';
     h += '</div><div class="tsr-bar" style="margin:16px 0 0"><button type="button" class="tsr-btn' + (tsrTr.sending ? " busy" : "") + '" data-tr="send"' + (tsrTr.sending ? " disabled" : "") + '>Send trade</button>' + (tsrTr.picks.length ? '<button type="button" class="tsr-btn ghost" data-tr="clear">Clear all</button>' : "") + '</div>';
     h += '<div class="tsr-msg' + (tsrTr.bad ? " bad" : "") + '" id="trMsg">' + tsrEsc(tsrTr.msg) + '</div>';
     var st = tsrTrStatus(sender, "Giver") + tsrTrStatus(tsrTrAcc(tsrTr.partner.trim()), "Receiver");
@@ -6830,7 +6934,7 @@ document.addEventListener("DOMContentLoaded", function () {
       var n = Math.min(Math.max(1, Math.floor(Number(tsrTr.qty) || 1)), tsrTrLeft(p));
       var types = tsrTr.picks.length + (tsrTrPicked(tsrTrKey(p)) ? 0 : 1);
       if (n < 1) { tsrTrSay("None left of this pet.", true); return; }
-      if (types > 1 && tsrTrTotal() + n > 20) { tsrTrSay("A trade with different pets holds at most 20.", true); return; }
+      if (types > 1 && tsrTrTotal() + n > TSR_TRADE_MAX) { tsrTrSay("A trade with different pets holds at most " + TSR_TRADE_MAX + ".", true); return; }
       var ex = tsrTr.picks.filter(function (x) { return tsrTrKey(x) === tsrTrKey(p); })[0];
       if (ex) ex.count += n; else tsrTr.picks.push({ name: p.name, tier: p.tier, count: n });
       tsrTr.msg = ""; tsrRender(5);
@@ -6847,14 +6951,14 @@ document.addEventListener("DOMContentLoaded", function () {
       if (!tsrTr.picks.length) { tsrTrSay("Add at least one pet first.", true); return; }
       var summary = tsrTr.picks.map(function (x) { return x.count + "x " + x.tier + " " + x.name; }).join(", ");
       var unq = tsrTrUnequipList(), unqN = unq.reduce(function (s, x) { return s + x.count; }, 0);
-      if (unqN && tsrTr.picks.length === 1 && tsrTrTotal() > 20) { tsrTrSay("More than 20 of one pet can\u2019t include equipped copies yet. Send 20 or fewer, or unequip them first.", true); return; }
+      if (unqN && tsrTr.picks.length === 1 && tsrTrTotal() > TSR_TRADE_MAX) { tsrTrSay("More than " + TSR_TRADE_MAX + " of one pet can\u2019t include equipped copies yet. Send " + TSR_TRADE_MAX + " or fewer, or unequip them first.", true); return; }
       if (!confirm("Send " + summary + " from " + tsrDN(tsrTr.sender, true) + " to " + partner + (unqN ? ". " + unqN + " equipped pet" + (unqN === 1 ? "" : "s") + " will be unequipped first" : "") + "?")) return;
-      if (tsrTr.picks.length === 1 && tsrTrTotal() > 20) {   // more than 20 of one pet: the Multi Trade engine sends it in rounds of 20
+      if (tsrTr.picks.length === 1 && tsrTrTotal() > TSR_TRADE_MAX) {   // more than 40 of one pet: the Multi Trade engine sends it in rounds of 40
         var pk0 = tsrTr.picks[0];
         tsrTr.sending = true; tsrTrSay("Sending\u2026"); tsrRender(5);
         tsrApi("/admin/multitrade/start", { accounts: [tsrTr.sender], pet: { name: pk0.name, tier: pk0.tier }, collector: tsrTr.sender, partner: partner, amount: pk0.count, readyDelay: Math.min(60, Math.max(1, Math.floor(Number(tsrTr.delay)) || 6)) }).then(function (d) {
           tsrTr.sending = false;
-          if (d._status === 200) { tsrTr.picks = []; tsrMt.job = null; tsrMt.loaded = false; tsrTrSay("Started: " + d.total + " pets in trades of 20, one after another. Follow it on the Multi Trade tab.", false); }
+          if (d._status === 200) { tsrTr.picks = []; tsrMt.job = null; tsrMt.loaded = false; tsrTrSay("Started: " + d.total + " pets in trades of " + TSR_TRADE_MAX + ", one after another. Follow it on the Multi Trade tab.", false); }
           else tsrTrSay(d._status === 404 && !d.error ? "Your Worker doesn\u2019t support this yet. Deploy the latest Tapsim.js." : (d.error || "Couldn\u2019t start it."), true);
           tsrRender(5);
         }).catch(function () { tsrTr.sending = false; tsrTrSay("Couldn\u2019t reach the Worker.", true); tsrRender(5); });
