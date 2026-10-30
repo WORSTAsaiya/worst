@@ -713,6 +713,17 @@ body.wkSearching .vdet *{ animation:none !important; }
 .tsr-kv span:last-child{color:#f5f5f5;font-weight:700;text-align:right;white-space:nowrap}
 .tsr-sec{font-size:12px;font-weight:700;letter-spacing:0;text-transform:none;color:#fff;margin:18px 0 6px;padding:6px 10px;background:rgba(255,255,255,.055);border:1px solid #292929;border-radius:8px}
 .tsr-warn{color:#aaa;font-size:12px;margin:8px 0}
+.tsr-col{margin:0 0 12px;padding:14px 16px;border:2px solid #fff;border-radius:14px;background:rgba(255,255,255,.07)}
+.tsr-col .cl{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#d4d4d4}
+.tsr-col .cn{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:6px}
+.tsr-col .cname{font-size:26px;font-weight:800;color:#fff;word-break:break-all;line-height:1.15;text-shadow:0 1px 3px rgba(0,0,0,.9)}
+.tsr-col .cs{margin-top:6px;font-size:13px;color:#e6e6e6}
+.tsr-col+.tsr-col{margin-top:-4px}
+.tr-evd summary{cursor:pointer;list-style:none}
+.tr-evd summary::-webkit-details-marker{display:none}
+.tr-evd summary::after{content:" \25be";color:#aaa}
+.tr-evf{margin-top:4px;font-weight:400;font-size:11px;color:#bbb;word-break:break-word;text-align:left}
+@media(max-width:520px){.tsr-col .cname{font-size:21px}}
 .tsr-empty{padding:34px 10px;text-align:center;color:#ccc;font-size:13px}
 .tsr-key{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
 .tsr-key input,.tsr-bar select{padding:10px 14px;background:rgba(0,0,0,.38);color:#f5f5f5;border:1px solid #333;border-radius:10px;font-size:13px}
@@ -6648,22 +6659,100 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   function tsrMtRunning() { return !!(tsrMt.job && tsrMt.job.status === "running"); }
   function tsrMtBtnsHtml() {
-    if (tsrMtRunning()) return '<button type="button" class="tsr-btn" data-mt="stop">Stop Multi Trade</button>';
+    if (tsrMtRunning()) return '<button type="button" class="tsr-btn" data-mt="stop">Stop Multi Trade</button>' + (tsrMt.job && !tsrMt.job.partnerOurs ? ' <button type="button" class="tsr-btn ghost" data-mt="alert" title="Beep when one of your accounts sends you a trade request">Alert: ' + (tsrMtAlertOn ? "on" : "off") + '</button>' : "");
     return '<button type="button" class="tsr-btn' + (tsrMt.sending ? " busy" : "") + '" data-mt="start"' + (tsrMt.sending ? " disabled" : "") + '>Start Multi Trade</button>';
+  }
+  function tsrStripDump(s) {   // removes the long [ ... ] and { ... } diagnostic dumps from a message (they can be nested)
+    s = String(s || "");
+    var out = "", d = 0;
+    for (var i = 0; i < s.length; i++) { var c = s.charAt(i); if (c === "[" || c === "{") d++; else if ((c === "]" || c === "}") && d > 0) d--; else if (d === 0) out += c; }
+    return out.replace(/\s+([,.)])/g, "$1").replace(/\s{2,}/g, " ").trim();
+  }
+  function tsrMtShort(text) {   // a short, plain version of a log line. The full text stays available behind a click.
+    var full = String(text || ""), s = tsrStripDump(full);
+    var lk = full.match(/blocked:\s*Lock x(\d+)/i);
+    if (lk) s = s.replace(/(found only \d+ of \d+ [^,()]*?)(?=[,)]|$)/, "$1 (" + lk[1] + " locked)");
+    s = s.replace(/found only (\d+) of (\d+) /, "only $1 of $2 free: ");
+    if (s.length > 150) s = s.slice(0, 147) + "...";
+    return { short: s, full: full, more: s !== full };
+  }
+  var tsrMtAlertOn = (function () { try { return localStorage.getItem("tsrMtAlert") !== "0"; } catch (e) { return true; } })(), tsrMtAlertKey = "", tsrMtTitle = document.title, tsrMtAC = null;
+  function tsrMtBeep() {
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+      tsrMtAC = tsrMtAC || new AC(); if (tsrMtAC.resume) tsrMtAC.resume();
+      [0, 0.22].forEach(function (t0) {
+        var o = tsrMtAC.createOscillator(), g = tsrMtAC.createGain();
+        o.type = "sine"; o.frequency.value = 880; g.gain.value = 0.18;
+        o.connect(g); g.connect(tsrMtAC.destination);
+        o.start(tsrMtAC.currentTime + t0); o.stop(tsrMtAC.currentTime + t0 + 0.16);
+      });
+    } catch (e) {}
+  }
+  function tsrMtAlertCheck(j) {   // your turn: an account of yours is sending YOU a trade request (only when the receiver is not one of your running accounts)
+    if (!tsrMtAlertOn || !j || j.status !== "running" || j.partnerOurs) { tsrMtAlertKey = ""; return; }
+    var rc = String(j.partner || "").toLowerCase();
+    var p = (j.pairs || []).filter(function (x) { return String(x.receiver).toLowerCase() === rc && x.stage === "requested"; })[0];
+    if (!p) { tsrMtAlertKey = ""; return; }
+    var key = p.giver + ":" + (j.trades || 0);
+    if (key === tsrMtAlertKey) return;
+    tsrMtAlertKey = key;
+    var who = tsrDN(p.giver, true);
+    tsrMtBeep();
+    try { if (window.Notification && Notification.permission === "granted") new Notification("Multi Trade: accept the trade", { body: who + " is sending you a trade request." }); } catch (e) {}
+    document.title = "Accept the trade from " + who + " | " + tsrMtTitle;
+    setTimeout(function () { document.title = tsrMtTitle; }, 20000);
+  }
+  function tsrMtBannerHtml(j, rows) {   // big box naming the collector (one per server), with what it is doing and what you have to do
+    if (!j || j.status !== "running") return "";
+    var cols = [], seen = {};
+    rows.forEach(function (r) { if (r.collector && !seen[r.name]) { seen[r.name] = 1; cols.push(r); } });
+    if (!cols.length && j.collector && !seen[j.collector]) cols.push({ name: j.collector, state: "waiting", count: 0, note: "", online: true });
+    if (!cols.length) return "";
+    var lab = tsrMtSrvLabels(), who = tsrMtMask(j.partner || "the receiver");
+    return cols.map(function (r) {
+      var racc = tsrMtAcc(r.name), srv = racc && racc.jobId ? (lab[racc.jobId] || "Server") : "";
+      var n = r.count || 0, note = String(r.note || "").replace(/^collector,\s*/, "");
+      var st = r.state === "trading" ? "Trading: " + note + " \u00b7 " + n + " left"
+        : r.state === "retrying" ? "Retrying: " + note + " \u00b7 " + n + " left"
+        : r.state === "leftover" ? note
+        : r.state === "done" ? "Finished, nothing left to give"
+        : r.state === "failed" ? "Problem on this account: " + note
+        : "Holding " + n + " pets" + (note ? " \u00b7 " + note : "");
+      if (!r.online) st += " \u00b7 OFFLINE";
+      var todo = j.partnerOurs ? "Handled automatically by " + who + "\u2019s script."
+        : "When " + who + " is in this server, " + tsrDN(r.name, true) + " sends " + who + " a trade request. Accept it, then press Ready and Confirm.";
+      return '<div class="tsr-col"><div class="cl">Collector' + (srv ? " \u00b7 " + tsrEsc(srv) : "") + '</div>'
+        + '<div class="cn"><span class="cname">' + tsrEsc(tsrDN(r.name, true)) + '</span>'
+        + '<button type="button" class="tsr-btn" data-mt="copy" data-n="' + tsrEsc(r.name) + '">Copy name</button></div>'
+        + '<div class="cs">' + tsrEsc(tsrMtShort(tsrMtMask(st)).short) + '</div><div class="cs" style="color:#bdbdbd">' + tsrEsc(todo) + '</div></div>';
+    }).join("");
+  }
+  function tsrMtSummaryHtml(j, rows) {   // shown when the job has ended: how much arrived and what is missing
+    if (!j || j.status === "running") return "";
+    var head = (typeof j.moved === "number" && j.total) ? "Delivered " + j.moved + " of " + j.total : (j.status === "done" ? "Finished" : "Stopped");
+    var lines = [];
+    rows.forEach(function (r) {
+      if (r.state === "failed" || r.state === "leftover") lines.push(tsrDN(r.name, true) + ": " + tsrMtShort(tsrMtMask(r.note || r.state)).short);
+      else if (j.status !== "done" && r.state === "waiting" && r.count > 0) lines.push(tsrDN(r.name, true) + ": still holds " + r.count);
+    });
+    if (j.error) lines.unshift(tsrMtShort(tsrMtMask(j.error)).short);
+    return '<div class="tsr-col"><div class="cl">Summary</div><div class="cn"><span class="cname">' + tsrEsc(head) + '</span></div>'
+      + (lines.length ? lines.map(function (t) { return '<div class="cs">' + tsrEsc(t) + '</div>'; }).join("") : '<div class="cs">Every account gave everything it had.</div>') + '</div>';
   }
   function tsrMtLiveHtml() {
     if (tsrMt.unsupported) return '<div class="tsr-warn">Your Worker doesn\u2019t support Multi Trade yet. Deploy the latest Tapsim.js.</div>';
     var j = tsrMt.job;
     if (!j) return '<div class="tsr-sub">' + (tsrMt.loaded ? "No Multi Trade has run yet." : "Loading\u2026") + '</div>';
-    var rows = (j.accounts || []).slice(), cnt = {}, order = { trading: 0, retrying: 1, settling: 2, waiting: 3, failed: 4, collector: 5, done: 6 };
+    var rows = (j.accounts || []).slice(), cnt = {}, order = { trading: 0, retrying: 1, settling: 2, waiting: 3, failed: 4, leftover: 4, collector: 5, done: 6 };
     rows.forEach(function (r) { cnt[r.state] = (cnt[r.state] || 0) + 1; });
     rows.sort(function (x, y) { return (order[x.state] == null ? 9 : order[x.state]) - (order[y.state] == null ? 9 : order[y.state]); });
     var label = { running: "Running", done: "Finished", failed: "Stopped (problem)", stopped: "Stopped" }[j.status] || j.status;
     var phase = j.status !== "running" ? "" : (j.auto ? " \u00b7 sending to " + tsrMtMask(j.partner || "") : j.phase === "final" ? " \u00b7 sending to " + tsrMtMask(j.partner || "") : " \u00b7 merging into " + tsrMtMask(j.collector));
-    var h = '<div class="tsr-kv"><span>Status</span><span style="white-space:normal">' + tsrEsc(label + phase + " \u00b7 " + (j.trades || 0) + " trade" + ((j.trades || 0) === 1 ? "" : "s") + " done") + '</span></div>';
+    var h = tsrMtSummaryHtml(j, rows) + tsrMtBannerHtml(j, rows) + '<div class="tsr-kv"><span>Status</span><span style="white-space:normal">' + tsrEsc(label + phase + " \u00b7 " + (j.trades || 0) + " trade" + ((j.trades || 0) === 1 ? "" : "s") + " done") + '</span></div>';
     h += '<div class="tsr-kv"><span>Pet</span><span style="white-space:normal">' + tsrEsc((j.total || 0) + "x " + (j.pet && j.pet.tier ? j.pet.tier + " " : "") + (j.pet ? j.pet.name : "")) + '</span></div>';
     if (j.error) h += '<div class="tsr-kv"><span>Problem</span><span style="white-space:normal;color:#ffb4a8">' + tsrEsc(tsrMtMask(j.error)) + '</span></div>';
-    var parts = []; ["trading", "retrying", "settling", "waiting", "failed", "done", "collector"].forEach(function (k) { if (cnt[k]) parts.push(cnt[k] + " " + k); });
+    var parts = []; ["trading", "retrying", "settling", "waiting", "failed", "leftover", "done", "collector"].forEach(function (k) { if (cnt[k]) parts.push(cnt[k] + " " + k); });
     h += '<details class="tr-dd" id="mtDet"' + (tsrMt.open ? " open" : "") + '><summary>Accounts (' + rows.length + '): ' + tsrEsc(parts.join(", ") || "none") + '</summary>';
     h += rows.map(function (r) {
       var racc = tsrMtAcc(r.name), nm = tsrDN(r.name, true) + (r.collector ? " (collector)" : "") + (racc && racc.jobId ? " \u00b7 " + (tsrMtSrvLabels()[racc.jobId] || "Server") : "");
@@ -6676,7 +6765,9 @@ document.addEventListener("DOMContentLoaded", function () {
     var now = Date.now();
     return j.log.slice().reverse().slice(0, 12).map(function (e) {
       var ago = Math.max(0, Math.round((now - e.t) / 1000));
-      return '<div class="tsr-kv"><span>Multi Trade</span><span style="white-space:normal' + (TSR_MT_BAD.test(e.text) ? ";color:#ffb4a8" : "") + '">' + tsrEsc(tsrMtMask(e.text)) + ' \u00b7 ' + (ago < 60 ? ago + "s" : Math.round(ago / 60) + "m") + ' ago</span></div>';
+      var m = tsrMtShort(tsrMtMask(e.text)), when = (ago < 60 ? ago + "s" : Math.round(ago / 60) + "m") + " ago";
+      var body = m.more ? '<details class="tr-evd"><summary>' + tsrEsc(m.short) + ' \u00b7 ' + when + '</summary><div class="tr-evf">' + tsrEsc(m.full) + '</div></details>' : tsrEsc(m.short) + ' \u00b7 ' + when;
+      return '<div class="tsr-kv"><span style="white-space:nowrap;flex:none">Multi Trade</span><span style="white-space:normal' + (TSR_MT_BAD.test(e.text) ? ";color:#ffb4a8" : "") + '">' + body + '</span></div>';
     }).join("");
   }
   // ---------- Trade page look: pet tiles, Mythic-and-above filter, Trade / Multi Trade tabs ----------
@@ -6794,6 +6885,7 @@ document.addEventListener("DOMContentLoaded", function () {
       var prev = tsrMt.job, was = !!prev && prev.status === "running";
       tsrMt.job = d.job || null; tsrMt.loaded = true; tsrMt.unsupported = false;
       if (was && tsrMt.job && tsrMt.job.id === prev.id && tsrMt.job.status !== "running") tsrMtEnded(tsrMt.job);
+      tsrMtAlertCheck(tsrMt.job);
       tsrMtPaint();
     }).catch(function () { tsrMt.busy = false; });
   }
@@ -6821,6 +6913,17 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!b || b.tagName === "INPUT" || b.tagName === "SELECT") return;
     var act = b.dataset.mt;
     if (act === "srcpick") { tsrMtPickFrom(b.dataset.n, b.dataset.k); return; }
+    if (act === "alert") {
+      tsrMtAlertOn = !tsrMtAlertOn;
+      try { localStorage.setItem("tsrMtAlert", tsrMtAlertOn ? "1" : "0"); } catch (err) {}
+      if (tsrMtAlertOn) { tsrMtBeep(); try { if (window.Notification && Notification.permission === "default") Notification.requestPermission(); } catch (err) {} }
+      tsrMtPaint(); return;
+    }
+    if (act === "copy") {
+      var nm = b.dataset.n || "", done = function () { b.textContent = "Copied"; setTimeout(function () { b.textContent = "Copy name"; }, 1500); };
+      try { navigator.clipboard.writeText(nm).then(done, function () { b.textContent = "Press Ctrl+C: " + nm; }); } catch (err) { b.textContent = nm; }
+      return;
+    }
     if (act === "tile") { tsrMt.pet = b.dataset.k; tsrRender(5); }
     else if (act === "all") { tsrMt.amtAll = true; tsrRender(5); }
     else if (act === "showall") { tsrShowAll = !tsrShowAll; tsrRender(5); }
