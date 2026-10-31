@@ -1,0 +1,1724 @@
+-- WORST Server Notifiers
+-- ============================================================
+--  WORST • RARE EGG NOTIFIER + BOT FEED + BUTTERFLY + RACING
+--  + HALLOWEEN DIMENSION (Secret / Eternal / Divine)
+--  + HALLOWEEN PETS (Paid / Zombified re-roll pets)
+--
+--  NO SERVER HOPPING. This script only watches the server you are in
+--  and sends alerts to your webhooks.
+--
+--  Everything you normally edit is in the CONFIG half (top).
+--  Everything below the "DON'T EDIT BELOW" line is the logic.
+--
+--  CONFIG SECTIONS
+--    1. WEBHOOKS     every Discord webhook URL
+--    2. ROLES        tier roles + event roles
+--    3. WEBSITE      the site alert endpoint + key
+--    4. BOT LOOK     bot name, avatar, footer, tier colours
+--    5. SETTINGS     timings, toggles, debug
+--    6. EVENTS       Butterfly Bloom + Racing options
+--    7. RARE EGGS    ONE table: tier, value, image, role per egg
+--    8. EGG NAMES    board name -> game name(s), per zone
+-- ============================================================
+
+
+-- ============================================================
+-- SINGLE INSTANCE
+-- Re-executing the script stops the previous copy (its loops exit and it can
+-- no longer send anything), and alert memory survives the re-execute, so
+-- eggs that were already alerted are NOT alerted again.
+-- ============================================================
+
+local ENV = (getgenv and getgenv()) or _G
+local hadPreviousRun = ENV.WORST_RUN ~= nil
+local RUN_ID = {}
+ENV.WORST_RUN = RUN_ID
+ENV.WORST_ALERTED     = ENV.WORST_ALERTED     or {}   -- uid -> last seen
+ENV.WORST_ALERTED_NU  = ENV.WORST_ALERTED_NU  or {}   -- name -> uid-less copies alerted
+ENV.WORST_SEEN_H      = ENV.WORST_SEEN_H      or {}   -- halloween uid -> last seen
+
+local function alive() return ENV.WORST_RUN == RUN_ID end
+
+
+-- ============================================================
+-- 1. WEBHOOKS
+-- Paste your webhook URLs here. Nothing else in the script has one.
+-- ============================================================
+
+local WEBHOOKS = {
+    -- rare egg alerts (one channel per tier)
+    Secret    = "https://discord.com/api/webhooks/1552833728403865651/hmgHAJBFIOBTqsZMaKpriPZPdWXA7y3MFO1PrYOA9K3U0tmRDkTVHG5j6fBDEtcS88iF",
+    Eternal   = "https://discord.com/api/webhooks/1552833824621076490/Eu_k7dNhQvKeId010XbRGoRVhDzQKaAk0budtH_f5CnmlsXKXueLqlGGjRR5VrbpXN7-",
+    Divine    = "https://discord.com/api/webhooks/1552833856519012454/I9Lb-MvPv_NND4nvxYFlhRWTG9rYOVDiS6NS_lQy_8884fYpa3x91uTRbT7Ovg13m1xo",
+
+    -- event alerts
+    Butterfly = "https://discord.com/api/webhooks/1556165647292043288/scmL1hTUqhlusTRyH0Rr6wINYRAEsnSTY8TeDR6EYHBwTTQLcOCUM13VarBV178b7fQJ",
+    Racing    = "https://discord.com/api/webhooks/1558747004627320882/Ul5HnfO9g7v0hxxCdZFfu6X_jrplGAe6kx64HvvK4K_W1xMccyMiGwmbt_jEGnBjeVbQ",
+
+    -- your PRIVATE feed channel (the one you ran !egginput in)
+    Feed      = "https://discord.com/api/webhooks/1554004883353632790/pveRQ_8LBUr5Tlxj34EBtO7Ruua8mvfIACa5QfvhgoUhc6rUw2hgI2VYDltxzmzmznx_",
+
+    -- COMBINED channel: gets a copy of EVERY alert (all tiers + Butterfly + Racing).
+    -- Copies are sent WITHOUT role pings so nobody is pinged twice. Leave "" to turn off.
+    -- DEBUG channel: duplicate-alert diagnostics (see S.DEBUG_WEBHOOK). Leave "" to turn off.
+    Debug     = "https://discord.com/api/webhooks/1558747004627320882/Ul5HnfO9g7v0hxxCdZFfu6X_jrplGAe6kx64HvvK4K_W1xMccyMiGwmbt_jEGnBjeVbQ",
+
+    All       = "https://discord.com/api/webhooks/1556086398136746057/lX4lKeT5phqA0Ve7e4ctIpEHQAQya1zgUmNjMkXdJdHmnpb4A6lTiBonN_txMpxJkQOG",
+}
+
+
+-- ============================================================
+-- 2. ROLES
+-- ============================================================
+
+-- Tier roles (pinged on every egg of that tier)
+local ROLES = {
+    Secret    = "1552345277459988480",
+    Eternal   = "1552345217640698036",
+    Divine    = "1552345257599836160",
+
+    -- event roles
+    Butterfly = "1556173039224225812",
+    Racing    = "1558761299566002266",
+}
+-- Per-egg roles live in the RARE EGGS table (section 7), field `role`.
+
+
+-- ============================================================
+-- 3. WEBSITE
+-- Every alert is also sent to your site (Last 100 list + guest webhooks).
+-- KEY must equal FEED_KEY in your hopper script (= PUSH_KEY in Cloudflare).
+-- ============================================================
+
+local SITE = {
+    URL = "https://eggfeed.asaiyamain.workers.dev/alert",
+    KEY = "09123744541WORSTASAIYA",
+}
+
+
+-- ============================================================
+-- 4. BOT LOOK
+-- ============================================================
+
+local BOT = {
+    NAME   = "WORST • Steal An Egg",
+    AVATAR = "https://t3.ftcdn.net/jpg/03/56/50/38/360_F_356503809_vas1u5ohd44mvLFSaNfUthgpWCTJNCD9.jpg",
+    FOOTER = "https://discord.gg/W0RST",
+}
+
+local STYLE = {
+    Secret  = { color = 0xE74C3C, emoji = "🔮", title = "SECRET EGG SPAWNED",  tag = "A Hidden Egg has appeared!" },
+    Eternal = { color = 0x9B59B6, emoji = "♾️", title = "ETERNAL EGG SPAWNED", tag = "An Immortal Egg has awakened!" },
+    Divine  = { color = 0xF1C40F, emoji = "✨", title = "DIVINE EGG SPAWNED",  tag = "A Heavenly Egg has descended!" },
+}
+
+
+-- ============================================================
+-- 5. SETTINGS
+-- ============================================================
+
+local S = {
+    -- ----- feed loop -----
+    CHECK_INTERVAL    = 0.5,   -- seconds between scans
+    MIN_SEND_GAP      = 1,     -- min seconds between feed messages
+    HEARTBEAT         = 60,    -- always send a feed message at least this often
+    IGNORE_FIRST_AREA = false,
+
+    LATCH_ENABLED     = true,  -- keep showing the old eggs until the next reroll
+    LATCH_SECONDS     = 330,
+
+    RESET_IF_CHANGED  = 10,    -- this many NEW eggs = a reroll happened
+    WINDOW_SECONDS    = 3,
+    REROLL_LOCKOUT    = 15,
+
+    EGGS_PER_ZONE     = 5,
+    SETTLE_TIMEOUT    = 3,
+
+    -- new-cycle detector (drives the "Next update" countdown on the board)
+    CYCLE_NEW_EGGS    = 4,     -- this many new eggs = new cycle
+    CYCLE_REF_SECS    = 10,    -- how old the comparison snapshot may get
+    CYCLE_MIN_GAP     = 60,    -- ignore further changes for this long
+
+    -- ----- rare egg alerts -----
+    -- Each rare egg is alerted ONCE (tracked by its unique id).
+    ALERT_EXISTING_ON_START = true,  -- also alert rare eggs already present when the script starts
+    ALERT_FORGET_SECONDS    = 900,   -- forget an egg this long after it vanishes
+    ALERT_SEND_GAP          = 0.3,   -- seconds between alerts (Discord rate limit)
+    SHOW_LOCATION           = true,  -- show the zone in the alert
+
+    -- ----- Halloween Dimension -----
+    HALLOWEEN_ENABLED       = true,  -- scan Workspace.HalloweenDimension.WorldEggs
+    HALLOWEEN_SCAN_SWAMP    = true,  -- also scan Zone 2 (Haunted Swamp: BloodBloom, Shelltide Voyager)
+    HALLOWEEN_INTERVAL      = 1,     -- seconds between Halloween scans
+
+    -- ----- debug -----
+    DEBUG_PRINT = false,  -- print every egg's raw category / resolved name
+    DEBUG_WEBHOOK = true, -- send rare-egg alert diagnostics to WEBHOOKS.Debug
+    TEST_MODE   = false,  -- send 3 sample egg alerts + 1 butterfly alert on start
+}
+
+-- Zones expected to hold S.EGGS_PER_ZONE eggs each (used by the settle check).
+-- Event zones (Angels, Demons, Dr Scramble, Halloween Dimension) are intentionally NOT listed.
+local NORMAL_ZONES = {
+    "Forest", "Lake", "Desert", "Jungle", "Snow", "Volcano",
+    "Abyss Ocean", "Prehistoric", "Cosmic", "Cherry Blossom", "Titan Temple",
+    "Enchanted Forest",
+}
+
+
+-- ============================================================
+-- 6. EVENTS
+-- ============================================================
+
+local BUTTERFLY = {
+    EVENT            = "ButterflyBloom",
+    COOLDOWN         = 600,   -- seconds between alerts
+    DEFAULT_DURATION = 300,
+    IMAGE            = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcShJHyWT_Tli6qDaHj2LdtNGXKvujRKQIWaIFLZtBVv1Q&s=10",
+}
+
+local RACE = {
+    EVENT    = "RaceRally",
+    LOCATION = "Abyss Ocean",
+    IMAGE    = "https://cdn.creazilla.com/cliparts/3226961/checkered-flag-clipart-md.png",
+    INTERVAL = 30 * 60,   -- fallback gap between races
+    JOIN     = 60,        -- join window if the game doesn't tell us
+    COOLDOWN = 120,       -- ignore duplicate triggers for this long
+    COLOR_OPEN   = 0x23A55A,  -- green: you can still join
+    COLOR_CLOSED = 0xED4245,  -- red: join window closed
+}
+
+
+-- ============================================================
+-- 7. RARE EGGS
+-- ONE entry per egg. To add an egg, add a line. Fields:
+--   tier     = "Secret" | "Eternal" | "Divine"
+--   value    = "5B/s"         (optional, shows "VALUE NOT SET" if missing)
+--   image    = IMG("x.png")   (optional) or a full https:// link
+--   role     = "role id"      (optional, pinged in addition to the tier role)
+--   siteName = "Name"         (optional, name the website uses for this egg)
+-- Keys are lowercase board names.
+-- ============================================================
+
+local IMG_BASE = "https://asaiya2.github.io/steal-an-egg/"
+local function IMG(file) return IMG_BASE .. file end
+local GH = "https://github.com/Asaiya2/steal-an-egg/blob/main/"
+
+local RARE_EGGS = {
+    -- ===== DIVINE =====
+    ["world burner"]   = { tier = "Divine", value = "5B/s",   image = "https://stealanegg.tools/images/World_Burner.png",          role = "1558518928144208012" },
+    ["archangel"]      = { tier = "Divine", value = "3B/s",   image = "https://stealanegg.tools/images/ArchAngel.png",             role = "1558519073208537108" },
+    ["royal skywhale"] = { tier = "Divine", value = "8B/s",   image = "https://stealanegg.tools/images/Royal_Skywhale.png",    role = "1558519461114286151" },
+    ["nightflame"] = { tier = "Divine", value = "3B/s", image = "https://stealanegg.tools/images/Nightflame.png", role = "1558519547139461120" },
+    ["kitsune"]        = { tier = "Divine", value = "1.8B/s", image = "https://stealanegg.tools/images/Kitsune.png",               role = "1558519659647606865" },
+    ["unicorn"]        = { tier = "Divine", value = "1B/s",   image = "https://stealanegg.tools/images/Unicorn.png",               role = "1558519726102159440" },
+
+    -- ===== ETERNAL =====
+    ["celestial sunlion"]    = { tier = "Eternal", value = "2B/s",   image = "https://stealanegg.tools/images/Celestial_Sunlion.png",       role = "1558519789016842320" },
+    ["skeleton horse"]       = { tier = "Eternal", value = "1.3B/s", image = "https://stealanegg.tools/images/Skeleton_Horse.png", role = "1558520158455333045" },
+    ["pegasus"]              = { tier = "Eternal", value = "1.3B/s", image = "https://stealanegg.tools/images/Pegasus.png",        role = "1558520297563623484" },
+    ["oni tiger"]            = { tier = "Eternal", value = "600M/s", image = "https://stealanegg.tools/images/Oni_Tiger.png",      role = "1558520427641307156" },
+    ["eternal lunar dragon"] = { tier = "Eternal", value = "250M/s", image = "https://stealanegg.tools/images/Eternal_Lunar_Dragon.png",    role = "1558520747192885318" },
+    ["gorilla king"]         = { tier = "Eternal", value = "880M/s", image = "https://stealanegg.tools/images/Gorilla_King.png" },
+    ["mosasaurus"]           = { tier = "Eternal", value = "180M/s", image = "https://stealanegg.tools/images/Mosasaurus.png",       role = "1558521006988197948" },
+    ["el maja"]              = { tier = "Eternal", value = "130M/s", image = "https://stealanegg.tools/images/El_Maja.png",        role = "1558521100256936006" },
+    ["lava dragon"]          = { tier = "Eternal", value = "100M/s", image = "https://stealanegg.tools/images/Lava_Dragon.png",    role = "1558521192913174639" },
+    ["ice dragon"]           = { tier = "Eternal", value = "65M/s",  image = "https://stealanegg.tools/images/Ice_Dragon.png",     role = "1558521258902036541" },
+    ["phoenix"]              = { tier = "Eternal", value = "85M/s",  image = "https://stealanegg.tools/images/Phoenix.png",        role = "1558521741762896013" },
+
+    -- ===== SECRET =====
+    ["king snake"]      = { tier = "Secret", value = "3.5M/s",  image = "https://stealanegg.tools/images/King_Snake.png", role = "1558521606333014017" },
+    ["yeti"]            = { tier = "Secret", value = "5M/s",   image = "https://stealanegg.tools/images/Yeti.png",      role = "1558521675308335205" },
+    ["cerberus"]        = { tier = "Secret", value = "8M/s",   image = "https://stealanegg.tools/images/Cerberus.png",  role = "1558521813615775744" },
+    ["kraken"]          = { tier = "Secret", value = "15M/s",
+                            image = "https://stealanegg.tools/images/Kraken.png",
+                            role = "1558521877805273099" },
+    ["trex"]            = { tier = "Secret", value = "25M/s",  image = "https://stealanegg.tools/images/TRex.png",      role = "1558521942410006608" },
+    ["tralaledon"]      = { tier = "Secret", value = "32M/s",  image = "https://stealanegg.tools/images/Tralaledon.png",     role = "1558521991156465714" },
+    ["cosmic skeleton"] = { tier = "Secret", value = "45M/s",
+                            image = "https://stealanegg.tools/images/Cosmic_Skeleton.png",
+                            role = "1558522089911230556" },
+    ["cosmic dragon"]   = { tier = "Secret", value = "60M/s",  image = "https://stealanegg.tools/images/Cosmic_Dragon.png" },
+    ["stag"]            = { tier = "Secret", value = "145M/s", image = "https://stealanegg.tools/images/Stag.png", role = "1558522247734366228" },
+    ["mutant shark"]    = { tier = "Secret", value = "215M/s",
+                            image = "https://stealanegg.tools/images/Mutant_Shark.png",
+                            role = "1558522369947992185" },
+    ["pure jellyfish"]  = { tier = "Secret", value = "225M/s",
+                            image = "https://stealanegg.tools/images/Pure_Jellyfish.png",
+                            role = "1558522559375478945" },
+    ["gargoyle"]        = { tier = "Secret", value = "225M/s", image = "https://stealanegg.tools/images/Gargoyle.png",  role = "1558522620205604945" },
+    ["razorfang"]       = { tier = "Secret", value = "350M/s", image = "https://stealanegg.tools/images/RazorFang.png",      role = "1558522667752099850" },
+    ["centaur"]         = { tier = "Secret", value = "350M/s",
+                            image = "https://stealanegg.tools/images/Centaur.png",
+                            role = "1558522716967936007" },
+    ["starry fox"]      = { tier = "Secret", value = "750M/s", image = "https://stealanegg.tools/images/Starry_Fox.png",      role = "1558522767278870538" },
+
+    -- ===== HALLOWEEN DIMENSION (values = EarningRate from the game data) =====
+    -- Add  role = "..."  to any of these if you want a per-egg ping.
+    ["voidseer pumpkin"] = { tier = "Divine",  value = "14B/s",  image = "https://stealanegg.tools/images/Voidseer_Pumpkin_Pet.png" },
+
+    ["gorillastein"]     = { tier = "Eternal", value = "3.5B/s", image = "https://stealanegg.tools/images/Abomination_Kong_Pet.png",
+                             siteName = "Abomination Kong" },
+    ["shelltide voyager"] = { tier = "Eternal", value = "1.6B/s" },
+    ["ghost reaper"]     = { tier = "Eternal", value = "300M/s", image = "https://stealanegg.tools/images/Ghost_Reaper_Pet.png" },
+
+    ["werewolf"]         = { tier = "Secret",  value = "1.3B/s", image = "https://stealanegg.tools/images/Werewolf_Pet.png" },
+    ["bloodbloom"]       = { tier = "Secret",  value = "450M/s" },
+    ["graveyard brute"]  = { tier = "Secret",  value = "75M/s",  image = "https://stealanegg.tools/images/Graveyard_Brute_Pet.png" },
+
+    -- ===== HALLOWEEN PETS (Halloween Egg + Zombified re-roll) =====
+    -- No images on purpose: these send as a plain notification.
+    -- Divine
+    ["bone emperor"]            = { tier = "Divine",  value = "7.5B/s" },
+    ["zombified bone emperor"]  = { tier = "Divine",  value = "14B/s" },
+
+    -- Eternal
+    ["phantom dragon"]            = { tier = "Eternal", value = "1.5B/s" },
+    ["zombified phantom dragon"]  = { tier = "Eternal", value = "6B/s" },
+    ["zombified grave cerberus"]  = { tier = "Eternal", value = "4B/s" },
+    ["soul phantom"]              = { tier = "Eternal" },   -- rate not in game data yet
+
+    -- Secret
+    ["grave cerberus"]            = { tier = "Secret",  value = "450M/s" },
+    ["zombified tombstone bear"]  = { tier = "Secret",  value = "1.4B/s" },
+    ["zombified night fang"]      = { tier = "Secret",  value = "1.1B/s" },
+    ["zombified pumpkin fiend"]   = { tier = "Secret",  value = "800M/s" },
+    ["pumpkin golem"]             = { tier = "Secret" },    -- rate not in game data yet
+}
+
+
+-- ============================================================
+-- 8. EGG NAMES
+-- board name -> game name(s), grouped by zone.
+-- A value can be a list when the game uses several names for one egg.
+-- ============================================================
+
+local EGG_NAMES = {
+    ["Forest"] = {
+        ["Chicken"] = "chicken", ["Dog"] = "dog", ["Bird"] = "desertlark",
+        ["Burrowing Owl"] = "burrowing owl", ["Raccoon"] = "raccoon",
+        ["Fox"] = "mire fox", ["Bear"] = "bear", ["Brr Brr Patapim"] = "brr brr patapim",
+    },
+    ["Lake"] = {
+        ["Frog"] = "frog", ["Duckling"] = "duckling", ["Catfish"] = "catfish",
+        ["Turtle"] = "turtle", ["Trulimero Trulicina"] = "trulimero trulicina",
+        ["Swan"] = "swan", ["Axolotl"] = "dream axolotl", ["Leviathan"] = "leviathan",
+    },
+    ["Desert"] = {
+        ["Jerboa"] = "jerboa", ["Fennec"] = "fennec", ["FennecFox"] = "fennec",
+        ["Camel"] = "camel", ["Tob Tobi Tob Tob"] = "tob tobi tob tob",
+        ["Snake"] = "snake", ["Sand Spider"] = "deathstalkerscorpion",
+        ["Scorpion"] = "scorpion", ["Royal Sphinx"] = "royal sphinx",
+    },
+    ["Jungle"] = {
+        ["Chimpanzee"] = "chimpanzee", ["Toucan"] = "toucan", ["Crocodile"] = "crocodile",
+        ["Gorilla"] = "gorilla", ["Orangutini Ananassini"] = "orangutini ananassini",
+        ["Spider"] = "spider", ["Tiger"] = "tiger", ["King Snake"] = "king snake",
+    },
+    ["Snow"] = {
+        ["Penguin"] = "penguin", ["Walrus"] = "walrus", ["Polar Bear"] = "polar bear",
+        ["Sabertooth Tiger"] = "sabertooth tiger", ["Mammoth"] = "mammoth",
+        ["Colossal Mammoth"] = "colossal mammoth", ["King Mammoth"] = "king mammoth",
+        ["Yeti"] = "yeti", ["Ice Dragon"] = "ice dragon",
+    },
+    ["Volcano"] = {
+        ["Lava Gecko"] = "ash gecko", ["Lava Frog"] = "lava frog", ["Flaming Bull"] = "flaming bull",
+        ["Chillin Chilli"] = "chillin chilli", ["Lava Iguana"] = "lava iguana",
+        ["Cerberus"] = "cerberus", ["Phoenix"] = "phoenix", ["Lava Dragon"] = "lava dragon",
+    },
+    ["Abyss Ocean"] = {
+        ["Parrotfish"] = "parrotfish", ["Swordfish"] = "swordfish", ["Shark"] = "shark",
+        ["Orca"] = "orca", ["Whale Shark"] = "whale shark", ["Finned Thresher"] = "finned thresher",
+        ["Beluga Whale"] = "alabaster whale", ["Kraken"] = "kraken", ["El Maja"] = "el maja",
+    },
+    ["Prehistoric"] = {
+        ["Dodo"] = "dodo", ["Pterodactyl"] = "pterodactyl", ["Ankylosaurus"] = "ankylosaurus",
+        ["Bronto"] = "bronto", ["Triceratops"] = "triceratops", ["TRex"] = "trex",
+        ["TyrannosaurusRex"] = "trex", ["Tralaledon"] = "tralaledon", ["Mosasaurus"] = "mosasaurus",
+    },
+    ["Cosmic"] = {
+        ["Centapede"] = "centapede", ["Cosmic Gecko"] = "galaxy gecko",
+        ["Cosmic Gorilla"] = "cosmic gorilla", ["Cyclops Gorilla"] = "cyclops gorilla",
+        ["La Vacca Saturno Saturnita"] = "la vacca saturno saturnita",
+        ["Cosmic Dragon"] = "cosmic dragon", ["Cosmic Skeleton"] = "cosmic skeleton boss",
+        ["Eternal Lunar Dragon"] = "eternal lunar dragon", ["Unicorn"] = "unicorn",
+    },
+    ["Cherry Blossom"] = {
+        ["Crane"] = "crane", ["Salamander"] = "salamander", ["Red Panda"] = "red panda",
+        ["Snowy Owl"] = "snowy owl", ["Koi"] = "koi", ["Stag"] = "stag",
+        ["Oni Tiger"] = "oni tiger", ["Kitsune"] = "kitsune",
+    },
+    ["Titan Temple"] = {
+        ["Spideron"] = "kaiju spider", ["Crustacia"] = "crab", ["Bladehide"] = "blade head",
+        ["Mantaris"] = "mantaris", ["Rhinotaur"] = "rhinotaur", ["Rhino"] = "rhinotaur",
+        ["Mutant Shark"] = "mutant shark", ["Gorilla King"] = "gorilla king", ["Nightflame"] = "nightflame",
+    },
+    ["Angels"] = {
+        ["Light Dove"] = "dove", ["Winged Lamb"] = "winged lamb", ["Sacred Moth"] = "moth",
+        ["Holy Peacock"] = "holy peacock", ["Pure Jellyfish"] = "pure jellyfish",
+        ["Centaur"] = "centaur", ["Pegasus"] = "pegasus", ["ArchAngel"] = "archangel",
+    },
+    ["Demons"] = {
+        ["Flame Sprite"] = "flame sprite", ["Toro"] = "toro", ["Imp"] = "imp",
+        ["Demon Hound"] = "demon hound", ["Gargoyle"] = "gargoyle", ["RazorFang"] = "razorfang",
+        ["Skeleton Horse"] = "skeleton horse", ["World Burner"] = "world burner",
+    },
+    ["Enchanted Forest"] = {
+        ["Royal Skywhale"]    = "royal skywhale",
+        ["Celestial Sunlion"] = { "celestial sunlion", "cosmic lion" },
+        ["Starry Fox"]        = { "starry fox", "cosmic fox" },
+        ["Astral Jackalope"]  = { "astral jackalope", "spirit hare" },
+        ["Spirit Panda"]      = "spirit panda",
+        ["Enchanted Bluejay"] = "enchanted bluejay",
+        ["Petal Beetle"]      = { "petal beetle", "cosmic beetle blue" },
+        ["Prism Gecko"]       = "prism gecko",
+    },
+    -- Halloween Dimension (only the Secret / Eternal / Divine eggs are listed)
+    ["Halloween Dimension"] = {
+        ["Graveyard Brute"]   = "graveyard brute",
+        ["Ghost Reaper"]      = "ghost reaper",
+        ["BloodBloom"]        = "bloodbloom",
+        ["Shelltide Voyager"] = "shelltide voyager",
+        ["Werewolf"]          = { "werewolf", "dread wolf" },
+        ["Gorillastein"]      = { "gorillastein", "abomination kong" },
+        ["Voidseer Pumpkin"]  = "voidseer pumpkin",
+    },
+    -- Leftover guess (the Dr Scramble banner is read straight from the GUI). Safe to delete.
+    ["Dr Scramble"] = {
+        ["Biohazard"]    = { "biohazard", "biohazard egg", "biohazard pet", "biohazard pets" },
+        ["Experimental"] = { "experimental", "experimental egg", "experimental pet", "experimental pets",
+                             "experiment", "experiment egg" },
+        ["Unstable DNA"] = { "unstable dna", "unstable", "unstable egg", "unstable dna egg" },
+    },
+}
+
+
+-- ############################################################
+-- ##                                                        ##
+-- ##              DON'T EDIT BELOW THIS LINE                ##
+-- ##                                                        ##
+-- ############################################################
+
+
+-- ============================================================
+-- SERVICES
+-- ============================================================
+
+local HttpService = game:GetService("HttpService")
+local RS          = game:GetService("ReplicatedStorage")
+local Players     = game:GetService("Players")
+
+local httpRequest = request or http_request or (syn and syn.request)
+
+local Assets, Areas = nil, nil
+pcall(function() Assets = require(RS.Data.Assets) end)
+pcall(function() Areas  = require(RS.Data.Areas)  end)
+
+
+-- ============================================================
+-- SHARED STATE (set by the event hooks, read by the feed)
+-- ============================================================
+
+local butterflyEndsAt = nil   -- os.time() the event ends, nil = not running
+local raceEndsAt      = nil   -- os.time() the join window closes, nil = not open
+
+local function butterflyLeft()
+    if butterflyEndsAt then
+        local left = butterflyEndsAt - os.time()
+        if left > 0 then return left end
+        butterflyEndsAt = nil
+    end
+    return nil
+end
+
+local function raceLeft()
+    if raceEndsAt then
+        local left = raceEndsAt - os.time()
+        if left > 0 then return left end
+        raceEndsAt = nil
+    end
+    return nil
+end
+
+
+-- ============================================================
+-- GENERAL HELPERS
+-- ============================================================
+
+local function norm(s)
+    local r = tostring(s):lower():gsub("[%s_%-]", "")
+    return r
+end
+
+local function prettyName(name)
+    local r = name:gsub("(%a)([%w']*)", function(a, b)
+        return a:upper() .. b:lower()
+    end)
+    return r
+end
+
+local function cleanText(s)
+    local r = tostring(s):gsub("<[^>]->", "")
+    r = r:gsub("^%s+", ""):gsub("%s+$", "")
+    return r
+end
+
+local function validUrl(u)
+    return type(u) == "string" and u:find("discord.com/api/webhooks/", 1, true) ~= nil
+end
+
+local function footer(label)
+    return { text = BOT.FOOTER .. " • " .. label }
+end
+
+local function isoNow()
+    return os.date("!%Y-%m-%dT%H:%M:%SZ", os.time())
+end
+
+local function retryAfter(res)
+    local waitFor = 1
+    pcall(function()
+        waitFor = tonumber(HttpService:JSONDecode(res.Body).retry_after) or 1
+    end)
+    return waitFor
+end
+
+
+-- ============================================================
+-- HTTP
+-- ============================================================
+
+-- JSON request with automatic retry when Discord says "rate limited" (429).
+-- Returns the response on success (2xx), nil otherwise.
+local function sendRequest(method, url, body, attempts, quiet)
+    if not alive() then return nil end
+    if not httpRequest then
+        if not quiet then warn("[EGG] No HTTP request function found in this executor.") end
+        return nil
+    end
+
+    for _ = 1, attempts or 1 do
+        local ok, res = pcall(function()
+            return httpRequest({
+                Url     = url,
+                Method  = method,
+                Headers = { ["Content-Type"] = "application/json" },
+                Body    = HttpService:JSONEncode(body),
+            })
+        end)
+
+        if not ok then
+            if not quiet then warn("[EGG] request failed:", res) end
+            return nil
+        end
+
+        local code = tonumber(res.StatusCode) or 0
+
+        if code == 429 then
+            task.wait(retryAfter(res) + 0.1)
+        elseif code < 200 or code >= 300 then
+            if not quiet then warn("[EGG] HTTP", code, res.Body) end
+            return nil
+        else
+            return res
+        end
+    end
+
+    return nil
+end
+
+-- Fire-and-forget webhook post. retry = true keeps trying through rate limits.
+local function postWebhook(url, payload, retry)
+    if not validUrl(url) then
+        warn("[EGG] Webhook not set or invalid.")
+        return
+    end
+    task.spawn(sendRequest, "POST", url, payload, retry and 4 or 1, not retry)
+end
+
+-- Debug log -> Discord (WEBHOOKS.Debug). Batched so it never floods / rate-limits.
+local DEBUG_JOB = tostring(game.JobId ~= "" and game.JobId or "studio"):sub(1, 8)
+local DEBUG_USER = (Players.LocalPlayer and Players.LocalPlayer.Name) or "?"
+local debugBuf, debugRunning = {}, false
+
+local function debugLog(msg)
+    if not S.DEBUG_WEBHOOK or not validUrl(WEBHOOKS.Debug) then return end
+    debugBuf[#debugBuf + 1] = string.format("`%s` <t:%d:T> [%s@%s] %s",
+        os.date("!%H:%M:%S"), os.time(), DEBUG_USER, DEBUG_JOB, tostring(msg))
+    if debugRunning then return end
+    debugRunning = true
+    task.spawn(function()
+        task.wait(1.5)
+        while #debugBuf > 0 do
+            local chunk = ""
+            while #debugBuf > 0 and #chunk + #debugBuf[1] + 1 < 1800 do
+                chunk = chunk .. table.remove(debugBuf, 1) .. "\n"
+            end
+            if chunk == "" then chunk = table.remove(debugBuf, 1):sub(1, 1800) end
+            sendRequest("POST", WEBHOOKS.Debug, {
+                username = "EGG DEBUG",
+                content = chunk,
+                allowed_mentions = { parse = {} },
+            }, 4, false)
+            task.wait(1)
+        end
+        debugRunning = false
+    end)
+end
+
+print("[EGG DEBUG] debug webhook " .. ((S.DEBUG_WEBHOOK and validUrl(WEBHOOKS.Debug)) and "ENABLED" or "OFF") .. " (job " .. DEBUG_JOB .. ")")
+debugLog(hadPreviousRun and "script started (REPLACED a previous instance)" or "script started")
+
+-- Copy of a "started ... ended" event message into the combined channel.
+-- Posts the start message, waits, then edits that same message (like the event channels do).
+-- getEditPayload is a function so the "ended" embed is built at edit time.
+local function mirrorStartEdit(startPayload, waitSeconds, getEditPayload)
+    if not validUrl(WEBHOOKS.All) then return end
+    task.spawn(function()
+        local res = sendRequest("POST", WEBHOOKS.All .. "?wait=true", startPayload, 4)
+        local messageId
+        if res then
+            pcall(function() messageId = HttpService:JSONDecode(res.Body).id end)
+        end
+        if not messageId then return end
+        task.wait(waitSeconds)
+        local ok, editPayload = pcall(getEditPayload)
+        if ok and editPayload then
+            sendRequest("PATCH", WEBHOOKS.All .. "/messages/" .. messageId, editPayload, 4)
+        end
+    end)
+end
+
+-- Send an alert to your website.
+local warnedKey = false
+local function pushSite(payload)
+    if not alive() then return end
+    if not httpRequest or SITE.URL == "" then return end
+
+    if SITE.KEY == "PUT-YOUR-FEED_KEY-HERE" then
+        if not warnedKey then
+            warnedKey = true
+            warn("[SITE] Set SITE.KEY at the top of the script, alerts are not reaching the website yet.")
+        end
+        return
+    end
+
+    task.spawn(function()
+        pcall(function()
+            httpRequest({
+                Url     = SITE.URL,
+                Method  = "POST",
+                Headers = { ["Content-Type"] = "application/json", ["x-key"] = SITE.KEY },
+                Body    = HttpService:JSONEncode(payload),
+            })
+        end)
+    end)
+end
+
+
+-- ============================================================
+-- LOOKUP TABLES (built from the config above)
+-- ============================================================
+
+-- game name -> board name
+local ALIASES = {}
+-- board name -> nice display name ("razorfang" -> "RazorFang")
+local DISPLAY_OF = {}
+-- board name -> zone
+local ZONE_OF = {}
+
+for zone, eggs in pairs(EGG_NAMES) do
+    for board, gameNames in pairs(eggs) do
+        if type(gameNames) ~= "table" then gameNames = { gameNames } end
+        for _, g in ipairs(gameNames) do
+            ALIASES[norm(g)] = norm(board)
+        end
+        if DISPLAY_OF[norm(board)] == nil then
+            DISPLAY_OF[norm(board)] = board
+        end
+        ZONE_OF[norm(board)] = zone
+    end
+end
+
+-- normalized egg name -> { name = "kraken", tier = "Secret" }
+local RARE_INFO = {}
+for name, data in pairs(RARE_EGGS) do
+    RARE_INFO[norm(name)] = { name = name, tier = data.tier }
+end
+RARE_INFO["tyrannosaurusrex"] = RARE_INFO["trex"]
+
+
+-- ============================================================
+-- GAME DATA RESOLVERS
+-- AssetCategory -> Assets.Directory entry -> DisplayName
+-- ============================================================
+
+local assetInfoCache = {}
+
+local function normalizeAssetName(s)
+    return tostring(s or ""):lower():gsub("[^%a%d]", "")
+end
+
+local function getAssetInfo(category)
+    local categoryKey = tostring(category or "")
+    if categoryKey == "" then return nil end
+    if assetInfoCache[categoryKey] then return assetInfoCache[categoryKey] end
+
+    local directory = type(Assets) == "table" and Assets.Directory or nil
+    local entry = type(directory) == "table" and directory[categoryKey] or nil
+
+    -- fallback: compare normalized category against key, _id, DisplayName, Egg.ModelName
+    if entry == nil and type(directory) == "table" then
+        local wanted = normalizeAssetName(categoryKey)
+
+        for key, candidate in pairs(directory) do
+            if type(candidate) == "table" then
+                local values = {
+                    tostring(key),
+                    tostring(candidate._id or ""),
+                    tostring(candidate.DisplayName or ""),
+                }
+                local egg = type(candidate.Egg) == "table" and candidate.Egg or nil
+                if egg then values[#values + 1] = tostring(egg.ModelName or "") end
+
+                for _, value in ipairs(values) do
+                    if value ~= "" and normalizeAssetName(value) == wanted then
+                        entry = candidate
+                        break
+                    end
+                end
+            end
+            if entry ~= nil then break end
+        end
+    end
+
+    local info = {
+        Name = type(entry) == "table" and tostring(entry.DisplayName or categoryKey) or categoryKey,
+        Category = categoryKey,
+        Rarity = "Common",
+        RarityNumber = 0,
+        Icon = type(entry) == "table" and entry.Icon or nil,
+    }
+
+    if type(entry) == "table" then
+        local rarity = type(entry.Rarity) == "table" and entry.Rarity or nil
+        if rarity then
+            info.Rarity = tostring(rarity.DisplayName or rarity._id or "Common")
+            info.RarityNumber = tonumber(rarity.RarityNumber or rarity.Rank) or 0
+        end
+    end
+
+    assetInfoCache[categoryKey] = info
+    return info
+end
+
+local function getAreaDisplayName(areaId)
+    local key = tostring(areaId or "")
+    if key == "" then return "" end
+
+    local directory = type(Areas) == "table" and (Areas.Directory or Areas) or nil
+    local entry = type(directory) == "table" and directory[key] or nil
+
+    if type(entry) == "table" then
+        return tostring(entry.DisplayName or key)
+    end
+    return key
+end
+
+
+-- ============================================================
+-- PART 1: RARE EGG ALERT EMBED
+-- ============================================================
+
+local function sendEggEmbed(eggName, tier, location)
+    local style = STYLE[tier]
+    local data  = RARE_EGGS[eggName] or {}
+
+    -- tier role + the creature's own role (if it has one)
+    local mention = ROLES[tier] and ("<@&" .. ROLES[tier] .. ">") or ""
+    if data.role then
+        mention = mention .. " <@&" .. data.role .. ">"
+    end
+
+    local name     = (DISPLAY_OF[norm(eggName)] or prettyName(eggName)) .. " Egg"
+    local now      = os.time()
+    local imageUrl = data.image
+    local value    = (data.value and data.value ~= "") and data.value or "VALUE NOT SET"
+
+    local description = "*" .. style.tag .. "*"
+    if S.SHOW_LOCATION and location and location ~= "" then
+        description = description .. "\n📍 **" .. location .. "**"
+    end
+
+    local embed = {
+        title       = style.emoji .. "  " .. style.title .. "  " .. style.emoji,
+        description = description,
+        color       = style.color,
+        fields = {
+            { name = "🥚 Egg",       value = "**" .. name .. "**",      inline = true  },
+            { name = "💎 Rarity",    value = "**" .. tier .. "**",      inline = true  },
+            { name = "⏱️ Spotted",   value = "**<t:" .. now .. ":R>**", inline = true  },
+            { name = "💰 EGG VALUE", value = "```" .. value .. "```",   inline = false },
+        },
+        footer    = footer(tier .. " Alert"),
+        timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ", now),
+    }
+
+    -- no image set = no thumbnail, the alert just sends without one
+    if imageUrl and imageUrl ~= "" then
+        embed.thumbnail = { url = imageUrl }
+    end
+
+    pushSite({
+        type     = "egg",
+        egg      = (data.siteName or prettyName(eggName)) .. " Egg",
+        rarity   = tier,
+        location = location or "",
+        value    = value,
+        image    = (imageUrl and imageUrl:find("^https://")) and imageUrl or "",
+    })
+
+    postWebhook(WEBHOOKS[tier], {
+        username   = BOT.NAME,
+        avatar_url = (BOT.AVATAR ~= "") and BOT.AVATAR or nil,
+        content    = mention .. " " .. style.emoji .. " **" .. name .. "** just spawned!",
+        allowed_mentions = { parse = { "roles" } },
+        embeds     = { embed },
+    }, true)
+
+    -- same alert into the combined channel (no role pings)
+    if validUrl(WEBHOOKS.All) then
+        postWebhook(WEBHOOKS.All, {
+            username   = BOT.NAME,
+            avatar_url = (BOT.AVATAR ~= "") and BOT.AVATAR or nil,
+            content    = style.emoji .. " **" .. name .. "** just spawned!",
+            allowed_mentions = { parse = {} },
+            embeds     = { embed },
+        }, true)
+    end
+end
+
+if S.TEST_MODE then
+    task.spawn(function()
+        task.wait(1); sendEggEmbed("unicorn", "Divine", "Cosmic")
+        task.wait(1); sendEggEmbed("gorilla king", "Eternal", "Titan Temple")
+        task.wait(1); sendEggEmbed("razorfang", "Secret", "Demons")
+    end)
+end
+
+
+-- ============================================================
+-- PART 2: BOT FEED
+-- ============================================================
+
+-- ---------- snapshot of every egg in the game ----------
+-- Source 1: EggState.ReadFieldEggs()
+-- Source 2: AreaEggSlotsClient (eggs ReadFieldEggs doesn't return, e.g. Angels/Demons)
+-- Returns: counts, ids, ok, eggs
+--   eggs = one entry per egg that exists now: { uid, k, nameKey, catKey, areaId }
+
+local function buildSnapshot()
+    local counts, ids, eggs = {}, {}, {}
+
+    local ok, es = pcall(function() return require(RS.Client.EggState) end)
+    if not (ok and es) then
+        return counts, ids, false, eggs
+    end
+
+    local records = {}
+
+    -- SOURCE 1
+    local ok2, data = pcall(es.ReadFieldEggs)
+    if ok2 and type(data) == "table" then
+        local raw = data.Records or data
+        if type(raw) == "table" then
+            for key, r in pairs(raw) do
+                if type(r) == "table" then
+                    if not r.Uid and type(key) == "string" then r.Uid = key end
+                    table.insert(records, r)
+                end
+            end
+        end
+    end
+
+    -- SOURCE 2
+    local slotsFolder = workspace:FindFirstChild("AreaEggSlotsClient")
+    if slotsFolder then
+        local seenUid = {}
+        for _, existing in ipairs(records) do
+            local eu = tostring(existing.Uid or "")
+            if eu ~= "" then seenUid[eu] = true end
+        end
+
+        local function scanSlots(container)
+            for _, slot in ipairs(container:GetChildren()) do
+                if slot:IsA("Folder") or slot:IsA("Model") then
+                    scanSlots(slot)
+                end
+
+                local uid = slot.Name
+                if uid and uid ~= "" and not seenUid[tostring(uid)] then
+                    local category = slot:GetAttribute("Category") or slot:GetAttribute("AssetCategory")
+
+                    if category and category ~= "" then
+                        table.insert(records, {
+                            Uid = uid,
+                            AssetCategory = category,
+                            AreaId = slot:GetAttribute("AreaId") or slot:GetAttribute("Area"),
+                            State = "Slot",
+                            PhysicalModel = slot,
+                        })
+                        seenUid[tostring(uid)] = true
+                    end
+                end
+            end
+        end
+
+        scanSlots(slotsFolder)
+    end
+
+    -- PROCESS RECORDS
+    for _, r in ipairs(records) do
+        local uid      = tostring(r.Uid or "")
+        local category = r.AssetCategory or r.Category
+        local info     = category and getAssetInfo(category) or nil
+        local name     = info and info.Name or category
+
+        if S.DEBUG_PRINT then
+            print("[EGG DEBUG]",
+                "UID =", uid,
+                "Category =", tostring(category),
+                "Name =", tostring(name),
+                "AreaId =", tostring(r.AreaId),
+                "Area =", getAreaDisplayName(r.AreaId),
+                "State =", tostring(r.State))
+        end
+
+        if name and not (S.IGNORE_FIRST_AREA and uid:find("FirstArea")) then
+            -- prefer the game's DisplayName, fall back to the internal AssetCategory
+            local k = norm(name)
+            k = ALIASES[k] or ALIASES[norm(category)] or k
+
+            counts[k] = (counts[k] or 0) + 1
+
+            local id = (uid ~= "") and (uid .. "|" .. k) or (k .. "#" .. counts[k])
+            ids[id] = true
+
+            eggs[#eggs + 1] = {
+                uid     = uid,
+                k       = k,
+                nameKey = norm(name),
+                catKey  = category and norm(category) or "",
+                areaId  = r.AreaId,
+            }
+        end
+    end
+
+    if S.DEBUG_PRINT then
+        local total = 0
+        for _, n in pairs(counts) do total = total + n end
+        print("[EGG DEBUG] records:", #records, "counted:", total)
+        for k, n in pairs(counts) do print("[EGG DEBUG] count", k, n) end
+    end
+
+    return counts, ids, true, eggs
+end
+
+
+-- ---------- rare egg detector ----------
+-- Runs on every scan. Every rare egg gets exactly one alert (tracked by uid).
+-- Alerts go through a small queue so a burst doesn't hit Discord's rate limit.
+
+local alertQueue = {}
+
+task.spawn(function()
+    while alive() do
+        local a = table.remove(alertQueue, 1)
+        if a then
+            pcall(sendEggEmbed, a.name, a.tier, a.location)
+            task.wait(S.ALERT_SEND_GAP)
+        else
+            task.wait(0.05)
+        end
+    end
+end)
+
+local rareEverSeen  = {}   -- debug
+local rarePresent   = {}   -- debug: uid/name -> true while it was in the last scan
+local alerted       = ENV.WORST_ALERTED      -- uid -> last time this egg was seen (os.clock)
+local alertedNoUid  = ENV.WORST_ALERTED_NU   -- egg name -> uid-less copies already alerted
+local firstRareScan = true
+
+local function checkRare(eggs)
+    local now = os.clock()
+    local noUidNow = {}
+    local presentNow = {}
+
+    for _, e in ipairs(eggs) do
+        local info = RARE_INFO[e.k] or RARE_INFO[e.nameKey] or RARE_INFO[e.catKey]
+
+        if info then
+            local isNew = false
+            presentNow[(e.uid ~= "") and e.uid or ("noUid:" .. info.name)] = info.name
+
+            if e.uid ~= "" then
+                if alerted[e.uid] == nil then isNew = true end
+                alerted[e.uid] = now
+            else
+                -- no unique id: count copies instead (2 Stags = 2 alerts)
+                local n = (noUidNow[info.name] or 0) + 1
+                noUidNow[info.name] = n
+
+                if n > (alertedNoUid[info.name] or 0) then
+                    alertedNoUid[info.name] = n
+                    isNew = true
+                end
+            end
+
+            if isNew and (S.ALERT_EXISTING_ON_START or not firstRareScan) then
+                local location = ZONE_OF[e.k] or ZONE_OF[e.nameKey] or getAreaDisplayName(e.areaId)
+
+                alertQueue[#alertQueue + 1] = {
+                    name     = info.name,
+                    tier     = info.tier,
+                    location = location,
+                }
+
+                print("[EGG] rare spotted:", info.name, "(" .. info.tier .. ")")
+                debugLog(string.format("**ALERT** %s (%s) uid=`%s` area=%s loc=%s hadUid=%s",
+                    info.name, info.tier, e.uid ~= "" and e.uid or "NONE",
+                    tostring(e.areaId), tostring(location), tostring(e.uid ~= "")))
+            end
+        end
+    end
+
+    firstRareScan = false
+
+    -- debug: log rare eggs that dropped out of the scan (flicker detector)
+    for key, name in pairs(rarePresent) do
+        if not presentNow[key] then
+            debugLog(string.format("VANISHED %s key=`%s`", tostring(name), tostring(key)))
+        end
+    end
+    for key, name in pairs(presentNow) do
+        if not rarePresent[key] and rareEverSeen[key] then
+            debugLog(string.format("REAPPEARED %s key=`%s`", tostring(name), tostring(key)))
+        end
+        rareEverSeen[key] = true
+    end
+    rarePresent = presentNow
+
+    -- forget eggs that have been gone for a while
+    for uid, seenAt in pairs(alerted) do
+        if now - seenAt > S.ALERT_FORGET_SECONDS then alerted[uid] = nil end
+    end
+    for name in pairs(alertedNoUid) do
+        if not noUidNow[name] then alertedNoUid[name] = nil end
+    end
+end
+
+
+-- ---------- Dr. Scramble banner reader ----------
+-- PlayerGui.DrScrambleTradeIn.DrScrambleTradeInMain.CurrentEggInfoHolder.EggName
+-- Returns: name ("Experimental Pets"), secondsLeft (or nil)
+
+local function readScramble()
+    local pg     = Players.LocalPlayer and Players.LocalPlayer:FindFirstChild("PlayerGui")
+    local gui    = pg and pg:FindFirstChild("DrScrambleTradeIn")
+    local main   = gui and gui:FindFirstChild("DrScrambleTradeInMain")
+    local holder = main and main:FindFirstChild("CurrentEggInfoHolder")
+    if not holder then return nil end
+
+    local nameLabel = holder:FindFirstChild("EggName")
+    if not (nameLabel and nameLabel:IsA("TextLabel")) then return nil end
+
+    -- "Experimental Pets Banner" -> "Experimental Pets"
+    local name = cleanText(nameLabel.Text)
+    name = name:gsub("%s*Banner%s*$", "")
+    if name == "" then return nil end
+
+    -- optional: "Rotates in: 50m 42s" -> seconds
+    local left = nil
+    for _, obj in ipairs(holder:GetDescendants()) do
+        if obj:IsA("TextLabel") then
+            local t = cleanText(obj.Text)
+            if t:lower():find("rotates in") then
+                local h = tonumber(t:match("(%d+)%s*h")) or 0
+                local m = tonumber(t:match("(%d+)%s*m")) or 0
+                local s = tonumber(t:match("(%d+)%s*s")) or 0
+                if h + m + s > 0 then left = h * 3600 + m * 60 + s end
+                break
+            end
+        end
+    end
+
+    return name, left
+end
+
+
+-- ---------- feed message ----------
+-- cycleAge = seconds since the current egg cycle started (nil until seen).
+
+local function sendFeed(counts, cycleAge)
+    local data = {}
+    for k, v in pairs(counts) do data[k] = v end
+
+    if cycleAge then data._age = cycleAge end
+
+    -- Dr. Scramble banner (skipped if the GUI isn't found)
+    local okS, scrambleName, scrambleLeft = pcall(readScramble)
+    if okS and scrambleName then
+        data._scramble = scrambleName
+        if scrambleLeft then data._scramble_left = scrambleLeft end
+    end
+
+    -- Butterfly Bloom running?
+    local bLeft = butterflyLeft()
+    if bLeft then
+        data._butterfly = 1
+        data._butterfly_left = bLeft
+    end
+
+    -- Race open?
+    local rLeft = raceLeft()
+    if rLeft then
+        data._race = 1
+        data._race_left = rLeft
+    end
+
+    local body = "EGGDATA" .. HttpService:JSONEncode(data)
+
+    if #body > 1990 then
+        warn("[EGG FEED] payload too long (" .. #body .. " chars)")
+        return
+    end
+
+    postWebhook(WEBHOOKS.Feed, { username = "egg-feed", content = body })
+end
+
+
+-- ---------- feed helpers ----------
+
+local function copyCounts(t)
+    local c = {}
+    for k, v in pairs(t) do c[k] = v end
+    return c
+end
+
+local function signature(t)
+    local parts = {}
+    for k, n in pairs(t) do parts[#parts + 1] = k .. ":" .. n end
+    table.sort(parts)
+    return table.concat(parts, "|")
+end
+
+local function diffIds(a, b)
+    local gone, fresh = 0, 0
+    for id in pairs(a) do if not b[id] then gone  = gone  + 1 end end
+    for id in pairs(b) do if not a[id] then fresh = fresh + 1 end end
+    return gone, fresh
+end
+
+local function zonesComplete(counts)
+    local perZone, unmapped = {}, 0
+
+    for k, n in pairs(counts) do
+        local zone = ZONE_OF[k]
+        if zone then
+            perZone[zone] = (perZone[zone] or 0) + n
+        else
+            unmapped = unmapped + n
+        end
+    end
+
+    local shortBy = 0
+    for _, zone in ipairs(NORMAL_ZONES) do
+        shortBy = shortBy + math.max(0, S.EGGS_PER_ZONE - (perZone[zone] or 0))
+    end
+
+    return shortBy <= unmapped
+end
+
+
+-- ---------- feed loop ----------
+
+task.spawn(function()
+    local latched, cycleStart = {}, nil
+    local windowIds, windowAt = nil, 0
+    local settling, settleStart = false, 0
+    local lastSig, lastSentAt = nil, 0
+
+    -- new-cycle detector (for the countdown)
+    local refIds, refAt, rerollAt = nil, 0, nil
+
+    while alive() do
+        pcall(function()
+            local live, ids, ok, eggs = buildSnapshot()
+            if not ok then return end
+
+            -- rare alerts run on every scan, before any settling/latching
+            local okR, errR = pcall(checkRare, eggs)
+            if not okR then warn("[EGG] rare check failed: " .. tostring(errR)) end
+
+            local now = os.clock()
+
+            -- NEW-CYCLE DETECTOR
+            -- CYCLE_NEW_EGGS or more brand new eggs vs. a recent snapshot = reroll
+            if refIds == nil then
+                refIds, refAt = ids, now
+            else
+                local _, fresh = diffIds(refIds, ids)
+
+                if fresh >= S.CYCLE_NEW_EGGS
+                    and (rerollAt == nil or now - rerollAt > S.CYCLE_MIN_GAP)
+                then
+                    rerollAt = now
+                    refIds, refAt = ids, now
+                    print("[EGG] new egg cycle detected")
+                elseif now - refAt >= S.CYCLE_REF_SECS then
+                    refIds, refAt = ids, now
+                end
+            end
+
+            if windowIds == nil then
+                windowIds, windowAt = ids, now
+                latched, cycleStart = copyCounts(live), now
+            else
+                local _, fresh = diffIds(windowIds, ids)
+
+                -- only NEW eggs appearing starts a new cycle. Eggs disappearing
+                -- (the game clears the field ~10s before the reroll) is ignored.
+                local bigChange = fresh >= S.RESET_IF_CHANGED
+                local locked = cycleStart ~= nil and (now - cycleStart) < S.REROLL_LOCKOUT
+
+                if bigChange and not locked then
+                    latched, cycleStart = copyCounts(live), now
+                    settling, settleStart = true, now
+                    windowIds, windowAt = ids, now
+                else
+                    for k, n in pairs(live) do
+                        if n > (latched[k] or 0) then latched[k] = n end
+                    end
+                    if now - windowAt >= S.WINDOW_SECONDS then
+                        windowIds, windowAt = ids, now
+                    end
+                end
+            end
+
+            local justSettled = false
+
+            if settling then
+                if zonesComplete(latched) or (now - settleStart) >= S.SETTLE_TIMEOUT then
+                    settling, justSettled = false, true
+                else
+                    return
+                end
+            end
+
+            local latchActive = S.LATCH_ENABLED
+                and cycleStart ~= nil
+                and (now - cycleStart) < S.LATCH_SECONDS
+
+            local shown = latchActive and latched or live
+            local sig   = signature(shown)
+
+            -- banner / event changes are sent right away instead of waiting for the heartbeat
+            local okB, bannerName = pcall(readScramble)
+            if okB and bannerName then sig = sig .. "|scramble:" .. bannerName end
+            if butterflyLeft() then sig = sig .. "|butterfly:1" end
+            if raceLeft()      then sig = sig .. "|race:1" end
+
+            local changed = sig ~= lastSig
+            local beat    = (now - lastSentAt) >= S.HEARTBEAT
+
+            if ((changed or justSettled) and (now - lastSentAt) >= S.MIN_SEND_GAP) or beat then
+                lastSig    = sig
+                lastSentAt = now
+                sendFeed(shown, rerollAt and math.floor(now - rerollAt) or nil)
+            end
+        end)
+
+        task.wait(S.CHECK_INTERVAL)
+    end
+end)
+
+
+-- ============================================================
+-- PART 3: BUTTERFLY BLOOM EVENT
+-- Fires when the server sends RE/LiveEvents/Began with ButterflyBloom.
+-- ============================================================
+
+local lastButterflyAt = 0
+
+local function buildButterflyEmbed(startedAt, endsAt, finished)
+    local title, desc, color, fields
+
+    if finished then
+        title  = "🦋  BUTTERFLY BLOOM ENDED  🦋"
+        desc   = "*The butterflies have flown away*"
+        color  = 0x808080
+        fields = {
+            { name = "🦋 Event",   value = "**Butterfly Bloom**", inline = true },
+            { name = "❌ Status",  value = "**Finished**",        inline = true },
+            { name = "⏱️ Started", value = "**<t:" .. startedAt .. ":R>**", inline = true },
+            { name = "⌛ ENDED",   value = "**Ended <t:" .. endsAt .. ":R>** (<t:" .. endsAt .. ":t>)", inline = false },
+        }
+    else
+        title  = "🦋  BUTTERFLY BLOOM ACTIVE  🦋"
+        desc   = "*A swarm of butterflies roam the servers*"
+        color  = 0xFF69B4
+        fields = {
+            { name = "🦋 Event",     value = "**Butterfly Bloom**", inline = true },
+            { name = "✅ Status",    value = "**Active**",          inline = true },
+            { name = "⏱️ Started",   value = "**<t:" .. startedAt .. ":R>**", inline = true },
+            { name = "⏳ TIME LEFT", value = "**Disappears <t:" .. endsAt .. ":R>** (<t:" .. endsAt .. ":t>)", inline = false },
+        }
+    end
+
+    return {
+        title       = title,
+        description = desc,
+        color       = color,
+        thumbnail   = { url = BUTTERFLY.IMAGE },
+        fields      = fields,
+        footer      = footer("Secret Alert"),
+        timestamp   = isoNow(),
+    }
+end
+
+local function sendButterflyEmbed(startedAt, duration)
+    if not validUrl(WEBHOOKS.Butterfly) then
+        warn("[Butterfly] webhook missing or invalid")
+        return
+    end
+
+    local endsAt = startedAt + duration
+
+    mirrorStartEdit({
+        username   = BOT.NAME,
+        avatar_url = (BOT.AVATAR ~= "") and BOT.AVATAR or nil,
+        content    = "**Butterfly Bloom** just started!",
+        allowed_mentions = { parse = {} },
+        embeds     = { buildButterflyEmbed(startedAt, endsAt, false) },
+    }, math.max(endsAt - os.time(), 0) + 1, function()
+        return {
+            content = "**Butterfly Bloom** has ended.",
+            allowed_mentions = { parse = {} },
+            embeds  = { buildButterflyEmbed(startedAt, endsAt, true) },
+        }
+    end)
+
+    task.spawn(function()
+        -- 1. send with ?wait=true so Discord returns the message id
+        local res = sendRequest("POST", WEBHOOKS.Butterfly .. "?wait=true", {
+            username   = BOT.NAME,
+            avatar_url = (BOT.AVATAR ~= "") and BOT.AVATAR or nil,
+            content    = "<@&" .. ROLES.Butterfly .. "> **Butterfly Bloom** just started!",
+            allowed_mentions = { roles = { ROLES.Butterfly } },
+            embeds     = { buildButterflyEmbed(startedAt, endsAt, false) },
+        }, 4)
+
+        local messageId
+        if res then
+            pcall(function() messageId = HttpService:JSONDecode(res.Body).id end)
+        end
+
+        if not messageId then
+            warn("[Butterfly] could not get message id, end edit skipped")
+            return
+        end
+
+        -- 2. wait until the event ends, then edit the same message
+        task.wait(math.max(endsAt - os.time(), 0) + 1)
+
+        local edited = sendRequest("PATCH", WEBHOOKS.Butterfly .. "/messages/" .. messageId, {
+            content = "**Butterfly Bloom** has ended.",
+            allowed_mentions = { parse = {} },
+            embeds  = { buildButterflyEmbed(startedAt, endsAt, true) },
+        }, 4)
+
+        if edited then
+            print("[Butterfly] message edited to finished")
+        else
+            warn("[Butterfly] edit failed")
+        end
+    end)
+end
+
+local function onButterflyBegan(name, duration)
+    if tostring(name) ~= BUTTERFLY.EVENT then return end
+
+    -- remember when the event ends so the feed reports it as running.
+    -- Done BEFORE the cooldown check so the board is always correct.
+    local dur = tonumber(duration) or BUTTERFLY.DEFAULT_DURATION
+    butterflyEndsAt = os.time() + dur
+
+    local now = os.time()
+    if now - lastButterflyAt < BUTTERFLY.COOLDOWN then
+        print("[Butterfly] skipped (cooldown)")
+        return
+    end
+    lastButterflyAt = now
+
+    sendButterflyEmbed(now, dur)
+    pushSite({ type = "butterfly", image = BUTTERFLY.IMAGE })
+    print("[Butterfly] alert sent")
+end
+
+local function hookButterfly(remote)
+    if remote:IsA("RemoteEvent") and remote.Name == "RE/LiveEvents/Began" then
+        remote.OnClientEvent:Connect(onButterflyBegan)
+        print("[Butterfly] hooked " .. remote:GetFullName())
+    end
+end
+
+for _, d in ipairs(RS:GetDescendants()) do hookButterfly(d) end
+RS.DescendantAdded:Connect(hookButterfly)
+
+if S.TEST_MODE then
+    task.delay(4, function()
+        sendButterflyEmbed(os.time(), BUTTERFLY.DEFAULT_DURATION)
+    end)
+end
+
+
+-- ============================================================
+-- PART 4: RACING EVENT (RaceRally)
+-- Green = you can still join, red = join window closed.
+-- ============================================================
+
+do
+    -- ---------- timer reader ----------
+    local function readTimerText()
+        local pg  = Players.LocalPlayer and Players.LocalPlayer:FindFirstChild("PlayerGui")
+        local hud = pg and pg:FindFirstChild("HUD")
+        if not hud then return nil end
+
+        for _, name in ipairs({ "GameHUD", "TradmilHud" }) do
+            local h  = hud:FindFirstChild(name)
+            local br = h and h:FindFirstChild("BottomRight")
+            local rt = br and br:FindFirstChild("RaceTimer")
+            local v  = rt and rt:FindFirstChild("Value")
+            if v and v:IsA("TextLabel") then
+                return (v.Text:gsub("<[^>]->", ""))
+            end
+        end
+        return nil
+    end
+
+    -- "Race in 28:27" -> 1707 (seconds), or nil
+    local function secondsUntilNextRace()
+        local text = readTimerText()
+        if not text or not text:lower():find("race in") then return nil end
+
+        local a, b, c = text:match("(%d+):(%d+):?(%d*)")
+        if not (a and b) then return nil end
+
+        if c ~= "" then
+            return tonumber(a) * 3600 + tonumber(b) * 60 + tonumber(c)
+        end
+        return tonumber(a) * 60 + tonumber(b)
+    end
+
+    -- ---------- embed ----------
+    local function buildRaceEmbed(startTs, joinEndsAt, nextTs, closed)
+        local nextField = {
+            name  = "🔁 NEXT RACING",
+            value = "**Starts <t:" .. nextTs .. ":R>** (<t:" .. nextTs .. ":t>)",
+            inline = false,
+        }
+        local locField = { name = "📍 Location", value = "**" .. RACE.LOCATION .. "**", inline = false }
+
+        local title, desc, color, fields
+
+        if closed then
+            title, desc, color = "🏁  RACING EVENT STARTED  🏁", "*The race has already begun*", RACE.COLOR_CLOSED
+            fields = {
+                { name = "🏁 Event",   value = "**Racing**",          inline = true },
+                { name = "❌ Status",  value = "**Already Started**", inline = true },
+                { name = "⏱️ Started", value = "**<t:" .. startTs .. ":R>**", inline = true },
+                locField, nextField,
+            }
+        else
+            title, desc, color = "🏁  RACING EVENT TIME  🏁", "*The race is open, jump in!*", RACE.COLOR_OPEN
+            fields = {
+                { name = "🏁 Event",       value = "**Racing**",    inline = true },
+                { name = "✅ Status",      value = "**Race Open**", inline = true },
+                { name = "⏳ Join closes", value = "**<t:" .. joinEndsAt .. ":R>**", inline = true },
+                locField, nextField,
+            }
+        end
+
+        return {
+            title       = title,
+            description = desc,
+            color       = color,
+            thumbnail   = { url = RACE.IMAGE },
+            fields      = fields,
+            footer      = footer("Racing Alert"),
+            timestamp   = isoNow(),
+        }
+    end
+
+    -- ---------- alert ----------
+    local lastRaceStart = 0
+
+    local function onRaceStart(joinEndsAt)
+        local now = os.time()
+        if now - lastRaceStart < RACE.COOLDOWN then
+            return -- already handled (remote / attribute / timer can all fire)
+        end
+        lastRaceStart = now
+
+        joinEndsAt = tonumber(joinEndsAt) or (now + RACE.JOIN)
+
+        -- sanity check: if the game's value looks wrong, use the default window
+        if joinEndsAt < now or joinEndsAt > now + 600 then
+            joinEndsAt = now + RACE.JOIN
+        end
+
+        -- tell the board feed the race is open (cleared when the join window ends)
+        raceEndsAt = joinEndsAt
+        pushSite({ type = "race", location = RACE.LOCATION, status = "Race Open", image = RACE.IMAGE })
+
+        local startTs   = now
+        local guessNext = startTs + RACE.INTERVAL
+        print("[RacingWebhook] race started! sending alert")
+
+        mirrorStartEdit({
+            username   = BOT.NAME,
+            avatar_url = BOT.AVATAR,
+            content    = "**Racing Event** just started! Join now!",
+            allowed_mentions = { parse = {} },
+            embeds     = { buildRaceEmbed(startTs, joinEndsAt, guessNext, false) },
+        }, math.max(0, joinEndsAt - os.time()) + 2, function()
+            local nextTs = guessNext
+            local secs = secondsUntilNextRace()
+            if secs and secs > 0 then nextTs = os.time() + secs end
+            return {
+                content = "**Racing Event** has already started.",
+                allowed_mentions = { parse = {} },
+                embeds  = { buildRaceEmbed(startTs, joinEndsAt, nextTs, true) },
+            }
+        end)
+
+        local res = sendRequest("POST", WEBHOOKS.Racing .. "?wait=true", {
+            username   = BOT.NAME,
+            avatar_url = BOT.AVATAR,
+            content    = ("<@&%s> **Racing Event** just started! Join now!"):format(ROLES.Racing),
+            allowed_mentions = { roles = { ROLES.Racing } },
+            embeds     = { buildRaceEmbed(startTs, joinEndsAt, guessNext, false) },
+        }, 4)
+        if not res then return end
+
+        local messageId
+        pcall(function() messageId = HttpService:JSONDecode(res.Body).id end)
+        if not messageId then
+            warn("[RacingWebhook] could not get message id, edit skipped")
+            return
+        end
+
+        -- when the join window closes, turn it red
+        task.wait(math.max(0, joinEndsAt - os.time()) + 2)
+
+        -- use the game's real "Race in M:SS" countdown for the next race if available
+        local nextTs = guessNext
+        local secs = secondsUntilNextRace()
+        if secs and secs > 0 then nextTs = os.time() + secs end
+
+        sendRequest("PATCH", WEBHOOKS.Racing .. "/messages/" .. messageId, {
+            content = "**Racing Event** has already started.",
+            allowed_mentions = { parse = {} },
+            embeds  = { buildRaceEmbed(startTs, joinEndsAt, nextTs, true) },
+        }, 4)
+    end
+
+    -- ---------- trigger 1: the remote ----------
+    local function hookRace(r)
+        if r:IsA("RemoteEvent") and r.Name == "RE/LiveEvents/Began" then
+            r.OnClientEvent:Connect(function(name, _, info)
+                if tostring(name) ~= RACE.EVENT then return end
+                local joinEndsAt = type(info) == "table" and info.JoinEndsAt or nil
+                task.spawn(onRaceStart, joinEndsAt)
+            end)
+            print("[RacingWebhook] hooked " .. r:GetFullName())
+        end
+    end
+
+    for _, d in ipairs(RS:GetDescendants()) do hookRace(d) end
+    RS.DescendantAdded:Connect(hookRace)
+
+    -- ---------- trigger 2: workspace attribute ----------
+    workspace:GetAttributeChangedSignal("RaceRallyRunning"):Connect(function()
+        if workspace:GetAttribute("RaceRallyRunning") == true then
+            task.wait(0.5)
+            task.spawn(onRaceStart, workspace:GetAttribute("RaceRallyJoinEndsAt"))
+        end
+    end)
+
+    -- ---------- trigger 3: timer says "Race open!" ----------
+    -- Fires only when the timer ENTERS the open state, so polling can't resend the alert.
+    task.spawn(function()
+        local wasRaceOpen = false
+
+        while alive() do
+            local ok, timerText = pcall(readTimerText)
+
+            -- a temporarily missing GUI/text should not re-arm the alert
+            if ok and timerText then
+                local isRaceOpen = timerText:lower():find("race open", 1, true) ~= nil
+                if isRaceOpen and not wasRaceOpen then
+                    task.spawn(onRaceStart, nil)
+                end
+                wasRaceOpen = isRaceOpen
+            end
+
+            task.wait(0.5)
+        end
+    end)
+
+    local secs = secondsUntilNextRace()
+    print("[RacingWebhook] running. Next race in "
+        .. (secs and (math.floor(secs / 60) .. "m " .. secs % 60 .. "s") or "?"))
+end
+
+
+-- ============================================================
+-- PART 5: HALLOWEEN DIMENSION
+-- These eggs are NOT returned by EggState.ReadFieldEggs, so they get their
+-- own scanner. It reads Workspace.HalloweenDimension.WorldEggs and sends
+-- each Secret / Eternal / Divine egg through the normal alert queue
+-- (same embed, same tier webhook, same website push).
+--
+--   Zone 1 = Graveyard        Graveyard Brute (Secret), Ghost Reaper (Eternal)
+--   Zone 2 = Haunted Swamp    BloodBloom (Secret), Shelltide Voyager (Eternal)
+--   Zone 3 = Abandoned Manor  Werewolf (Secret), Gorillastein (Eternal), Voidseer Pumpkin (Divine)
+--
+-- The Halloween Egg pets (Bone Emperor, Phantom Dragon, Zombified ...) are
+-- picked up by the normal feed scanner through RARE_EGGS, not by this one.
+-- ============================================================
+
+if S.HALLOWEEN_ENABLED then
+    task.spawn(function()
+        local ZONE_NAMES = {
+            [1] = "Halloween Dimension • Graveyard",
+            [2] = "Halloween Dimension • Haunted Swamp",
+            [3] = "Halloween Dimension • Abandoned Manor",
+        }
+
+        -- game source name (lowercase, letters/digits only) -> RARE_EGGS key
+        local SOURCES = {
+            graveyardbrute      = "graveyard brute",
+            ghostreaper         = "ghost reaper",
+            bloodbloom          = "bloodbloom",
+            shelltidevoyager    = "shelltide voyager",
+            dreadwolf           = "werewolf",
+            werewolf            = "werewolf",
+            frankensteinkongegg = "gorillastein",
+            abominationkong     = "gorillastein",
+            gorillastein        = "gorillastein",
+            voidseerpumpkin     = "voidseer pumpkin",
+        }
+
+        local function cleanKey(s)
+            return (tostring(s or ""):lower():gsub("[^%w]", ""))
+        end
+
+        local function lookupKey(k)
+            if k == "" then return nil end
+            if SOURCES[k] then return SOURCES[k] end
+            local stripped = k:gsub("egg$", "")
+            return SOURCES[stripped]
+        end
+
+        -- returns the RARE_EGGS key for this egg model, or nil if it is not a rare one
+        local function resolveEgg(m)
+            local candidates = {
+                m:GetAttribute("PreparedSourceName"),
+                m:GetAttribute("SourceName"),
+                m:GetAttribute("Category"),
+                m.Name,
+            }
+            for i = 1, 4 do
+                local key = lookupKey(cleanKey(candidates[i]))
+                if key then return key end
+            end
+            return nil
+        end
+
+        local seenH, reportedH = ENV.WORST_SEEN_H, {}   -- uid -> last seen, unidentified-egg log guard
+        local hPresent, hEver = {}, {}    -- debug
+        local firstScan = true
+
+        while alive() do
+            pcall(function()
+                local dim    = workspace:FindFirstChild("HalloweenDimension")
+                local folder = dim and dim:FindFirstChild("WorldEggs")
+                if not folder then return end
+
+                local now = os.clock()
+                local hNow = {}
+
+                for _, m in ipairs(folder:GetChildren()) do
+                    local zone = tonumber(m:GetAttribute("Zone")) or 0
+
+                    if zone == 2 and not S.HALLOWEEN_SCAN_SWAMP then
+                        -- skipped by setting
+                    else
+                        local eggKey = resolveEgg(m)
+                        local info   = eggKey and RARE_EGGS[eggKey]
+
+                        if info then
+                            local uid = tostring(m:GetAttribute("HalloweenEggUid") or m:GetFullName())
+                            local isNew = seenH[uid] == nil
+                            seenH[uid] = now
+                            hNow[uid] = eggKey
+
+                            if isNew and (S.ALERT_EXISTING_ON_START or not firstScan) then
+                                alertQueue[#alertQueue + 1] = {
+                                    name     = eggKey,
+                                    tier     = info.tier,
+                                    location = ZONE_NAMES[zone] or "Halloween Dimension",
+                                }
+                                print("[HALLOWEEN] rare spotted:", eggKey, "(" .. info.tier .. ")", "zone", zone)
+                                debugLog(string.format("**HALLOWEEN ALERT** %s (%s) uid=`%s` zone=%s src=%s",
+                                    eggKey, info.tier, uid, tostring(zone),
+                                    tostring(m:GetAttribute("PreparedSourceName") or m:GetAttribute("SourceName") or m.Name)))
+                            end
+                        elseif S.DEBUG_PRINT then
+                            local key = m:GetFullName() .. tostring(m:GetAttribute("HalloweenEggUid"))
+                            if not reportedH[key] then
+                                reportedH[key] = true
+                                local a = {}
+                                for k, v in pairs(m:GetAttributes()) do a[#a + 1] = k .. "=" .. tostring(v) end
+                                print("[HALLOWEEN] not a rare egg, zone " .. zone .. ", attrs: " .. table.concat(a, ", "))
+                            end
+                        end
+                    end
+                end
+
+                firstScan = false
+
+                for uid, name in pairs(hPresent) do
+                    if not hNow[uid] then debugLog("HALLOWEEN VANISHED " .. name .. " uid=`" .. uid .. "`") end
+                end
+                for uid, name in pairs(hNow) do
+                    if not hPresent[uid] and hEver[uid] then debugLog("HALLOWEEN REAPPEARED " .. name .. " uid=`" .. uid .. "`") end
+                    hEver[uid] = true
+                end
+                hPresent = hNow
+
+                -- forget eggs that have been gone for a while
+                for uid, seenAt in pairs(seenH) do
+                    if now - seenAt > S.ALERT_FORGET_SECONDS then seenH[uid] = nil end
+                end
+            end)
+
+            task.wait(S.HALLOWEEN_INTERVAL)
+        end
+    end)
+
+    print("[EGG] Halloween Dimension scanner running")
+end
+
+print("[EGG] running!")
